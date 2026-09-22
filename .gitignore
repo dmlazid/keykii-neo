@@ -1,0 +1,5 @@
+keystore.properties
+keykii-release.jks
+local.properties
+build/
+.gradle/
