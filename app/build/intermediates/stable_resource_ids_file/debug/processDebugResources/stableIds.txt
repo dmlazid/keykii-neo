@@ -1,0 +1,2 @@
+com.keykii.neo:xml/method = 0x7f020000
+com.keykii.neo:style/Theme.KeyKii = 0x7f010000

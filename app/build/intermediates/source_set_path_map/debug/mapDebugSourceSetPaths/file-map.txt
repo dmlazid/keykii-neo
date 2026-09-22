@@ -1,0 +1,7 @@
+com.keykii.neo.app-pngs-0 /workspaces/keykii-neo/app/build/generated/res/pngs/debug
+com.keykii.neo.app-resValues-1 /workspaces/keykii-neo/app/build/generated/res/resValues/debug
+com.keykii.neo.app-packageDebugResources-2 /workspaces/keykii-neo/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
+com.keykii.neo.app-packageDebugResources-3 /workspaces/keykii-neo/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
+com.keykii.neo.app-debug-4 /workspaces/keykii-neo/app/build/intermediates/merged_res/debug/mergeDebugResources
+com.keykii.neo.app-debug-5 /workspaces/keykii-neo/app/src/debug/res
+com.keykii.neo.app-main-6 /workspaces/keykii-neo/app/src/main/res

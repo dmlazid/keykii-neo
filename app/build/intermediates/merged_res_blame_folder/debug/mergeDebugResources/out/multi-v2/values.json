@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.keykii.neo.app-mergeDebugResources-2:/values/values.xml",
+            "map": [
+                {
+                    "source": "/workspaces/keykii-neo/app/src/main/res/values/themes.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "8",
+                        "endColumns": "12",
+                        "endOffsets": "448"
+                    }
+                }
+            ]
+        }
+    ]
+}

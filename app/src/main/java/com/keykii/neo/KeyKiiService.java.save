@@ -1,0 +1,124 @@
+package com.keykii.neo;
+
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.inputmethodservice.InputMethodService;
+import android.view.Gravity;
+import android.view.View;
+import android.view.inputmethod.InputConnection;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+public class KeyKiiService extends InputMethodService {
+
+    private boolean shift = false;
+
+    private int dp(float value) {
+        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    @Override
+    public View onCreateInputView() {
+        LinearLayout keyboard = new LinearLayout(this);
+        keyboard.setOrientation(LinearLayout.VERTICAL);
+        keyboard.setPadding(dp(5), dp(5), dp(5), dp(5));
+        keyboard.setBackgroundColor(Color.rgb(247, 242, 232));
+
+        addLetters(keyboard, new String[]{"Q","W","E","R","T","Y","U","I","O","P"}, 0);
+        addLetters(keyboard, new String[]{"A","S","D","F","G","H","J","K","L"}, 1);
+        addLetters(keyboard, new String[]{"Z","X","C","V","B","N","M"}, 2);
+
+        LinearLayout bottom = new LinearLayout(this);
+        bottom.setGravity(Gravity.CENTER);
+        bottom.setWeightSum(5);
+
+        addKey(bottom, "⇧", 1);
+        addKey(bottom, ",", 0.8f);
+        addKey(bottom, "SPACE", 2.4f);
+        addKey(bottom, ".", 0.8f);
+        addKey(bottom, "⌫", 1);
+
+        keyboard.addView(bottom, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(60)));
+
+        LinearLayout last = new LinearLayout(this);
+        last.setGravity(Gravity.CENTER);
+
+        addKey(last, "123", 1.3f);
+        addKey(last, "😊", 1.3f);
+        addKey(last, "↵", 1.3f);
+
+        keyboard.addView(last, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(60)));
+
+        return keyboard;
+    }
+
+    private void addLetters(LinearLayout keyboard, String[] keys, int indent) {
+        LinearLayout row = new LinearLayout(this);
+        row.setGravity(Gravity.CENTER);
+        row.setWeightSum(keys.length);
+
+        for (String key : keys) {
+            addKey(row, key, 1);
+        }
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(60));
+
+        params.setMargins(dp(indent * 12), 0, dp(indent * 12), 0);
+        keyboard.addView(row, params);
+    }
+
+    private void addKey(LinearLayout row, String text, float weight) {
+        TextView key = new TextView(this);
+
+        key.setText(text);
+        key.setTextSize(text.equals("SPACE") ? 13 : 18);
+        key.setTextColor(Color.rgb(55, 52, 48));
+        key.setGravity(Gravity.CENTER);
+        key.setFontFeatureSettings("kern");
+
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.rgb(255, 252, 246));
+        bg.setCornerRadius(dp(12));
+        key.setBackground(bg);
+
+        key.setOnClickListener(v -> handleKey(text));
+
+        LinearLayout.LayoutParams params =
+                new LinearLayout.LayoutParams(0, dp(56), weight);
+
+        params.setMargins(dp(2), dp(2), dp(2), dp(2));
+        row.addView(key, params);
+    }
+
+    private void handleKey(String key) {
+        InputConnection input = getCurrentInputConnection();
+        if (input == null) return;
+
+        if (key.equals("⌫")) {
+            input.deleteSurroundingText(1, 0);
+
+        } else if (key.equals("SPACE")) {
+            input.commitText(" ", 1);
+
+        } else if (key.equals("↵")) {
+            input.commitText("\n", 1);
+
+        } else if (key.equals("⇧")) {
+            shift = !shift;
+
+        } else if (key.equals("123")) {
+            // Number layout will be added next.
+
+        } else if (key.equals("😊")) {
+            // Emoji panel will be added next.
+
+        } else {
+            String letter = shift ? key.toUpperCase() : key.toLowerCase();
+            input.commitText(letter, 1);
+            shift = false;
+        }
+    }
+}
