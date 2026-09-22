@@ -1,5 +1,6 @@
 package com.keykii.neo;
 
+import android.content.*;
 import android.graphics.Color;
 import android.graphics.drawable.*;
 import android.inputmethodservice.InputMethodService;
@@ -10,233 +11,731 @@ import android.widget.*;
 
 public class KeyKiiService extends InputMethodService {
 
-    LinearLayout panel;
-    boolean shift=false, symbols=false;
+    LinearLayout root, panel, body;
 
-    int PANEL=Color.argb(220,35,37,42);
-    int KEY=Color.argb(115,235,235,238);
-    int SPECIAL=Color.argb(75,235,235,238);
-    int PRESS=Color.argb(170,245,245,247);
-    int WHITE=Color.WHITE;
+    boolean shift=false;
+    boolean symbols=false;
+    boolean floating=true;
+
+    int symbolPage=1;
+    int page=0;
+    int theme=0;
+    int hand=0;
 
     @Override
-    public View onCreateInputView(){
+    public View onCreateInputView() {
 
-        LinearLayout root=new LinearLayout(this);
+        root=new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setGravity(Gravity.CENTER_HORIZONTAL);
         root.setBackgroundColor(Color.TRANSPARENT);
-        root.setPadding(dp(12),dp(5),dp(12),dp(32));
 
-        panel=new LinearLayout(this);
-        panel.setOrientation(LinearLayout.VERTICAL);
-        panel.setPadding(dp(9),dp(6),dp(9),dp(9));
+        buildShell();
 
-        GradientDrawable bg=new GradientDrawable();
-        bg.setColor(PANEL);
-        bg.setCornerRadius(dp(25));
-        bg.setStroke(dp(1),Color.argb(55,255,255,255));
-        panel.setBackground(bg);
-        panel.setElevation(dp(10));
-
-        DisplayMetrics d=getResources().getDisplayMetrics();
-
-        LinearLayout.LayoutParams p=
-            new LinearLayout.LayoutParams(
-                (int)(d.widthPixels*.78f),
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-
-        root.addView(panel,p);
-        build();
         return root;
     }
 
-    void build(){
-        panel.removeAllViews();
-        handle();
+    void buildShell() {
 
-        if(symbols){
-            row(new String[]{"1","2","3","4","5","6","7","8","9","0"});
-            row(new String[]{"@","#","$","%","&","-","+","(",")","/"});
-            third(new String[]{"*","\"","'",":",";","!","?"});
-        }else{
-            row(new String[]{"q","w","e","r","t","y","u","i","o","p"});
-            centerRow(new String[]{"a","s","d","f","g","h","j","k","l"});
-            third(new String[]{"z","x","c","v","b","n","m"});
+        root.removeAllViews();
+
+        root.setGravity(
+            hand==1 ? Gravity.START :
+            hand==2 ? Gravity.END :
+            Gravity.CENTER_HORIZONTAL
+        );
+
+        // Higher floating position
+        root.setPadding(
+            dp(12),
+            dp(4),
+            dp(12),
+            dp(floating ? 78 : 18)
+        );
+
+        panel=new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(
+            dp(9),
+            dp(6),
+            dp(9),
+            dp(9)
+        );
+
+        panel.setElevation(dp(10));
+
+        panel.setBackground(
+            round(
+                panelColor(),
+                25,
+                borderColor()
+            )
+        );
+
+        DisplayMetrics d=
+            getResources().getDisplayMetrics();
+
+        float ratio;
+
+        if(hand!=0)
+            ratio=.62f;
+        else if(floating)
+            ratio=.76f;
+        else
+            ratio=.96f;
+
+        LinearLayout.LayoutParams p=
+            new LinearLayout.LayoutParams(
+                (int)(d.widthPixels*ratio),
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+
+        p.gravity=
+            hand==1 ? Gravity.START :
+            hand==2 ? Gravity.END :
+            Gravity.CENTER_HORIZONTAL;
+
+        root.addView(panel,p);
+
+        addHandle();
+        addToolbar();
+
+        body=new LinearLayout(this);
+        body.setOrientation(LinearLayout.VERTICAL);
+
+        panel.addView(
+            body,
+            new LinearLayout.LayoutParams(
+                -1,
+                -2
+            )
+        );
+
+        showPage();
+    }
+
+    void addHandle() {
+
+        LinearLayout r=new LinearLayout(this);
+        r.setGravity(Gravity.CENTER);
+
+        View v=new View(this);
+
+        v.setBackground(
+            round(
+                Color.argb(115,255,255,255),
+                4,
+                Color.TRANSPARENT
+            )
+        );
+
+        LinearLayout.LayoutParams p=
+            new LinearLayout.LayoutParams(
+                dp(40),
+                dp(3)
+            );
+
+        p.setMargins(
+            0,0,0,dp(5)
+        );
+
+        r.addView(v,p);
+        panel.addView(r);
+    }
+
+    void addToolbar() {
+
+        LinearLayout r=new LinearLayout(this);
+        r.setGravity(Gravity.CENTER);
+
+        tool(r,"⌨",0);
+        tool(r,"☺",1);
+        tool(r,"▣",2);
+        tool(r,"✎",3);
+        tool(r,"◐",4);
+        tool(r,"↔",5);
+        tool(r,"◇",6);
+
+        panel.addView(
+            r,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(30)
+            )
+        );
+    }
+
+    void tool(
+        LinearLayout r,
+        String text,
+        int action
+    ) {
+
+        TextView v=new TextView(this);
+
+        v.setText(text);
+        v.setTextColor(textColor());
+        v.setTextSize(15);
+        v.setGravity(Gravity.CENTER);
+
+        v.setOnClickListener(x -> {
+
+            if(action<=3) {
+
+                page=action;
+                showPage();
+
+            } else if(action==4) {
+
+                theme=(theme+1)%3;
+                buildShell();
+
+            } else if(action==5) {
+
+                hand=(hand+1)%3;
+                buildShell();
+
+            } else {
+
+                floating=!floating;
+                buildShell();
+            }
+        });
+
+        r.addView(
+            v,
+            new LinearLayout.LayoutParams(
+                0,
+                dp(28),
+                1
+            )
+        );
+    }
+
+    void showPage() {
+
+        body.removeAllViews();
+
+        if(page==0)
+            buildKeyboard();
+
+        else if(page==1)
+            buildEmoji();
+
+        else if(page==2)
+            buildClipboard();
+
+        else
+            buildEditing();
+    }
+
+    void buildKeyboard() {
+
+        if(!symbols) {
+
+            row(new String[]{
+                "q","w","e","r","t",
+                "y","u","i","o","p"
+            });
+
+            centered(new String[]{
+                "a","s","d","f","g",
+                "h","j","k","l"
+            });
+
+            third(new String[]{
+                "z","x","c","v",
+                "b","n","m"
+            });
+
+        } else if(symbolPage==1) {
+
+            row(new String[]{
+                "1","2","3","4","5",
+                "6","7","8","9","0"
+            });
+
+            row(new String[]{
+                "@","#","$","%","&",
+                "-","+","(",")","/"
+            });
+
+            third(new String[]{
+                "*","\"","'",":",
+                ";","!","?"
+            });
+
+        } else {
+
+            row(new String[]{
+                "[","]","{","}",
+                "<",">","=","_","|","~"
+            });
+
+            row(new String[]{
+                "\\","€","£","¥","•",
+                "°","`","^",":",";"
+            });
+
+            third(new String[]{
+                "+","-","×","÷",
+                "=","_","…"
+            });
         }
 
         bottom();
     }
 
-    void handle(){
-        LinearLayout r=new LinearLayout(this);
-        r.setGravity(Gravity.CENTER);
+    void row(String[] values) {
 
-        View v=new View(this);
-
-        GradientDrawable g=new GradientDrawable();
-        g.setColor(Color.argb(120,255,255,255));
-        g.setCornerRadius(dp(5));
-        v.setBackground(g);
-
-        LinearLayout.LayoutParams p=
-            new LinearLayout.LayoutParams(dp(42),dp(3));
-
-        p.setMargins(0,0,0,dp(7));
-        r.addView(v,p);
-        panel.addView(r);
-    }
-
-    void row(String[] a){
         LinearLayout r=newRow();
 
-        for(String s:a)
+        for(String s:values)
             key(r,s,s,1,false);
 
-        panel.addView(r);
+        body.addView(r);
     }
 
-    void centerRow(String[] a){
+    void centered(String[] values) {
+
         LinearLayout r=newRow();
 
-        spacer(r,.45f);
+        spacer(r,.42f);
 
-        for(String s:a)
+        for(String s:values)
             key(r,s,s,1,false);
 
-        spacer(r,.45f);
-        panel.addView(r);
+        spacer(r,.42f);
+
+        body.addView(r);
     }
 
-    void third(String[] a){
+    void third(String[] values) {
+
         LinearLayout r=newRow();
 
-        key(r,symbols?"ABC":"⇧",
-            symbols?"ABC":"SHIFT",1.05f,true);
+        if(!symbols) {
 
-        for(String s:a)
+            key(
+                r,
+                "⇧",
+                "SHIFT",
+                1.05f,
+                true
+            );
+
+        } else if(symbolPage==1) {
+
+            key(
+                r,
+                "#+=",
+                "SYM2",
+                1.05f,
+                true
+            );
+
+        } else {
+
+            key(
+                r,
+                "123",
+                "SYM1",
+                1.05f,
+                true
+            );
+        }
+
+        for(String s:values)
             key(r,s,s,1,false);
 
-        key(r,"⌫","BACK",1.05f,true);
+        key(
+            r,
+            "⌫",
+            "BACK",
+            1.05f,
+            true
+        );
 
-        panel.addView(r);
+        body.addView(r);
     }
 
-    void bottom(){
+    void bottom() {
+
         LinearLayout r=newRow();
 
-        key(r,symbols?"ABC":"123",
-            symbols?"ABC":"123",1,true);
+        key(
+            r,
+            symbols ? "ABC" : "123",
+            symbols ? "ABC" : "123",
+            1,
+            true
+        );
 
-        key(r,"☺","EMOJI",.7f,true);
+        // Opens emoji panel now
+        key(
+            r,
+            "☺",
+            "EMOJI",
+            .70f,
+            true
+        );
 
-        key(r,"KeyKii","SPACE",3.2f,false);
+        key(
+            r,
+            "KeyKii",
+            "SPACE",
+            3.10f,
+            false
+        );
 
-        key(r,"return","ENTER",1.15f,true);
+        key(
+            r,
+            enterLabel(),
+            "ENTER",
+            1.20f,
+            true
+        );
 
-        panel.addView(r);
+        body.addView(r);
     }
 
-    LinearLayout newRow(){
-        LinearLayout r=new LinearLayout(this);
+    LinearLayout newRow() {
+
+        LinearLayout r=
+            new LinearLayout(this);
+
         r.setGravity(Gravity.CENTER);
 
         LinearLayout.LayoutParams p=
             new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
+                -1,
+                -2
+            );
 
-        p.setMargins(0,dp(1),0,dp(1));
+        p.setMargins(
+            0,
+            dp(1),
+            0,
+            dp(1)
+        );
+
         r.setLayoutParams(p);
 
         return r;
     }
 
-    void spacer(LinearLayout r,float w){
-        View v=new View(this);
+    void spacer(
+        LinearLayout r,
+        float weight
+    ) {
 
-        r.addView(v,
+        r.addView(
+            new View(this),
             new LinearLayout.LayoutParams(
-                0,dp(30),w));
+                0,
+                dp(28),
+                weight
+            )
+        );
     }
 
-    void key(LinearLayout r,String text,
-             String action,float weight,
-             boolean special){
+    void key(
+        LinearLayout r,
+        String label,
+        String action,
+        float weight,
+        boolean special
+    ) {
 
-        TextView k=new TextView(this);
+        TextView k=
+            new TextView(this);
 
-        k.setText(
-            shift && !symbols && text.length()==1
-                ? text.toUpperCase():text);
+        String shown=
+            shift &&
+            !symbols &&
+            label.length()==1
+            ? label.toUpperCase()
+            : label;
 
-        k.setTextColor(WHITE);
+        k.setText(shown);
+        k.setTextColor(textColor());
         k.setGravity(Gravity.CENTER);
         k.setIncludeFontPadding(false);
-        k.setTextSize(
-            text.equals("KeyKii")?14:
-            text.length()>1?12:15);
+        k.setAllCaps(false);
 
-        GradientDrawable normal=new GradientDrawable();
-        normal.setColor(special?SPECIAL:KEY);
-        normal.setCornerRadius(dp(15));
-        normal.setStroke(
-            dp(1),
-            Color.argb(28,255,255,255));
+        if(label.equals("KeyKii"))
+            k.setTextSize(14);
 
-        GradientDrawable pressed=new GradientDrawable();
-        pressed.setColor(PRESS);
-        pressed.setCornerRadius(dp(15));
+        else if(label.length()>2)
+            k.setTextSize(11);
 
-        StateListDrawable state=new StateListDrawable();
+        else
+            k.setTextSize(14);
 
-        state.addState(
-            new int[]{android.R.attr.state_pressed},
-            pressed);
+        boolean space=
+            action.equals("SPACE");
 
-        state.addState(new int[]{},normal);
+        k.setBackground(
+            keyBackground(
+                special,
+                space
+            )
+        );
 
-        k.setBackground(state);
-
-        // Visual animation only. NO vibration.
+        // Visual press only.
+        // No vibration.
         k.setOnTouchListener((v,e)->{
 
-            if(e.getAction()==MotionEvent.ACTION_DOWN)
-                v.animate()
-                    .scaleX(.94f)
-                    .scaleY(.94f)
-                    .setDuration(40).start();
+            if(e.getAction()==
+               MotionEvent.ACTION_DOWN) {
 
-            if(e.getAction()==MotionEvent.ACTION_UP ||
-               e.getAction()==MotionEvent.ACTION_CANCEL)
                 v.animate()
-                    .scaleX(1f)
-                    .scaleY(1f)
-                    .setDuration(60).start();
+                 .scaleX(.94f)
+                 .scaleY(.94f)
+                 .setDuration(35)
+                 .start();
+            }
+
+            if(e.getAction()==
+               MotionEvent.ACTION_UP ||
+               e.getAction()==
+               MotionEvent.ACTION_CANCEL) {
+
+                v.animate()
+                 .scaleX(1f)
+                 .scaleY(1f)
+                 .setDuration(55)
+                 .start();
+            }
 
             return false;
         });
 
-        k.setOnClickListener(v->press(action));
+        k.setOnClickListener(
+            v -> press(action)
+        );
+
+        int height=
+            label.equals("KeyKii")
+            ? dp(32)
+            : dp(28);
 
         LinearLayout.LayoutParams p=
             new LinearLayout.LayoutParams(
                 0,
-                text.equals("KeyKii")?dp(34):dp(30),
-                weight);
+                height,
+                weight
+            );
 
-        p.setMargins(dp(3),dp(3),dp(3),dp(3));
+        p.setMargins(
+            dp(3),
+            dp(3),
+            dp(3),
+            dp(3)
+        );
 
         r.addView(k,p);
     }
 
-    void press(String s){
+    void buildEmoji() {
 
-        InputConnection i=getCurrentInputConnection();
+        String[] emojis={
+            "😀","😃","😄","😁","😆","🥹",
+            "😊","😍","🥰","😘","😎","🤩",
+            "😭","😂","🤣","😅","🙂","🙃",
+            "😉","😌","😴","🤔","🙄","😤",
+            "😡","❤️","✨","🔥","👍","🙏"
+        };
 
-        if(i==null)return;
+        for(int i=0;i<emojis.length;i+=6) {
 
-        switch(s){
+            LinearLayout r=newRow();
+
+            for(
+                int j=i;
+                j<Math.min(i+6,emojis.length);
+                j++
+            ) {
+
+                key(
+                    r,
+                    emojis[j],
+                    emojis[j],
+                    1,
+                    false
+                );
+            }
+
+            body.addView(r);
+        }
+    }
+
+    void buildClipboard() {
+
+        TextView title=
+            title("Clipboard");
+
+        body.addView(
+            title,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(30)
+            )
+        );
+
+        ClipboardManager cm=
+            (ClipboardManager)
+            getSystemService(
+                CLIPBOARD_SERVICE
+            );
+
+        if(
+            cm==null ||
+            !cm.hasPrimaryClip()
+        ) {
+
+            TextView empty=
+                title("Nothing copied yet");
+
+            body.addView(
+                empty,
+                new LinearLayout.LayoutParams(
+                    -1,
+                    dp(40)
+                )
+            );
+
+            return;
+        }
+
+        ClipData clip=
+            cm.getPrimaryClip();
+
+        if(
+            clip==null ||
+            clip.getItemCount()==0
+        ) return;
+
+        CharSequence cs=
+            clip.getItemAt(0)
+                .coerceToText(this);
+
+        if(cs==null) return;
+
+        String text=
+            cs.toString();
+
+        String preview=
+            text.length()>48
+            ? text.substring(0,48)+"…"
+            : text;
+
+        TextView item=
+            title(preview);
+
+        item.setBackground(
+            round(
+                keyColor(false),
+                14,
+                borderColor()
+            )
+        );
+
+        item.setOnClickListener(v -> {
+
+            InputConnection ic=
+                getCurrentInputConnection();
+
+            if(ic!=null)
+                ic.commitText(text,1);
+        });
+
+        LinearLayout.LayoutParams p=
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(42)
+            );
+
+        p.setMargins(
+            dp(5),
+            dp(4),
+            dp(5),
+            dp(4)
+        );
+
+        body.addView(item,p);
+    }
+
+    void buildEditing() {
+
+        editRow(
+            new String[]{
+                "←","↑","↓","→"
+            },
+            new String[]{
+                "LEFT","UP","DOWN","RIGHT"
+            }
+        );
+
+        editRow(
+            new String[]{
+                "Select","Copy","Paste","Cut"
+            },
+            new String[]{
+                "SELECT","COPY","PASTE","CUT"
+            }
+        );
+
+        editRow(
+            new String[]{
+                "Home","End","⌫","ABC"
+            },
+            new String[]{
+                "HOME","END","BACK","KEYS"
+            }
+        );
+    }
+
+    void editRow(
+        String[] labels,
+        String[] actions
+    ) {
+
+        LinearLayout r=newRow();
+
+        for(int i=0;i<labels.length;i++)
+            key(
+                r,
+                labels[i],
+                actions[i],
+                1,
+                true
+            );
+
+        body.addView(r);
+    }
+
+    TextView title(String text) {
+
+        TextView v=
+            new TextView(this);
+
+        v.setText(text);
+        v.setTextColor(textColor());
+        v.setTextSize(13);
+        v.setGravity(Gravity.CENTER);
+        v.setSingleLine(true);
+
+        return v;
+    }
+
+    void press(String action) {
+
+        InputConnection i=
+            getCurrentInputConnection();
+
+        if(i==null) return;
+
+        switch(action) {
 
             case "BACK":
                 i.deleteSurroundingText(1,0);
@@ -252,71 +751,327 @@ public class KeyKiiService extends InputMethodService {
 
             case "SHIFT":
                 shift=!shift;
-                build();
+                showPage();
                 break;
 
             case "123":
                 symbols=true;
+                symbolPage=1;
                 shift=false;
-                build();
+                showPage();
                 break;
 
             case "ABC":
                 symbols=false;
+                symbolPage=1;
                 shift=false;
-                build();
+                showPage();
+                break;
+
+            case "SYM2":
+                symbolPage=2;
+                showPage();
+                break;
+
+            case "SYM1":
+                symbolPage=1;
+                showPage();
                 break;
 
             case "EMOJI":
-                i.commitText("☺",1);
+                page=1;
+                showPage();
+                break;
+
+            case "KEYS":
+                page=0;
+                showPage();
+                break;
+
+            case "LEFT":
+                sendKey(i,KeyEvent.KEYCODE_DPAD_LEFT);
+                break;
+
+            case "RIGHT":
+                sendKey(i,KeyEvent.KEYCODE_DPAD_RIGHT);
+                break;
+
+            case "UP":
+                sendKey(i,KeyEvent.KEYCODE_DPAD_UP);
+                break;
+
+            case "DOWN":
+                sendKey(i,KeyEvent.KEYCODE_DPAD_DOWN);
+                break;
+
+            case "HOME":
+                sendKey(i,KeyEvent.KEYCODE_MOVE_HOME);
+                break;
+
+            case "END":
+                sendKey(i,KeyEvent.KEYCODE_MOVE_END);
+                break;
+
+            case "SELECT":
+                i.performContextMenuAction(
+                    android.R.id.selectAll
+                );
+                break;
+
+            case "COPY":
+                i.performContextMenuAction(
+                    android.R.id.copy
+                );
+                break;
+
+            case "PASTE":
+                i.performContextMenuAction(
+                    android.R.id.paste
+                );
+                break;
+
+            case "CUT":
+                i.performContextMenuAction(
+                    android.R.id.cut
+                );
                 break;
 
             default:
 
                 String out=
                     shift && !symbols
-                        ? s.toUpperCase():s;
+                    ? action.toUpperCase()
+                    : action;
 
                 i.commitText(out,1);
 
-                if(shift && !symbols){
+                if(shift && !symbols) {
                     shift=false;
-                    build();
+                    showPage();
                 }
         }
     }
 
-    void enter(InputConnection i){
+    void enter(InputConnection i) {
 
-        EditorInfo e=getCurrentInputEditorInfo();
+        EditorInfo e=
+            getCurrentInputEditorInfo();
 
-        if(e!=null){
+        if(e!=null) {
 
-            int a=e.imeOptions &
-                  EditorInfo.IME_MASK_ACTION;
+            int action=
+                e.imeOptions &
+                EditorInfo.IME_MASK_ACTION;
 
-            if(a!=EditorInfo.IME_ACTION_NONE &&
-               a!=EditorInfo.IME_ACTION_UNSPECIFIED){
+            if(
+                action!=EditorInfo.IME_ACTION_NONE &&
+                action!=EditorInfo.IME_ACTION_UNSPECIFIED
+            ) {
 
-                i.performEditorAction(a);
+                i.performEditorAction(action);
                 return;
             }
         }
 
+        sendKey(
+            i,
+            KeyEvent.KEYCODE_ENTER
+        );
+    }
+
+    String enterLabel() {
+
+        EditorInfo e=
+            getCurrentInputEditorInfo();
+
+        if(e==null)
+            return "return";
+
+        switch(
+            e.imeOptions &
+            EditorInfo.IME_MASK_ACTION
+        ) {
+
+            case EditorInfo.IME_ACTION_GO:
+                return "go";
+
+            case EditorInfo.IME_ACTION_SEARCH:
+                return "search";
+
+            case EditorInfo.IME_ACTION_SEND:
+                return "send";
+
+            case EditorInfo.IME_ACTION_DONE:
+                return "done";
+
+            case EditorInfo.IME_ACTION_NEXT:
+                return "next";
+
+            default:
+                return "return";
+        }
+    }
+
+    void sendKey(
+        InputConnection i,
+        int code
+    ) {
+
         i.sendKeyEvent(
             new KeyEvent(
                 KeyEvent.ACTION_DOWN,
-                KeyEvent.KEYCODE_ENTER));
+                code
+            )
+        );
 
         i.sendKeyEvent(
             new KeyEvent(
                 KeyEvent.ACTION_UP,
-                KeyEvent.KEYCODE_ENTER));
+                code
+            )
+        );
     }
 
-    int dp(int n){
+    int panelColor() {
+
+        if(theme==1)
+            return Color.argb(
+                235,247,245,242
+            );
+
+        if(theme==2)
+            return Color.argb(
+                145,30,32,37
+            );
+
+        return Color.argb(
+            220,35,37,42
+        );
+    }
+
+    int keyColor(boolean special) {
+
+        if(theme==1) {
+
+            return special
+                ? Color.rgb(243,238,232)
+                : Color.WHITE;
+        }
+
+        return special
+            ? Color.argb(
+                72,235,235,238
+            )
+            : Color.argb(
+                112,235,235,238
+            );
+    }
+
+    int spaceColor() {
+
+        if(theme==1)
+            return Color.rgb(
+                239,232,221
+            );
+
+        return Color.argb(
+            145,235,239,242
+        );
+    }
+
+    int textColor() {
+
+        return theme==1
+            ? Color.rgb(45,45,45)
+            : Color.WHITE;
+    }
+
+    int borderColor() {
+
+        return theme==1
+            ? Color.rgb(230,225,219)
+            : Color.argb(
+                55,255,255,255
+            );
+    }
+
+    StateListDrawable keyBackground(
+        boolean special,
+        boolean space
+    ) {
+
+        int normalColor=
+            space
+            ? spaceColor()
+            : keyColor(special);
+
+        int pressedColor=
+            theme==1
+            ? Color.rgb(236,231,226)
+            : Color.argb(
+                175,245,245,247
+            );
+
+        GradientDrawable normal=
+            round(
+                normalColor,
+                15,
+                borderColor()
+            );
+
+        GradientDrawable pressed=
+            round(
+                pressedColor,
+                15,
+                borderColor()
+            );
+
+        StateListDrawable state=
+            new StateListDrawable();
+
+        state.addState(
+            new int[]{
+                android.R.attr.state_pressed
+            },
+            pressed
+        );
+
+        state.addState(
+            new int[]{},
+            normal
+        );
+
+        return state;
+    }
+
+    GradientDrawable round(
+        int color,
+        int radius,
+        int stroke
+    ) {
+
+        GradientDrawable g=
+            new GradientDrawable();
+
+        g.setColor(color);
+        g.setCornerRadius(dp(radius));
+
+        if(stroke!=Color.TRANSPARENT)
+            g.setStroke(
+                dp(1),
+                stroke
+            );
+
+        return g;
+    }
+
+    int dp(int value) {
+
         return Math.round(
-            n*getResources()
-                .getDisplayMetrics().density);
+            value *
+            getResources()
+                .getDisplayMetrics()
+                .density
+        );
     }
 }
