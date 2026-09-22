@@ -49,7 +49,7 @@ public class KeyKiiService extends InputMethodService {
             dp(12),
             dp(4),
             dp(12),
-            dp(floating ? 78 : 18)
+            dp(floating ? 96 : 62)
         );
 
         panel=new LinearLayout(this);
@@ -81,7 +81,7 @@ public class KeyKiiService extends InputMethodService {
         else if(floating)
             ratio=.76f;
         else
-            ratio=.96f;
+            ratio=.90f;
 
         LinearLayout.LayoutParams p=
             new LinearLayout.LayoutParams(
@@ -538,15 +538,37 @@ public class KeyKiiService extends InputMethodService {
 
     void buildEmoji() {
 
-        String[] emojis={
-            "😀","😃","😄","😁","😆","🥹",
-            "😊","😍","🥰","😘","😎","🤩",
-            "😭","😂","🤣","😅","🙂","🙃",
-            "😉","😌","😴","🤔","🙄","😤",
-            "😡","❤️","✨","🔥","👍","🙏"
-        };
+        ScrollView scroll=new ScrollView(this);
+        scroll.setFillViewport(true);
 
-        for(int i=0;i<emojis.length;i+=6) {
+        LinearLayout wrap=new LinearLayout(this);
+        wrap.setOrientation(LinearLayout.VERTICAL);
+
+        String data=
+            "😀 😃 😄 😁 😆 😅 😂 🤣 " +
+            "🥲 🥹 😊 😇 🙂 🙃 😉 😌 " +
+            "😍 🥰 😘 😗 😙 😚 😋 😛 " +
+            "😝 😜 🤪 🤨 🧐 🤓 😎 🥸 " +
+            "🤩 🥳 😏 😒 😞 😔 😟 😕 " +
+            "🙁 ☹️ 😣 😖 😫 😩 🥺 😢 " +
+            "😭 😤 😠 😡 🤬 🤯 😳 🥵 " +
+            "🥶 😱 😨 😰 😥 😓 🤗 🤔 " +
+            "🫣 🤭 🫢 🤫 🤥 😶 🫥 😐 " +
+            "😑 😬 🙄 😯 😦 😧 😮 😲 " +
+            "🥱 😴 🤤 😪 😵 🤐 🥴 🤢 " +
+            "🤮 🤧 😷 🤒 🤕 🤑 🤠 😈 " +
+            "👿 👻 💀 ☠️ 👽 🤖 💩 😺 " +
+            "😸 😹 😻 😼 😽 🙀 😿 😾 " +
+            "❤️ 🩷 🧡 💛 💚 💙 🩵 💜 " +
+            "🖤 🤍 🤎 💔 ❤️‍🔥 ❤️‍🩹 ❣️ 💕 " +
+            "💞 💓 💗 💖 💘 💝 ✨ ⭐ " +
+            "🔥 💫 ⚡ 💥 💯 ✅ ❌ ❗ " +
+            "👍 👎 👌 ✌️ 🤞 🤟 🤘 🤙 " +
+            "👏 🙌 🫶 🙏 💪 👀 🧠 👋";
+
+        String[] emojis=data.split(" ");
+
+        for(int i=0;i<emojis.length;i+=6){
 
             LinearLayout r=newRow();
 
@@ -554,8 +576,7 @@ public class KeyKiiService extends InputMethodService {
                 int j=i;
                 j<Math.min(i+6,emojis.length);
                 j++
-            ) {
-
+            ){
                 key(
                     r,
                     emojis[j],
@@ -565,20 +586,27 @@ public class KeyKiiService extends InputMethodService {
                 );
             }
 
-            body.addView(r);
+            wrap.addView(r);
         }
+
+        scroll.addView(wrap);
+
+        body.addView(
+            scroll,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(185)
+            )
+        );
     }
 
     void buildClipboard() {
 
-        TextView title=
-            title("Clipboard");
-
         body.addView(
-            title,
+            title("Clipboard"),
             new LinearLayout.LayoutParams(
                 -1,
-                dp(30)
+                dp(28)
             )
         );
 
@@ -589,80 +617,150 @@ public class KeyKiiService extends InputMethodService {
             );
 
         if(
-            cm==null ||
-            !cm.hasPrimaryClip()
-        ) {
+            cm!=null &&
+            cm.hasPrimaryClip()
+        ){
 
-            TextView empty=
-                title("Nothing copied yet");
+            ClipData clip=
+                cm.getPrimaryClip();
 
-            body.addView(
-                empty,
-                new LinearLayout.LayoutParams(
-                    -1,
-                    dp(40)
+            if(
+                clip!=null &&
+                clip.getItemCount()>0
+            ){
+
+                CharSequence cs=
+                    clip.getItemAt(0)
+                        .coerceToText(this);
+
+                if(cs!=null)
+                    rememberClip(
+                        cs.toString()
+                    );
+            }
+        }
+
+        SharedPreferences sp=
+            getSharedPreferences(
+                "keykii_clipboard",
+                MODE_PRIVATE
+            );
+
+        boolean found=false;
+
+        for(int n=0;n<6;n++){
+
+            String text=
+                sp.getString(
+                    "clip"+n,
+                    ""
+                );
+
+            if(text.isEmpty())
+                continue;
+
+            found=true;
+
+            String preview=
+                text.length()>42
+                ? text.substring(0,42)+"…"
+                : text;
+
+            TextView item=
+                title(preview);
+
+            item.setBackground(
+                round(
+                    keyColor(false),
+                    14,
+                    borderColor()
                 )
             );
 
-            return;
-        }
+            final String pasteText=text;
 
-        ClipData clip=
-            cm.getPrimaryClip();
+            item.setOnClickListener(v -> {
 
-        if(
-            clip==null ||
-            clip.getItemCount()==0
-        ) return;
+                InputConnection ic=
+                    getCurrentInputConnection();
 
-        CharSequence cs=
-            clip.getItemAt(0)
-                .coerceToText(this);
+                if(ic!=null)
+                    ic.commitText(
+                        pasteText,
+                        1
+                    );
+            });
 
-        if(cs==null) return;
+            LinearLayout.LayoutParams p=
+                new LinearLayout.LayoutParams(
+                    -1,
+                    dp(36)
+                );
 
-        String text=
-            cs.toString();
-
-        String preview=
-            text.length()>48
-            ? text.substring(0,48)+"…"
-            : text;
-
-        TextView item=
-            title(preview);
-
-        item.setBackground(
-            round(
-                keyColor(false),
-                14,
-                borderColor()
-            )
-        );
-
-        item.setOnClickListener(v -> {
-
-            InputConnection ic=
-                getCurrentInputConnection();
-
-            if(ic!=null)
-                ic.commitText(text,1);
-        });
-
-        LinearLayout.LayoutParams p=
-            new LinearLayout.LayoutParams(
-                -1,
-                dp(42)
+            p.setMargins(
+                dp(5),
+                dp(3),
+                dp(5),
+                dp(3)
             );
 
-        p.setMargins(
-            dp(5),
-            dp(4),
-            dp(5),
-            dp(4)
+            body.addView(item,p);
+        }
+
+        if(!found){
+
+            body.addView(
+                title("Nothing copied yet"),
+                new LinearLayout.LayoutParams(
+                    -1,
+                    dp(38)
+                )
+            );
+        }
+    }
+
+    void rememberClip(String text){
+
+        if(
+            text==null ||
+            text.trim().isEmpty()
+        ) return;
+
+        SharedPreferences sp=
+            getSharedPreferences(
+                "keykii_clipboard",
+                MODE_PRIVATE
+            );
+
+        if(
+            text.equals(
+                sp.getString(
+                    "clip0",
+                    ""
+                )
+            )
+        ) return;
+
+        SharedPreferences.Editor e=
+            sp.edit();
+
+        for(int n=5;n>0;n--){
+
+            e.putString(
+                "clip"+n,
+                sp.getString(
+                    "clip"+(n-1),
+                    ""
+                )
+            );
+        }
+
+        e.putString(
+            "clip0",
+            text
         );
 
-        body.addView(item,p);
+        e.apply();
     }
 
     void buildEditing() {
