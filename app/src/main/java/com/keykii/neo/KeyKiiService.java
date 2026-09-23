@@ -500,22 +500,25 @@ public class KeyKiiService extends InputMethodService {
                     true
                 )
             ) {
-                tool(r,"↔",5);
+                // Separate full/wide control from one-handed mode.
+                tool(r,"⛶",5);
 
             } else if(
                 id.equals("hand") &&
                 toolbarPrefs.getBoolean(
                     "toolbar_hand",
-                    false
+                    true
                 )
             ) {
+                // Center -> left -> right -> center.
+                // Icon shows what the next tap will do.
                 tool(
                     r,
-                    hand==1
-                        ? "◁"
-                        : hand==2
-                            ? "▷"
-                            : "↙",
+                    hand==0
+                        ? "◀"
+                        : hand==1
+                            ? "▶"
+                            : "⛶",
                     6
                 );
             }
@@ -893,31 +896,57 @@ public class KeyKiiService extends InputMethodService {
             true
         );
 
-        // Gboard-style punctuation key. Emoji is still available
-        // from the toolbar, so this slot stays useful for typing.
-        key(
-            r,
-            ",",
-            ",",
-            .85f,
-            false
-        );
+        if(symbols && symbolPage==2) {
+            // Gboard-style second symbol page: < and > live beside space.
+            key(
+                r,
+                "<",
+                "<",
+                .85f,
+                false
+            );
 
-        key(
-            r,
-            "KeyKii",
-            "SPACE",
-            2.75f,
-            false
-        );
+            key(
+                r,
+                "KeyKii",
+                "SPACE",
+                2.75f,
+                false
+            );
 
-        key(
-            r,
-            ".",
-            ".",
-            .58f,
-            false
-        );
+            key(
+                r,
+                ">",
+                ">",
+                .58f,
+                false
+            );
+
+        } else {
+            key(
+                r,
+                ",",
+                ",",
+                .85f,
+                false
+            );
+
+            key(
+                r,
+                "KeyKii",
+                "SPACE",
+                2.75f,
+                false
+            );
+
+            key(
+                r,
+                ".",
+                ".",
+                .58f,
+                false
+            );
+        }
 
         key(
             r,
@@ -929,6 +958,7 @@ public class KeyKiiService extends InputMethodService {
 
         body.addView(r);
     }
+
 
     LinearLayout newRow() {
 

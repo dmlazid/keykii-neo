@@ -262,7 +262,7 @@ public class SettingsActivity extends Activity {
 
         addSwitchRow(
                 page,
-                "↔  Width",
+                "⛶  Full / wide",
                 "Show the normal/wide keyboard toggle",
                 "toolbar_width",
                 true
@@ -270,10 +270,10 @@ public class SettingsActivity extends Activity {
 
         addSwitchRow(
                 page,
-                "↙  One-handed",
+                "◀  One-handed",
                 "Show the left/right one-handed keyboard toggle",
                 "toolbar_hand",
-                false
+                true
         );
 
         addSection(page, "Order");
@@ -306,7 +306,7 @@ public class SettingsActivity extends Activity {
                             .putBoolean("toolbar_actions", true)
                             .putBoolean("toolbar_theme", true)
                             .putBoolean("toolbar_width", true)
-                            .putBoolean("toolbar_hand", false)
+                            .putBoolean("toolbar_hand", true)
                             .putString(
                                     "toolbar_order",
                                     "emoji,clipboard,actions,theme,width,hand"
@@ -594,10 +594,10 @@ public class SettingsActivity extends Activity {
             return "◐";
 
         if(id.equals("width"))
-            return "↔";
+            return "⛶";
 
         if(id.equals("hand"))
-            return "↙";
+            return "◀";
 
         return "•";
     }
