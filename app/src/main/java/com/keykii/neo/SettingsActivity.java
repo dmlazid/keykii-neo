@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
@@ -39,7 +40,12 @@ public class SettingsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences("keykii_prefs", MODE_PRIVATE);
-        showHome();
+
+        if ("shortcuts".equals(getIntent().getStringExtra("open_screen"))) {
+            showShortcuts();
+        } else {
+            showHome();
+        }
     }
 
     @Override
@@ -86,6 +92,7 @@ public class SettingsActivity extends Activity {
 
         addSection(page, "Data & content");
         addRow(page, "▣", "Clipboard", "Manage KeyKii clipboard history", v -> showClipboard());
+        addRow(page, "⚡", "Text shortcuts", "Save reusable text and paste it from KeyKii", v -> showShortcuts());
         addRow(page, "Aa", "Dictionary", "Open Android personal dictionary", v -> showDictionary());
         addRow(page, "☺", "Emoji & kaomoji", "Recents and emoji behavior", v -> showEmoji());
 
@@ -235,6 +242,209 @@ public class SettingsActivity extends Activity {
         setContentView(wrap(page));
     }
 
+    private void showShortcuts() {
+        screen = "shortcuts";
+        LinearLayout page = page(
+                "Text shortcuts",
+                "Save reusable text for quick paste from KeyKii",
+                true
+        );
+
+        SharedPreferences shortcuts =
+                getSharedPreferences("keykii_shortcuts", MODE_PRIVATE);
+
+        int count = 0;
+
+        for (int i = 0; i < 12; i++) {
+            String value = shortcuts.getString("shortcut_text" + i, "");
+            if (value != null && !value.trim().isEmpty()) count++;
+        }
+
+        addInfoCard(
+                page,
+                "Saved shortcuts",
+                count + (count == 1 ? " shortcut is" : " shortcuts are") +
+                        " stored locally. Open Clipboard → Shortcuts on the keyboard to paste them."
+        );
+
+        for (int i = 0; i < 12; i++) {
+            String value = shortcuts.getString("shortcut_text" + i, "");
+
+            if (value == null || value.trim().isEmpty())
+                continue;
+
+            String label = shortcuts.getString("shortcut_label" + i, "");
+            String preview = value.replace("\n", " ").replace("\r", " ");
+
+            if (preview.length() > 54)
+                preview = preview.substring(0, 54) + "…";
+
+            final int index = i;
+
+            addRow(
+                    page,
+                    "⚡",
+                    label == null || label.trim().isEmpty() ? "Shortcut" : label,
+                    preview,
+                    v -> showShortcutEditor(index)
+            );
+        }
+
+        if (count < 12) {
+            addActionButton(
+                    page,
+                    "Add text shortcut",
+                    v -> showShortcutEditor(-1)
+            );
+        } else {
+            addInfoCard(
+                    page,
+                    "Shortcut limit reached",
+                    "KeyKii currently supports up to 12 saved text shortcuts."
+            );
+        }
+
+        setContentView(wrap(page));
+    }
+
+
+    private int nextShortcutIndex(SharedPreferences shortcuts) {
+        for (int i = 0; i < 12; i++) {
+            String value = shortcuts.getString("shortcut_text" + i, "");
+            if (value == null || value.trim().isEmpty())
+                return i;
+        }
+
+        return -1;
+    }
+
+
+    private void compactShortcuts(SharedPreferences shortcuts) {
+        java.util.ArrayList<String> labels =
+                new java.util.ArrayList<>();
+        java.util.ArrayList<String> values =
+                new java.util.ArrayList<>();
+
+        for (int i = 0; i < 12; i++) {
+            String value = shortcuts.getString("shortcut_text" + i, "");
+
+            if (value == null || value.trim().isEmpty())
+                continue;
+
+            labels.add(shortcuts.getString("shortcut_label" + i, ""));
+            values.add(value);
+        }
+
+        SharedPreferences.Editor e = shortcuts.edit();
+
+        for (int i = 0; i < 12; i++) {
+            e.remove("shortcut_label" + i);
+            e.remove("shortcut_text" + i);
+        }
+
+        for (int i = 0; i < values.size(); i++) {
+            e.putString("shortcut_label" + i, labels.get(i));
+            e.putString("shortcut_text" + i, values.get(i));
+        }
+
+        e.apply();
+    }
+
+
+    private void showShortcutEditor(int existingIndex) {
+        SharedPreferences shortcuts =
+                getSharedPreferences("keykii_shortcuts", MODE_PRIVATE);
+
+        int index = existingIndex >= 0
+                ? existingIndex
+                : nextShortcutIndex(shortcuts);
+
+        if (index < 0) {
+            toast("Shortcut limit reached");
+            return;
+        }
+
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(22), dp(8), dp(22), 0);
+
+        EditText label = new EditText(this);
+        label.setHint("Name, e.g. Email");
+        label.setSingleLine(true);
+        label.setText(shortcuts.getString("shortcut_label" + index, ""));
+
+        EditText text = new EditText(this);
+        text.setHint("Text to paste");
+        text.setMinLines(3);
+        text.setGravity(Gravity.TOP | Gravity.START);
+        text.setText(shortcuts.getString("shortcut_text" + index, ""));
+
+        box.addView(label);
+        box.addView(text);
+
+        AlertDialog.Builder builder =
+                new AlertDialog.Builder(this)
+                        .setTitle(existingIndex >= 0 ? "Edit shortcut" : "Add shortcut")
+                        .setView(box)
+                        .setNegativeButton("Cancel", null)
+                        .setPositiveButton("Save", null);
+
+        if (existingIndex >= 0) {
+            builder.setNeutralButton(
+                    "Delete",
+                    (dialog, which) -> {
+                        shortcuts.edit()
+                                .remove("shortcut_label" + index)
+                                .remove("shortcut_text" + index)
+                                .apply();
+
+                        compactShortcuts(shortcuts);
+                        toast("Shortcut deleted");
+                        showShortcuts();
+                    }
+            );
+        }
+
+        AlertDialog dialog = builder.create();
+
+        dialog.setOnShowListener(d ->
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                        .setOnClickListener(v -> {
+                            String value = text.getText().toString();
+
+                            if (value.trim().isEmpty()) {
+                                text.setError("Enter text to save");
+                                return;
+                            }
+
+                            String name = label.getText().toString().trim();
+
+                            if (name.isEmpty()) {
+                                String oneLine = value
+                                        .replace("\n", " ")
+                                        .replace("\r", " ")
+                                        .trim();
+
+                                name = oneLine.length() > 24
+                                        ? oneLine.substring(0, 24) + "…"
+                                        : oneLine;
+                            }
+
+                            shortcuts.edit()
+                                    .putString("shortcut_label" + index, name)
+                                    .putString("shortcut_text" + index, value)
+                                    .apply();
+
+                            dialog.dismiss();
+                            toast("Shortcut saved");
+                            showShortcuts();
+                        })
+        );
+
+        dialog.show();
+    }
+
+
     private void showDictionary() {
         screen = "dictionary";
         LinearLayout page = page("Dictionary", "Personal words are managed by Android", true);
@@ -303,7 +513,11 @@ public class SettingsActivity extends Activity {
 
         addInfoCard(page,
                 "Clipboard",
-                "KeyKii's clipboard panel can retain up to six copied text items locally so they can be pasted again. You can clear them from Clipboard settings.");
+                "KeyKii's clipboard panel stores recent and pinned copied text locally so it can be pasted again. You can clear it from Clipboard settings.");
+
+        addInfoCard(page,
+                "Text shortcuts",
+                "Saved text shortcuts are stored only in KeyKii's local app data and are pasted only when you tap them.");
 
         addInfoCard(page,
                 "Emoji recents",

@@ -49,6 +49,7 @@ public class KeyKiiService extends InputMethodService {
 
     ClipboardManager clipboardManager;
     ClipboardManager.OnPrimaryClipChangedListener clipboardListener;
+    boolean clipboardShortcutMode=false;
 
     boolean shift=false;
     boolean capsLock=false;
@@ -4477,6 +4478,76 @@ public class KeyKiiService extends InputMethodService {
 
     void buildClipboard() {
 
+        LinearLayout modeRow=new LinearLayout(this);
+        modeRow.setGravity(Gravity.CENTER);
+
+        TextView clipboardTab=title("Clipboard");
+        TextView shortcutsTab=title("Shortcuts");
+
+        clipboardTab.setTextSize(13);
+        shortcutsTab.setTextSize(13);
+
+        clipboardTab.setBackground(
+            clipboardShortcutMode
+            ? round(keyColor(false),14,borderColor())
+            : round(
+                theme==1
+                ? Color.rgb(221,226,239)
+                : Color.argb(90,120,150,220),
+                14,
+                borderColor()
+            )
+        );
+
+        shortcutsTab.setBackground(
+            clipboardShortcutMode
+            ? round(
+                theme==1
+                ? Color.rgb(221,226,239)
+                : Color.argb(90,120,150,220),
+                14,
+                borderColor()
+            )
+            : round(keyColor(false),14,borderColor())
+        );
+
+        clipboardTab.setOnClickListener(v -> {
+            clipboardShortcutMode=false;
+            showPage();
+        });
+
+        shortcutsTab.setOnClickListener(v -> {
+            clipboardShortcutMode=true;
+            showPage();
+        });
+
+        LinearLayout.LayoutParams tabParams=
+            new LinearLayout.LayoutParams(
+                0,
+                dp(34),
+                1
+            );
+
+        tabParams.setMargins(
+            dp(4),dp(2),dp(4),dp(4)
+        );
+
+        modeRow.addView(clipboardTab,tabParams);
+        modeRow.addView(shortcutsTab,tabParams);
+
+        body.addView(
+            modeRow,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(40)
+            )
+        );
+
+        if(clipboardShortcutMode) {
+            buildTextShortcuts();
+            return;
+        }
+
         ClipboardManager cm=
             (ClipboardManager)
             getSystemService(
@@ -4633,6 +4704,229 @@ public class KeyKiiService extends InputMethodService {
             new LinearLayout.LayoutParams(
                 -1,
                 dp(300)
+            )
+        );
+    }
+
+
+    void buildTextShortcuts() {
+
+        SharedPreferences sp=
+            getSharedPreferences(
+                "keykii_shortcuts",
+                MODE_PRIVATE
+            );
+
+        LinearLayout header=new LinearLayout(this);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView heading=title("Saved text shortcuts");
+        heading.setTextSize(14);
+        heading.setGravity(Gravity.CENTER_VERTICAL);
+        heading.setPadding(dp(8),0,0,0);
+
+        header.addView(
+            heading,
+            new LinearLayout.LayoutParams(
+                0,
+                dp(32),
+                1
+            )
+        );
+
+        TextView manage=title("Manage");
+        manage.setTextSize(12);
+        manage.setGravity(Gravity.CENTER);
+        manage.setAlpha(.85f);
+
+        manage.setOnClickListener(v -> {
+            try {
+                Intent intent=new Intent();
+                intent.setClassName(
+                    getPackageName(),
+                    "com.keykii.neo.SettingsActivity"
+                );
+                intent.putExtra(
+                    "open_screen",
+                    "shortcuts"
+                );
+                intent.addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK
+                );
+                startActivity(intent);
+            } catch(Exception ignored) {}
+        });
+
+        header.addView(
+            manage,
+            new LinearLayout.LayoutParams(
+                dp(72),
+                dp(32)
+            )
+        );
+
+        body.addView(
+            header,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(34)
+            )
+        );
+
+        android.widget.ScrollView scroll=
+            new android.widget.ScrollView(this);
+
+        scroll.setFillViewport(true);
+        scroll.setVerticalScrollBarEnabled(true);
+
+        LinearLayout content=
+            new LinearLayout(this);
+
+        content.setOrientation(
+            LinearLayout.VERTICAL
+        );
+
+        boolean found=false;
+
+        for(int i=0;i<12;i++) {
+            String label=
+                sp.getString(
+                    "shortcut_label"+i,
+                    ""
+                );
+
+            String value=
+                sp.getString(
+                    "shortcut_text"+i,
+                    ""
+                );
+
+            if(value==null || value.isEmpty())
+                continue;
+
+            found=true;
+
+            LinearLayout item=
+                new LinearLayout(this);
+
+            item.setOrientation(
+                LinearLayout.VERTICAL
+            );
+
+            item.setPadding(
+                dp(12),
+                dp(7),
+                dp(12),
+                dp(7)
+            );
+
+            item.setBackground(
+                round(
+                    keyColor(false),
+                    15,
+                    borderColor()
+                )
+            );
+
+            TextView name=new TextView(this);
+            name.setText(
+                label==null || label.trim().isEmpty()
+                ? "Shortcut"
+                : label
+            );
+            name.setTextColor(textColor());
+            name.setTextSize(14);
+            name.setTypeface(
+                android.graphics.Typeface.DEFAULT,
+                android.graphics.Typeface.BOLD
+            );
+
+            TextView preview=new TextView(this);
+            preview.setText(
+                value
+                    .replace("\n"," ")
+                    .replace("\r"," ")
+            );
+            preview.setTextColor(textColor());
+            preview.setTextSize(12);
+            preview.setAlpha(.72f);
+            preview.setMaxLines(2);
+            preview.setEllipsize(
+                android.text.TextUtils.TruncateAt.END
+            );
+            preview.setPadding(
+                0,
+                dp(2),
+                0,
+                0
+            );
+
+            item.addView(name);
+            item.addView(preview);
+
+            final String pasteText=value;
+
+            item.setOnClickListener(v -> {
+                InputConnection ic=
+                    getCurrentInputConnection();
+
+                if(ic!=null)
+                    ic.commitText(
+                        pasteText,
+                        1
+                    );
+            });
+
+            LinearLayout.LayoutParams itemParams=
+                new LinearLayout.LayoutParams(
+                    -1,
+                    dp(60)
+                );
+
+            itemParams.setMargins(
+                dp(5),
+                dp(3),
+                dp(5),
+                dp(3)
+            );
+
+            content.addView(
+                item,
+                itemParams
+            );
+        }
+
+        if(!found) {
+            TextView empty=
+                title(
+                    "No shortcuts yet — tap Manage to add one"
+                );
+
+            empty.setAlpha(.60f);
+            empty.setTextSize(12);
+
+            content.addView(
+                empty,
+                new LinearLayout.LayoutParams(
+                    -1,
+                    dp(90)
+                )
+            );
+        }
+
+        scroll.addView(
+            content,
+            new android.widget.ScrollView.LayoutParams(
+                -1,
+                -2
+            )
+        );
+
+        body.addView(
+            scroll,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(260)
             )
         );
     }
