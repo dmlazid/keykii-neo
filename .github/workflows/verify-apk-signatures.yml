@@ -25,6 +25,7 @@ jobs:
         run: |
           curl -L --fail -o keykii-2.10.5.apk https://raw.githubusercontent.com/dmlazid/keykii-neo/main/KeyKii-Neo-2.10.5.apk
           curl -L --fail -o keykii-2.10.6.apk https://raw.githubusercontent.com/dmlazid/keykii-neo/main/KeyKii-Neo-2.10.6.apk
+          curl -L --fail -o keykii-2.10.7.apk https://raw.githubusercontent.com/dmlazid/keykii-neo/main/KeyKii-Neo-2.10.7.apk
 
       - name: Print cached key certificate
         run: |
@@ -38,3 +39,5 @@ jobs:
           "$APKSIGNER" verify --print-certs keykii-2.10.5.apk | grep -E "certificate DN|certificate SHA-256 digest"
           echo "=== 2.10.6 ==="
           "$APKSIGNER" verify --print-certs keykii-2.10.6.apk | grep -E "certificate DN|certificate SHA-256 digest"
+          echo "=== 2.10.7 ==="
+          "$APKSIGNER" verify --print-certs keykii-2.10.7.apk | grep -E "certificate DN|certificate SHA-256 digest"
