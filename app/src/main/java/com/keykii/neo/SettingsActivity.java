@@ -654,6 +654,23 @@ public class SettingsActivity extends Activity {
                 false);
 
         addSwitchRow(page,
+                "Key press sound",
+                "Play a soft click when a key is pressed",
+                "key_sound",
+                false);
+
+        addChoiceRow(
+                page,
+                "Key sound volume",
+                keySoundVolumeName(),
+                new String[]{"Low", "Medium", "High", "Full"},
+                new int[]{25, 50, 75, 100},
+                "key_sound_volume",
+                50,
+                this::showPreferences
+        );
+
+        addSwitchRow(page,
                 "Wide keyboard by default",
                 "Open KeyKii in wide mode",
                 "wide_default",
@@ -697,13 +714,15 @@ public class SettingsActivity extends Activity {
         addActionButton(page, "Reset keyboard preferences", v -> {
             new AlertDialog.Builder(this)
                     .setTitle("Reset preferences?")
-                    .setMessage("Theme is kept. Key size, gap, haptics, number row, wide mode and one-handed mode will return to defaults.")
+                    .setMessage("Theme is kept. Key size, gap, haptics, sound, number row, wide mode and one-handed mode will return to defaults.")
                     .setNegativeButton("Cancel", null)
                     .setPositiveButton("Reset", (d, which) -> {
                         prefs.edit()
                                 .putInt("key_height", 46)
                                 .putInt("float_gap", 96)
                                 .putBoolean("haptic", false)
+                                .putBoolean("key_sound", false)
+                                .putInt("key_sound_volume", 50)
                                 .putBoolean("wide_default", false)
                                 .putInt("one_handed_default", 0)
                                 .putBoolean("number_row", false)
@@ -3644,6 +3663,26 @@ public class SettingsActivity extends Activity {
             return "Right";
 
         return "Off";
+    }
+
+
+    private String keySoundVolumeName() {
+        int value=
+                prefs.getInt(
+                        "key_sound_volume",
+                        50
+                );
+
+        if(value<=25)
+            return "Low";
+
+        if(value>=100)
+            return "Full";
+
+        if(value>=75)
+            return "High";
+
+        return "Medium";
     }
 
 

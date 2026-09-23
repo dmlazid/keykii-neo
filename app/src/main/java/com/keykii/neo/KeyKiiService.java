@@ -49,6 +49,7 @@ public class KeyKiiService extends InputMethodService {
 
     ClipboardManager clipboardManager;
     ClipboardManager.OnPrimaryClipChangedListener clipboardListener;
+    android.media.AudioManager audioManager;
     boolean clipboardShortcutMode=false;
 
     boolean shift=false;
@@ -73,6 +74,8 @@ public class KeyKiiService extends InputMethodService {
     int floatGap=96;
 
     boolean haptic=false;
+    boolean keySound=false;
+    int keySoundVolume=50;
     boolean autoCapitalization=true;
     boolean doubleSpacePeriod=true;
     boolean keyPreviewEnabled=true;
@@ -126,6 +129,12 @@ public class KeyKiiService extends InputMethodService {
             (ClipboardManager)
             getSystemService(
                 CLIPBOARD_SERVICE
+            );
+
+        audioManager=
+            (android.media.AudioManager)
+            getSystemService(
+                AUDIO_SERVICE
             );
 
         clipboardListener=()->captureClipboard();
@@ -195,6 +204,16 @@ public class KeyKiiService extends InputMethodService {
         haptic=keykiiPrefs.getBoolean(
             "haptic",
             false
+        );
+
+        keySound=keykiiPrefs.getBoolean(
+            "key_sound",
+            false
+        );
+
+        keySoundVolume=keykiiPrefs.getInt(
+            "key_sound_volume",
+            50
         );
 
         autoCapitalization=keykiiPrefs.getBoolean(
@@ -271,6 +290,11 @@ public class KeyKiiService extends InputMethodService {
         keyHeight=p.getInt("key_height",46);
         floatGap=p.getInt("float_gap",96);
         haptic=p.getBoolean("haptic",false);
+        keySound=p.getBoolean("key_sound",false);
+        keySoundVolume=p.getInt(
+            "key_sound_volume",
+            50
+        );
         numberRow=p.getBoolean("number_row",false);
         autoCapitalization=p.getBoolean(
             "auto_capitalization",
@@ -1496,6 +1520,9 @@ public class KeyKiiService extends InputMethodService {
                     showKeyPreview(v,shown);
                 }
 
+                if(keySound)
+                    playKeySound();
+
                 if(haptic)
                     v.performHapticFeedback(
                         HapticFeedbackConstants.KEYBOARD_TAP
@@ -1667,6 +1694,29 @@ public class KeyKiiService extends InputMethodService {
         );
 
         r.addView(box,p);
+    }
+
+
+    void playKeySound() {
+        if(audioManager==null)
+            return;
+
+        float volume=
+            Math.max(
+                0.05f,
+                Math.min(
+                    1f,
+                    keySoundVolume/100f
+                )
+            );
+
+        try {
+            audioManager.playSoundEffect(
+                android.media.AudioManager.FX_KEY_CLICK,
+                volume
+            );
+        } catch(Exception ignored) {
+        }
     }
 
 
