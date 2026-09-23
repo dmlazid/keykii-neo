@@ -151,7 +151,7 @@ public class KeyKiiService extends InputMethodService {
         else if(floating)
             ratio=.76f;
         else
-            ratio=.96f;
+            ratio=.92f;
 
         LinearLayout.LayoutParams p=
             new LinearLayout.LayoutParams(
@@ -333,18 +333,18 @@ public class KeyKiiService extends InputMethodService {
         } else {
 
             row(new String[]{
-                "[","]","{","}",
-                "<",">","=","_","|","~"
+                "~","`","|","•","√",
+                "π","÷","×","§","∆"
             });
 
             row(new String[]{
-                "\\","€","£","¥","•",
-                "°","`","^",":",";"
+                "£","€","¥","¢","^",
+                "°","=","{","}","\\"
             });
 
             third(new String[]{
-                "+","-","×","÷",
-                "=","_","…"
+                "[","]","<",">",
+                "_","…","±"
             });
         }
 
@@ -432,16 +432,15 @@ public class KeyKiiService extends InputMethodService {
             r,
             symbols ? "ABC" : "123",
             symbols ? "ABC" : "123",
-            1,
+            1f,
             true
         );
 
-        // Opens emoji panel now
         key(
             r,
             "☺",
             "EMOJI",
-            .70f,
+            .68f,
             true
         );
 
@@ -449,7 +448,15 @@ public class KeyKiiService extends InputMethodService {
             r,
             "KeyKii",
             "SPACE",
-            3.10f,
+            2.75f,
+            false
+        );
+
+        key(
+            r,
+            ".",
+            ".",
+            .58f,
             false
         );
 
@@ -457,7 +464,7 @@ public class KeyKiiService extends InputMethodService {
             r,
             enterLabel(),
             "ENTER",
-            1.20f,
+            1.05f,
             true
         );
 

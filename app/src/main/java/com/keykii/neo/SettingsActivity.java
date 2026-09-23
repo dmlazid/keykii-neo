@@ -1,296 +1,257 @@
 package com.keykii.neo;
 
 import android.app.Activity;
-import android.content.*;
+import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.view.*;
+import android.view.Gravity;
 import android.widget.*;
 
 public class SettingsActivity extends Activity {
 
-    LinearLayout root;
     SharedPreferences prefs;
+    LinearLayout root;
 
     @Override
-    public void onCreate(Bundle b){
-
-        super.onCreate(b);
+    protected void onCreate(Bundle state) {
+        super.onCreate(state);
 
         prefs=getSharedPreferences(
-            "keykii_prefs",
-            MODE_PRIVATE
+                "keykii_prefs",
+                MODE_PRIVATE
         );
 
-        build();
-    }
-
-    void build(){
-
-        ScrollView scroll=
-            new ScrollView(this);
+        ScrollView scroll=new ScrollView(this);
 
         root=new LinearLayout(this);
-        root.setOrientation(
-            LinearLayout.VERTICAL
-        );
-
+        root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(
-            dp(24),
-            dp(30),
-            dp(24),
-            dp(40)
+                dp(24),
+                dp(30),
+                dp(24),
+                dp(50)
         );
 
         root.setBackgroundColor(
-            Color.rgb(247,245,242)
+                Color.rgb(247,245,242)
         );
 
-        TextView title=text(
-            "Keyboard settings",
-            30
-        );
+        addTitle("Keyboard settings");
 
-        root.addView(title);
-
-        addSection("Layout");
+        addHeading("Layout");
 
         addSwitch(
-            "Start with wide keyboard",
-            "wide_default",
-            false
+                "Start in wide mode",
+                "wide_default",
+                false
         );
+
+        addHeading("Typing");
 
         addSwitch(
-            "Key vibration",
-            "haptic",
-            false
+                "Key vibration",
+                "haptic",
+                false
         );
 
-        addSection("Key size");
+        addHeading("Key size");
 
         addSlider(
-            "Key height",
-            "key_height",
-            28,
-            24,
-            40
+                "Key height",
+                "key_height",
+                34,
+                26,
+                44
         );
 
-        addSection("Floating position");
+        addHeading("Floating keyboard");
 
         addSlider(
-            "Height above bottom",
-            "float_gap",
-            96,
-            50,
-            150
+                "Distance from bottom",
+                "float_gap",
+                96,
+                50,
+                160
         );
 
-        addSection("Clipboard");
+        addHeading("Clipboard");
 
-        TextView clear=
-            button("Clear clipboard history");
+        Button clear=new Button(this);
+        clear.setText("Clear clipboard history");
 
-        clear.setOnClickListener(v->{
-
+        clear.setOnClickListener(v -> {
             getSharedPreferences(
-                "keykii_clipboard",
-                MODE_PRIVATE
+                    "keykii_clipboard",
+                    MODE_PRIVATE
             ).edit().clear().apply();
 
             Toast.makeText(
-                this,
-                "Clipboard history cleared",
-                Toast.LENGTH_SHORT
+                    this,
+                    "Clipboard cleared",
+                    Toast.LENGTH_SHORT
             ).show();
         });
 
         root.addView(clear);
 
+        addHeading("Tip");
+
+        TextView note=new TextView(this);
+        note.setText(
+                "Close and reopen the keyboard after changing layout settings."
+        );
+        note.setTextSize(14);
+        note.setTextColor(Color.DKGRAY);
+
+        root.addView(note);
+
         scroll.addView(root);
         setContentView(scroll);
     }
 
-    void addSection(String name){
+    void addTitle(String value) {
+        TextView t=new TextView(this);
+        t.setText(value);
+        t.setTextSize(30);
+        t.setTextColor(Color.rgb(45,45,45));
+        root.addView(t);
+    }
 
+    void addHeading(String value) {
         Space space=new Space(this);
-
         root.addView(
-            space,
-            new LinearLayout.LayoutParams(
-                1,
-                dp(22)
-            )
+                space,
+                new LinearLayout.LayoutParams(
+                        1,
+                        dp(22)
+                )
         );
 
-        root.addView(
-            text(name,20)
-        );
+        TextView t=new TextView(this);
+        t.setText(value);
+        t.setTextSize(20);
+        t.setTextColor(Color.rgb(45,45,45));
+
+        root.addView(t);
     }
 
     void addSwitch(
-        String label,
-        String key,
-        boolean def
-    ){
+            String title,
+            String key,
+            boolean def
+    ) {
 
         Switch sw=new Switch(this);
 
-        sw.setText(label);
+        sw.setText(title);
         sw.setTextSize(16);
+        sw.setGravity(Gravity.CENTER_VERTICAL);
 
         sw.setChecked(
-            prefs.getBoolean(
-                key,
-                def
-            )
-        );
-
-        sw.setPadding(
-            dp(12),
-            0,
-            dp(12),
-            0
+                prefs.getBoolean(
+                        key,
+                        def
+                )
         );
 
         sw.setOnCheckedChangeListener(
-            (button,on)->
+                (button,checked) ->
 
-            prefs.edit()
-                .putBoolean(
-                    key,
-                    on
+                prefs.edit()
+                        .putBoolean(
+                                key,
+                                checked
+                        )
+                        .apply()
+        );
+
+        root.addView(
+                sw,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(56)
                 )
-                .apply()
         );
-
-        LinearLayout.LayoutParams p=
-            new LinearLayout.LayoutParams(
-                -1,
-                dp(56)
-            );
-
-        p.setMargins(
-            0,
-            dp(5),
-            0,
-            dp(5)
-        );
-
-        root.addView(sw,p);
     }
 
     void addSlider(
-        String label,
-        String key,
-        int def,
-        int min,
-        int max
-    ){
+            String title,
+            String key,
+            int def,
+            int min,
+            int max
+    ) {
 
-        TextView title=
-            text(label,16);
+        TextView label=new TextView(this);
 
-        root.addView(title);
+        label.setText(
+                title + ": " +
+                prefs.getInt(key,def)
+        );
 
-        SeekBar bar=
-            new SeekBar(this);
+        label.setTextSize(16);
+        label.setTextColor(
+                Color.rgb(45,45,45)
+        );
+
+        root.addView(label);
+
+        SeekBar bar=new SeekBar(this);
 
         bar.setMax(max-min);
 
         bar.setProgress(
-            prefs.getInt(
-                key,
-                def
-            )-min
+                prefs.getInt(
+                        key,
+                        def
+                )-min
         );
 
         bar.setOnSeekBarChangeListener(
-            new SeekBar.OnSeekBarChangeListener(){
+                new SeekBar.OnSeekBarChangeListener() {
 
-                public void onProgressChanged(
-                    SeekBar b,
-                    int progress,
-                    boolean user
-                ){
+                    @Override
+                    public void onProgressChanged(
+                            SeekBar seekBar,
+                            int progress,
+                            boolean fromUser
+                    ) {
 
-                    prefs.edit()
-                        .putInt(
-                            key,
-                            min+progress
-                        )
-                        .apply();
+                        int value=min+progress;
+
+                        prefs.edit()
+                                .putInt(
+                                        key,
+                                        value
+                                )
+                                .apply();
+
+                        label.setText(
+                                title + ": " + value
+                        );
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(
+                            SeekBar seekBar
+                    ) {}
+
+                    @Override
+                    public void onStopTrackingTouch(
+                            SeekBar seekBar
+                    ) {}
                 }
-
-                public void onStartTrackingTouch(
-                    SeekBar b
-                ){}
-
-                public void onStopTrackingTouch(
-                    SeekBar b
-                ){}
-            }
         );
 
         root.addView(bar);
     }
 
-    TextView button(String value){
-
-        TextView t=text(value,16);
-
-        t.setGravity(Gravity.CENTER);
-
-        GradientDrawable g=
-            new GradientDrawable();
-
-        g.setColor(Color.WHITE);
-        g.setCornerRadius(dp(18));
-
-        g.setStroke(
-            dp(1),
-            Color.rgb(225,220,214)
-        );
-
-        t.setBackground(g);
-
-        t.setLayoutParams(
-            new LinearLayout.LayoutParams(
-                -1,
-                dp(56)
-            )
-        );
-
-        return t;
-    }
-
-    TextView text(
-        String value,
-        int size
-    ){
-
-        TextView t=
-            new TextView(this);
-
-        t.setText(value);
-        t.setTextSize(size);
-
-        t.setTextColor(
-            Color.rgb(45,45,45)
-        );
-
-        return t;
-    }
-
-    int dp(int n){
-
+    int dp(int value) {
         return Math.round(
-            n*
-            getResources()
-                .getDisplayMetrics()
-                .density
+                value *
+                getResources()
+                        .getDisplayMetrics()
+                        .density
         );
     }
 }
