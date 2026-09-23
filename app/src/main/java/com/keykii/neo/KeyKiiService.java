@@ -332,8 +332,8 @@ public class KeyKiiService extends InputMethodService {
             wideMode
             ? .985f
             : hand!=0
-                ? .72f
-                : .86f;
+                ? .78f
+                : .92f;
 
         LinearLayout.LayoutParams panelParams=
             new LinearLayout.LayoutParams(
@@ -359,9 +359,12 @@ public class KeyKiiService extends InputMethodService {
             );
 
             dock.setGravity(
-                hand==1
-                ? Gravity.START
-                : Gravity.END
+                Gravity.CENTER_VERTICAL |
+                (
+                    hand==1
+                    ? Gravity.START
+                    : Gravity.END
+                )
             );
 
             LinearLayout rail=
@@ -369,8 +372,8 @@ public class KeyKiiService extends InputMethodService {
 
             LinearLayout.LayoutParams railParams=
                 new LinearLayout.LayoutParams(
-                    dp(54),
-                    LinearLayout.LayoutParams.MATCH_PARENT
+                    dp(58),
+                    LinearLayout.LayoutParams.WRAP_CONTENT
                 );
 
             if(hand==1) {
@@ -438,10 +441,10 @@ public class KeyKiiService extends InputMethodService {
         );
 
         rail.setPadding(
+            dp(3),
             dp(4),
-            dp(12),
-            dp(4),
-            dp(12)
+            dp(3),
+            dp(4)
         );
 
         TextView switchSide=
@@ -471,14 +474,22 @@ public class KeyKiiService extends InputMethodService {
              )
              .apply();
 
+            page=0;
             buildShell();
         });
 
         TextView expand=
-            oneHandRailButton("⛶");
+            oneHandRailButton(
+                "⛶\nWide"
+            );
+
+        expand.setTextSize(11);
+        expand.setLineSpacing(0f,.9f);
 
         expand.setOnClickListener(v -> {
             hand=0;
+            wideMode=false;
+            page=0;
 
             getSharedPreferences(
                 "keykii_prefs",
@@ -488,6 +499,10 @@ public class KeyKiiService extends InputMethodService {
                  "one_handed_default",
                  0
              )
+             .putBoolean(
+                 "wide_default",
+                 false
+             )
              .apply();
 
             buildShell();
@@ -496,9 +511,8 @@ public class KeyKiiService extends InputMethodService {
         rail.addView(
             switchSide,
             new LinearLayout.LayoutParams(
-                dp(46),
-                0,
-                1f
+                dp(50),
+                dp(66)
             )
         );
 
@@ -509,16 +523,15 @@ public class KeyKiiService extends InputMethodService {
             gap,
             new LinearLayout.LayoutParams(
                 1,
-                dp(10)
+                dp(8)
             )
         );
 
         rail.addView(
             expand,
             new LinearLayout.LayoutParams(
-                dp(46),
-                0,
-                1f
+                dp(50),
+                dp(66)
             )
         );
 
@@ -746,7 +759,11 @@ public class KeyKiiService extends InputMethodService {
                 if(action==1)
                     emojiCategory=0;
 
-                showPage();
+                // Rebuild on keyboard/back so the toolbar itself also changes.
+                if(action==0)
+                    buildShell();
+                else
+                    showPage();
 
             } else if(action==4) {
 
@@ -795,7 +812,6 @@ public class KeyKiiService extends InputMethodService {
                 }
 
                 themeEdit.apply();
-
                 buildShell();
 
             } else if(action==5) {
@@ -827,11 +843,11 @@ public class KeyKiiService extends InputMethodService {
                  )
                  .apply();
 
+                page=0;
                 buildShell();
 
             } else if(action==6) {
 
-                // Optional compact toolbar one-handed control.
                 wideMode=false;
 
                 hand=
@@ -855,14 +871,22 @@ public class KeyKiiService extends InputMethodService {
                  )
                  .apply();
 
+                page=0;
                 buildShell();
 
             } else if(action==7) {
 
-                page=4;
-                showPage();
+                // Toggle Tools <-> Keyboard even if the toolbar has not
+                // yet been rebuilt. This fixes the stuck-back-button issue.
+                if(page==4 || page==5 || page==3) {
+                    page=0;
+                } else {
+                    page=4;
+                }
+
+                buildShell();
             }
-        });
+        });;
 
         r.addView(
             v,
@@ -1453,7 +1477,12 @@ public class KeyKiiService extends InputMethodService {
             });
         });
 
-        int height=dp(keyHeight);
+        int effectiveKeyHeight=
+            hand!=0
+            ? Math.min(keyHeight,42)
+            : keyHeight;
+
+        int height=dp(effectiveKeyHeight);
 
         LinearLayout.LayoutParams p=
             new LinearLayout.LayoutParams(
@@ -5443,7 +5472,7 @@ public class KeyKiiService extends InputMethodService {
                 () -> activateOneHanded(),
                 () -> {
                     page=3;
-                    showPage();
+                    buildShell();
                 }
             }
         );
@@ -5477,7 +5506,7 @@ public class KeyKiiService extends InputMethodService {
             new Runnable[]{
                 () -> {
                     page=5;
-                    showPage();
+                    buildShell();
                 },
                 () -> toggleWideFromTools()
             }
@@ -5712,11 +5741,12 @@ public class KeyKiiService extends InputMethodService {
                      )
                      .apply();
 
+                    page=5;
                     buildShell();
                 },
                 () -> {
                     page=0;
-                    showPage();
+                    buildShell();
                 }
             }
         );
@@ -6482,7 +6512,7 @@ public class KeyKiiService extends InputMethodService {
 
             case "KEYS":
                 page=0;
-                showPage();
+                buildShell();
                 break;
 
             case "LEFT":
