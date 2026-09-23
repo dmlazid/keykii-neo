@@ -242,6 +242,14 @@ public class KeyKiiService extends InputMethodService {
             false
         );
 
+        hand=p.getInt(
+            "one_handed_default",
+            0
+        );
+
+        if(hand<0 || hand>2)
+            hand=0;
+
         if(wideMode)
             hand=0;
     }
@@ -415,7 +423,7 @@ public class KeyKiiService extends InputMethodService {
         String orderText=
             toolbarPrefs.getString(
                 "toolbar_order",
-                "emoji,clipboard,actions,theme,width"
+                "emoji,clipboard,actions,theme,width,hand"
             );
 
         java.util.LinkedHashSet<String> order=
@@ -430,7 +438,8 @@ public class KeyKiiService extends InputMethodService {
                     clean.equals("clipboard") ||
                     clean.equals("actions") ||
                     clean.equals("theme") ||
-                    clean.equals("width")
+                    clean.equals("width") ||
+                    clean.equals("hand")
                 ) {
                     order.add(clean);
                 }
@@ -444,6 +453,7 @@ public class KeyKiiService extends InputMethodService {
         order.add("actions");
         order.add("theme");
         order.add("width");
+        order.add("hand");
 
         for(String id:order) {
 
@@ -491,6 +501,23 @@ public class KeyKiiService extends InputMethodService {
                 )
             ) {
                 tool(r,"↔",5);
+
+            } else if(
+                id.equals("hand") &&
+                toolbarPrefs.getBoolean(
+                    "toolbar_hand",
+                    false
+                )
+            ) {
+                tool(
+                    r,
+                    hand==1
+                        ? "◁"
+                        : hand==2
+                            ? "▷"
+                            : "↙",
+                    6
+                );
             }
         }
 
@@ -582,15 +609,58 @@ public class KeyKiiService extends InputMethodService {
             } else if(action==5) {
 
                 wideMode=!wideMode;
-                hand=0;
+
+                SharedPreferences sizePrefs=
+                    getSharedPreferences(
+                        "keykii_prefs",
+                        MODE_PRIVATE
+                    );
+
+                if(wideMode) {
+                    hand=0;
+                } else {
+                    hand=sizePrefs.getInt(
+                        "one_handed_default",
+                        0
+                    );
+
+                    if(hand<0 || hand>2)
+                        hand=0;
+                }
+
+                sizePrefs.edit()
+                 .putBoolean(
+                     "wide_default",
+                     wideMode
+                 )
+                 .apply();
+
+                buildShell();
+
+            } else if(action==6) {
+
+                // One-handed quick toggle:
+                // center -> left -> right -> center.
+                wideMode=false;
+
+                hand=
+                    hand==0
+                    ? 1
+                    : hand==1
+                        ? 2
+                        : 0;
 
                 getSharedPreferences(
                     "keykii_prefs",
                     MODE_PRIVATE
                 ).edit()
+                 .putInt(
+                     "one_handed_default",
+                     hand
+                 )
                  .putBoolean(
                      "wide_default",
-                     wideMode
+                     false
                  )
                  .apply();
 
@@ -5397,8 +5467,30 @@ public class KeyKiiService extends InputMethodService {
 
         if(mode.equals("COMMA")) {
             if(value.equals("HAND")) {
-                if(wideMode) wideMode=false;
-                hand=(hand==0) ? 1 : (hand==1 ? 2 : 0);
+                if(wideMode)
+                    wideMode=false;
+
+                hand=
+                    hand==0
+                    ? 1
+                    : hand==1
+                        ? 2
+                        : 0;
+
+                getSharedPreferences(
+                    "keykii_prefs",
+                    MODE_PRIVATE
+                ).edit()
+                 .putInt(
+                     "one_handed_default",
+                     hand
+                 )
+                 .putBoolean(
+                     "wide_default",
+                     false
+                 )
+                 .apply();
+
                 buildShell();
                 return;
             }

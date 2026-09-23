@@ -268,6 +268,14 @@ public class SettingsActivity extends Activity {
                 true
         );
 
+        addSwitchRow(
+                page,
+                "↙  One-handed",
+                "Show the left/right one-handed keyboard toggle",
+                "toolbar_hand",
+                false
+        );
+
         addSection(page, "Order");
 
         addInfoCard(
@@ -298,9 +306,10 @@ public class SettingsActivity extends Activity {
                             .putBoolean("toolbar_actions", true)
                             .putBoolean("toolbar_theme", true)
                             .putBoolean("toolbar_width", true)
+                            .putBoolean("toolbar_hand", false)
                             .putString(
                                     "toolbar_order",
-                                    "emoji,clipboard,actions,theme,width"
+                                    "emoji,clipboard,actions,theme,width,hand"
                             )
                             .apply();
 
@@ -323,7 +332,7 @@ public class SettingsActivity extends Activity {
         String stored=
                 prefs.getString(
                         "toolbar_order",
-                        "emoji,clipboard,actions,theme,width"
+                        "emoji,clipboard,actions,theme,width,hand"
                 );
 
         java.util.LinkedHashSet<String> clean=
@@ -338,7 +347,8 @@ public class SettingsActivity extends Activity {
                     item.equals("clipboard") ||
                     item.equals("actions") ||
                     item.equals("theme") ||
-                    item.equals("width")
+                    item.equals("width") ||
+                    item.equals("hand")
                 ) {
                     clean.add(item);
                 }
@@ -350,6 +360,7 @@ public class SettingsActivity extends Activity {
         clean.add("actions");
         clean.add("theme");
         clean.add("width");
+        clean.add("hand");
 
         return new java.util.ArrayList<>(
                 clean
@@ -585,6 +596,9 @@ public class SettingsActivity extends Activity {
         if(id.equals("width"))
             return "↔";
 
+        if(id.equals("hand"))
+            return "↙";
+
         return "•";
     }
 
@@ -607,6 +621,9 @@ public class SettingsActivity extends Activity {
         if(id.equals("width"))
             return "Width";
 
+        if(id.equals("hand"))
+            return "One-handed";
+
         return id;
     }
 
@@ -626,6 +643,17 @@ public class SettingsActivity extends Activity {
                 "Open KeyKii in wide mode",
                 "wide_default",
                 false);
+
+        addChoiceRow(
+                page,
+                "One-handed mode",
+                oneHandedName(),
+                new String[]{"Off", "Left", "Right"},
+                new int[]{0, 1, 2},
+                "one_handed_default",
+                0,
+                this::showPreferences
+        );
 
         addSwitchRow(page,
                 "Number row",
@@ -654,7 +682,7 @@ public class SettingsActivity extends Activity {
         addActionButton(page, "Reset keyboard preferences", v -> {
             new AlertDialog.Builder(this)
                     .setTitle("Reset preferences?")
-                    .setMessage("Theme is kept. Key size, gap, haptics, number row and wide mode will return to defaults.")
+                    .setMessage("Theme is kept. Key size, gap, haptics, number row, wide mode and one-handed mode will return to defaults.")
                     .setNegativeButton("Cancel", null)
                     .setPositiveButton("Reset", (d, which) -> {
                         prefs.edit()
@@ -662,6 +690,7 @@ public class SettingsActivity extends Activity {
                                 .putInt("float_gap", 96)
                                 .putBoolean("haptic", false)
                                 .putBoolean("wide_default", false)
+                                .putInt("one_handed_default", 0)
                                 .putBoolean("number_row", false)
                                 .apply();
                         toast("Preferences reset");
@@ -3532,6 +3561,23 @@ public class SettingsActivity extends Activity {
 
         return themeDisplayName(theme);
     }
+
+    private String oneHandedName() {
+        int value=
+                prefs.getInt(
+                        "one_handed_default",
+                        0
+                );
+
+        if(value==1)
+            return "Left";
+
+        if(value==2)
+            return "Right";
+
+        return "Off";
+    }
+
 
     private String keyHeightName() {
         int value = prefs.getInt("key_height", 46);
