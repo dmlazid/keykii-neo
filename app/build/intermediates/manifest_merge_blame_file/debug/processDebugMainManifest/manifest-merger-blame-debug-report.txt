@@ -1,15 +1,15 @@
 1<?xml version="1.0" encoding="utf-8"?>
 2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
 3    package="com.keykii.neo"
-4    android:versionCode="7"
-5    android:versionName="1.6" >
+4    android:versionCode="39"
+5    android:versionName="2.9.12" >
 6
 7    <uses-sdk
 8        android:minSdkVersion="23"
 9        android:targetSdkVersion="35" />
 10
 11    <application
-11-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:4:5-24:19
+11-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:4:5-38:19
 12        android:allowBackup="true"
 12-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:5:9-35
 13        android:debuggable="true"
@@ -18,30 +18,55 @@
 15-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:6:9-35
 16        android:theme="@style/Theme.KeyKii" >
 16-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:7:9-44
-17        <service
-17-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:9:9-22:19
-18            android:name="com.keykii.neo.KeyKiiService"
-18-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:10:13-42
-19            android:exported="true"
-19-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:11:13-36
-20            android:label="KeyKii Neo"
-20-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:12:13-39
-21            android:permission="android.permission.BIND_INPUT_METHOD" >
-21-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:13:13-70
-22            <intent-filter>
-22-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:15:13-17:29
-23                <action android:name="android.view.InputMethod" />
-23-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:16:17-67
-23-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:16:25-64
+17        <activity
+17-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:8:9-15:20
+18            android:name="com.keykii.neo.MainActivity"
+18-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:9:13-41
+19            android:exported="true" >
+19-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:10:13-36
+20            <intent-filter>
+20-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:11:13-14:29
+21                <action android:name="android.intent.action.MAIN" />
+21-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:12:17-69
+21-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:12:25-66
+22
+23                <category android:name="android.intent.category.LAUNCHER" />
+23-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:13:17-77
+23-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:13:27-74
 24            </intent-filter>
-25
-26            <meta-data
-26-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:19:13-21:50
-27                android:name="android.view.im"
-27-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:20:17-47
-28                android:resource="@xml/method" />
-28-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:21:17-47
-29        </service>
-30    </application>
-31
-32</manifest>
+25        </activity>
+26
+27        <service
+27-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:18:9-31:19
+28            android:name="com.keykii.neo.KeyKiiService"
+28-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:19:13-42
+29            android:exported="true"
+29-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:20:13-36
+30            android:label="KeyKii Neo"
+30-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:21:13-39
+31            android:permission="android.permission.BIND_INPUT_METHOD" >
+31-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:22:13-70
+32            <intent-filter>
+32-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:24:13-26:29
+33                <action android:name="android.view.InputMethod" />
+33-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:25:17-67
+33-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:25:25-64
+34            </intent-filter>
+35
+36            <meta-data
+36-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:28:13-30:50
+37                android:name="android.view.im"
+37-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:29:17-47
+38                android:resource="@xml/method" />
+38-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:30:17-47
+39        </service>
+40
+41        <activity
+41-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:34:9-36:40
+42            android:name="com.keykii.neo.SettingsActivity"
+42-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:35:13-45
+43            android:exported="false" />
+43-->/workspaces/keykii-neo/app/src/main/AndroidManifest.xml:36:13-37
+44    </application>
+45
+46</manifest>

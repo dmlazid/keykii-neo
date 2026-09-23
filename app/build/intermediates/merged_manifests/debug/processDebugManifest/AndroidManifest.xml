@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.keykii.neo"
-    android:versionCode="7"
-    android:versionName="1.6" >
+    android:versionCode="39"
+    android:versionName="2.9.12" >
 
     <uses-sdk
         android:minSdkVersion="23"
@@ -14,6 +14,16 @@
         android:extractNativeLibs="false"
         android:label="KeyKii Neo"
         android:theme="@style/Theme.KeyKii" >
+        <activity
+            android:name="com.keykii.neo.MainActivity"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <service
             android:name="com.keykii.neo.KeyKiiService"
             android:exported="true"
@@ -27,6 +37,10 @@
                 android:name="android.view.im"
                 android:resource="@xml/method" />
         </service>
+
+        <activity
+            android:name="com.keykii.neo.SettingsActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

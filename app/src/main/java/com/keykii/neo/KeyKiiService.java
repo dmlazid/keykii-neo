@@ -384,7 +384,7 @@ public class KeyKiiService extends InputMethodService {
             r,
             new LinearLayout.LayoutParams(
                 -1,
-                dp(46)
+                dp(44)
             )
         );
     }
@@ -841,6 +841,20 @@ public class KeyKiiService extends InputMethodService {
         // a compact shortcut bubble above the key; the center smiley opens emoji.
         box.setOnLongClickListener(v -> {
 
+            // Long-press the real KeyKii spacebar to open Android's
+            // system keyboard picker. Tap behaviour stays a normal space.
+            if(action.equals("SPACE")) {
+                dismissKeyPreview();
+                android.view.inputmethod.InputMethodManager imm=
+                    (android.view.inputmethod.InputMethodManager)
+                    getSystemService(INPUT_METHOD_SERVICE);
+
+                if(imm!=null) {
+                    v.post(() -> imm.showInputMethodPicker());
+                    return true;
+                }
+            }
+
             if(action.equals(",") && page==0 && !symbols) {
                 dismissKeyPreview();
                 showCommaShortcutPopup(v);
@@ -1084,19 +1098,19 @@ public class KeyKiiService extends InputMethodService {
     String fastGroupLabel(String g) {
 
         if(g.equals("Smileys & Emotion"))
-            return "Smileys and emotions";
+            return "Smileys & Emotions";
 
         if(g.equals("People & Body"))
             return "People";
 
         if(g.equals("Animals & Nature"))
-            return "Animals and nature";
+            return "Animals & Nature";
 
         if(g.equals("Food & Drink"))
-            return "Food and drink";
+            return "Food & Drink";
 
         if(g.equals("Travel & Places"))
-            return "Travel and places";
+            return "Travel & Places";
 
         return g;
     }
@@ -1301,15 +1315,15 @@ public class KeyKiiService extends InputMethodService {
 
         if(q.isEmpty()) {
             fastEmojiJump.put("Recent emoji",rows.size());
-            rows.add("Recent emoji");
+            rows.add("Recent Emoji");
 
             java.util.ArrayList<String> recent=loadFastRecent();
 
-            for(int i=0;i<recent.size();i+=8) {
+            for(int i=0;i<recent.size();i+=10) {
                 java.util.ArrayList<String> row=
                     new java.util.ArrayList<>();
 
-                for(int j=i;j<Math.min(i+8,recent.size());j++)
+                for(int j=i;j<Math.min(i+10,recent.size());j++)
                     row.add(recent.get(j));
 
                 if(!row.isEmpty()) rows.add(row);
@@ -1386,11 +1400,11 @@ public class KeyKiiService extends InputMethodService {
 
             java.util.ArrayList<String> list=entry.getValue();
 
-            for(int i=0;i<list.size();i+=8) {
+            for(int i=0;i<list.size();i+=10) {
                 java.util.ArrayList<String> row=
                     new java.util.ArrayList<>();
 
-                for(int j=i;j<Math.min(i+8,list.size());j++)
+                for(int j=i;j<Math.min(i+10,list.size());j++)
                     row.add(list.get(j));
 
                 if(!row.isEmpty()) rows.add(row);
@@ -1824,15 +1838,33 @@ public class KeyKiiService extends InputMethodService {
         bar.setGravity(Gravity.CENTER);
 
         TextView abc=fastEmojiModeButton("ABC");
-        TextView emoji=fastEmojiModeButton("😀");
+        TextView emoji=fastEmojiModeButton("☺");
+        TextView gif=fastEmojiModeButton("GIF");
+        TextView sticker=fastEmojiModeButton("▧");
         TextView kao=fastEmojiModeButton(":-)");
         TextView del=fastEmojiModeButton("⌫");
+
+        // Selected emoji tab, similar to Gboard, while keeping KeyKii colors.
+        int selectedColor = theme==1
+            ? Color.rgb(201,218,255)
+            : Color.argb(120,150,180,255);
+        if(kaomojiMode)
+            kao.setBackground(round(selectedColor,16,borderColor()));
+        else
+            emoji.setBackground(round(selectedColor,16,borderColor()));
+
+        // GIF/sticker are visual placeholders only until those features exist.
+        gif.setAlpha(.35f);
+        sticker.setAlpha(.35f);
+        gif.setClickable(false);
+        sticker.setClickable(false);
 
         abc.setOnClickListener(v -> {
             page=0;
             symbols=false;
             symbolPage=1;
             shift=false;
+            capsLock=false;
             emojiSearchMode=false;
             emojiSearchQuery="";
             kaomojiMode=false;
@@ -1891,9 +1923,10 @@ public class KeyKiiService extends InputMethodService {
                 ic.deleteSurroundingText(1,0);
         });
 
-        for(TextView b:new TextView[]{abc,emoji,kao,del}) {
+        TextView[] buttons={abc,emoji,gif,sticker,kao,del};
+        for(TextView b:buttons) {
             LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(46),1);
-            lp.setMargins(dp(3),dp(3),dp(3),dp(3));
+            lp.setMargins(dp(2),dp(3),dp(2),dp(3));
             bar.addView(b,lp);
         }
 
@@ -1909,6 +1942,41 @@ public class KeyKiiService extends InputMethodService {
 
         searchRow.setGravity(
             Gravity.CENTER_VERTICAL
+        );
+
+        TextView back=
+            new TextView(this);
+
+        back.setText("←");
+        back.setTextSize(23);
+        back.setTextColor(textColor());
+        back.setGravity(Gravity.CENTER);
+        back.setBackground(
+            round(
+                keyColor(true),
+                18,
+                Color.TRANSPARENT
+            )
+        );
+
+        back.setOnClickListener(v -> {
+            if(emojiSearchMode || kaomojiMode) {
+                emojiSearchMode=false;
+                emojiSearchQuery="";
+                kaomojiMode=false;
+                showPage();
+            } else {
+                page=0;
+                showPage();
+            }
+        });
+
+        searchRow.addView(
+            back,
+            new LinearLayout.LayoutParams(
+                dp(46),
+                dp(42)
+            )
         );
 
         TextView search=
@@ -1979,6 +2047,11 @@ public class KeyKiiService extends InputMethodService {
         close.setTextSize(22);
         close.setTextColor(textColor());
         close.setGravity(Gravity.CENTER);
+        close.setVisibility(
+            (emojiSearchMode || kaomojiMode)
+            ? View.VISIBLE
+            : View.INVISIBLE
+        );
 
         close.setOnTouchListener((v,e) -> {
 
@@ -2133,8 +2206,21 @@ public class KeyKiiService extends InputMethodService {
                 new TextView(this);
 
             b.setText(icons[i]);
-            b.setTextSize(22);
+            b.setTextSize(21);
             b.setGravity(Gravity.CENTER);
+
+            if(index==emojiCategory) {
+                int selectedColor = theme==1
+                    ? Color.rgb(201,218,255)
+                    : Color.argb(120,150,180,255);
+                b.setBackground(
+                    round(
+                        selectedColor,
+                        20,
+                        Color.TRANSPARENT
+                    )
+                );
+            }
 
             b.setOnClickListener(v -> {
 
@@ -2155,25 +2241,16 @@ public class KeyKiiService extends InputMethodService {
                     return;
                 }
 
-                if(fastEmojiList!=null) {
-
-                    Integer pos=
-                        fastEmojiJump.get(
-                            groups[index]
-                        );
-
-                    if(pos!=null)
-                        fastEmojiList.setSelection(
-                            pos
-                        );
-                }
+                // Rebuild once so the selected category highlight updates,
+                // then KEYKII_INITIAL_EMOJI_JUMP moves to the right section.
+                showPage();
             });
 
             cats.addView(
                 b,
                 new LinearLayout.LayoutParams(
-                    dp(54),
-                    dp(44)
+                    dp(48),
+                    dp(42)
                 )
             );
         }
@@ -2276,7 +2353,7 @@ public class KeyKiiService extends InputMethodService {
                         (java.util.ArrayList<String>)
                         item;
 
-                    for(int i=0;i<8;i++) {
+                    for(int i=0;i<10;i++) {
 
                         TextView e=
                             new TextView(
@@ -2287,7 +2364,7 @@ public class KeyKiiService extends InputMethodService {
                             Gravity.CENTER
                         );
 
-                        e.setTextSize(28);
+                        e.setTextSize(25);
                         e.setIncludeFontPadding(false);
 
                         if(i<emojis.size()) {
@@ -2324,7 +2401,7 @@ public class KeyKiiService extends InputMethodService {
                             e,
                             new LinearLayout.LayoutParams(
                                 0,
-                                dp(52),
+                                dp(46),
                                 1
                             )
                         );
@@ -2335,7 +2412,7 @@ public class KeyKiiService extends InputMethodService {
             }
         );
 
-        int listHeight=dp(285);
+        int listHeight=dp(300);
 
         body.addView(
             fastEmojiList,

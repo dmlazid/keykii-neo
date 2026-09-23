@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:2:1-26:12
-INJECTED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:2:1-26:12
-INJECTED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:2:1-26:12
-INJECTED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:2:1-26:12
+ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:2:1-40:12
+INJECTED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:2:1-40:12
+INJECTED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:2:1-40:12
+INJECTED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:2:1-40:12
 	package
 		INJECTED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml
 	android:versionName
@@ -13,8 +13,8 @@ INJECTED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:2:1-26:12
 	xmlns:android
 		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:2:11-69
 application
-ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:4:5-24:19
-INJECTED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:4:5-24:19
+ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:4:5-38:19
+INJECTED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:4:5-38:19
 	android:extractNativeLibs
 		INJECTED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml
 	android:label
@@ -23,28 +23,50 @@ INJECTED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:4:5-24:19
 		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:5:9-35
 	android:theme
 		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:7:9-44
-service#com.keykii.neo.KeyKiiService
-ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:9:9-22:19
-	android:label
-		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:12:13-39
+activity#com.keykii.neo.MainActivity
+ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:8:9-15:20
 	android:exported
-		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:11:13-36
+		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:10:13-36
+	android:name
+		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:9:13-41
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:11:13-14:29
+action#android.intent.action.MAIN
+ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:12:17-69
+	android:name
+		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:12:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:13:17-77
+	android:name
+		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:13:27-74
+service#com.keykii.neo.KeyKiiService
+ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:18:9-31:19
+	android:label
+		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:21:13-39
+	android:exported
+		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:20:13-36
 	android:permission
-		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:13:13-70
+		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:22:13-70
 	android:name
-		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:10:13-42
+		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:19:13-42
 intent-filter#action:name:android.view.InputMethod
-ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:15:13-17:29
+ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:24:13-26:29
 action#android.view.InputMethod
-ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:16:17-67
+ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:25:17-67
 	android:name
-		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:16:25-64
+		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:25:25-64
 meta-data#android.view.im
-ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:19:13-21:50
+ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:28:13-30:50
 	android:resource
-		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:21:17-47
+		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:30:17-47
 	android:name
-		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:20:17-47
+		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:29:17-47
+activity#com.keykii.neo.SettingsActivity
+ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:34:9-36:40
+	android:exported
+		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:36:13-37
+	android:name
+		ADDED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml:35:13-45
 uses-sdk
 INJECTED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /workspaces/keykii-neo/app/src/main/AndroidManifest.xml
