@@ -827,18 +827,13 @@ public class KeyKiiService extends InputMethodService {
 
         }
 
-        // Gboard-style comma key: tap types comma, long-press opens emoji.
-        // The small smiley hint is supplied by hintFor(",").
+        // Gboard-style comma key: tap still types comma. Holding it opens
+        // a compact shortcut bubble above the key; the center smiley opens emoji.
         box.setOnLongClickListener(v -> {
 
             if(action.equals(",") && page==0 && !symbols) {
                 dismissKeyPreview();
-                page=1;
-                emojiCategory=0;
-                emojiSearchMode=false;
-                emojiSearchQuery="";
-                kaomojiMode=false;
-                showPage();
+                showCommaShortcutPopup(v);
                 return true;
             }
 
@@ -3936,6 +3931,126 @@ public class KeyKiiService extends InputMethodService {
             case "m": return "?";
             default: return "";
         }
+    }
+
+
+    void showCommaShortcutPopup(View anchor) {
+
+        final int cell=dp(58);
+        final int pad=dp(7);
+        final int popupWidth=(cell*3)+(pad*2);
+        final int popupHeight=cell+(pad*2);
+
+        LinearLayout row=new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER);
+        row.setPadding(pad,pad,pad,pad);
+        row.setBackground(
+            round(keyColor(false),26,borderColor())
+        );
+
+        final PopupWindow popup=new PopupWindow(
+            row,
+            popupWidth,
+            popupHeight,
+            true
+        );
+
+        popup.setFocusable(true);
+        popup.setOutsideTouchable(true);
+        popup.setBackgroundDrawable(
+            new android.graphics.drawable.ColorDrawable(
+                android.graphics.Color.TRANSPARENT
+            )
+        );
+
+        if(android.os.Build.VERSION.SDK_INT>=21)
+            popup.setElevation(dp(12));
+
+        TextView oneHand=new TextView(this);
+        oneHand.setText("↔");
+        oneHand.setTextSize(24);
+        oneHand.setTextColor(textColor());
+        oneHand.setGravity(Gravity.CENTER);
+        oneHand.setIncludeFontPadding(false);
+
+        TextView emoji=new TextView(this);
+        emoji.setText("☺");
+        emoji.setTextSize(28);
+        emoji.setTextColor(textColor());
+        emoji.setGravity(Gravity.CENTER);
+        emoji.setIncludeFontPadding(false);
+        emoji.setBackground(
+            round(
+                theme==1
+                    ? Color.rgb(221,226,239)
+                    : Color.argb(85,120,150,220),
+                24,
+                Color.TRANSPARENT
+            )
+        );
+
+        TextView settings=new TextView(this);
+        settings.setText("⚙");
+        settings.setTextSize(25);
+        settings.setTextColor(textColor());
+        settings.setGravity(Gravity.CENTER);
+        settings.setIncludeFontPadding(false);
+
+        row.addView(
+            oneHand,
+            new LinearLayout.LayoutParams(cell,cell)
+        );
+        row.addView(
+            emoji,
+            new LinearLayout.LayoutParams(cell,cell)
+        );
+        row.addView(
+            settings,
+            new LinearLayout.LayoutParams(cell,cell)
+        );
+
+        oneHand.setOnClickListener(v -> {
+            popup.dismiss();
+
+            if(wideMode)
+                wideMode=false;
+
+            hand=(hand==0) ? 1 : (hand==1 ? 2 : 0);
+            buildShell();
+        });
+
+        emoji.setOnClickListener(v -> {
+            popup.dismiss();
+            page=1;
+            emojiCategory=0;
+            emojiSearchMode=false;
+            emojiSearchQuery="";
+            kaomojiMode=false;
+            showPage();
+        });
+
+        settings.setOnClickListener(v -> {
+            popup.dismiss();
+            try {
+                Intent intent=new Intent();
+                intent.setClassName(
+                    getPackageName(),
+                    "com.keykii.neo.SettingsActivity"
+                );
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            } catch(Exception ignored) {}
+        });
+
+        int xOffset=(anchor.getWidth()-popupWidth)/2;
+        int yOffset=-anchor.getHeight()-popupHeight-dp(10);
+
+        popup.showAsDropDown(
+            anchor,
+            xOffset,
+            yOffset
+        );
     }
 
 
