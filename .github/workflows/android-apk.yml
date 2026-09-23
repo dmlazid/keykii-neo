@@ -33,11 +33,21 @@ jobs:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
 
-      - name: Keep one debug signing key for update installs
+      - name: Restore stable KeyKii signing key
         uses: actions/cache@v4
         with:
-          path: ~/.android/debug.keystore
-          key: keykii-neo-debug-keystore-v1
+          path: ~/.keykii/keykii-debug.keystore
+          key: keykii-neo-stable-debug-keystore-v1
+
+      - name: Create stable signing key if needed
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.keykii"
+          if [ ! -f "$HOME/.keykii/keykii-debug.keystore" ]; then
+            keytool -genkeypair               -keystore "$HOME/.keykii/keykii-debug.keystore"               -storepass android               -alias androiddebugkey               -keypass android               -dname "CN=Android Debug,O=Android,C=US"               -keyalg RSA               -keysize 2048               -validity 10000               -noprompt
+          fi
+          mkdir -p "$HOME/.android"
+          cp "$HOME/.keykii/keykii-debug.keystore" "$HOME/.android/debug.keystore"
 
       - name: Install Android SDK
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
