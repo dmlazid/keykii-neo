@@ -194,10 +194,7 @@ public class KeyKiiService extends InputMethodService {
             false
         );
 
-        theme=getSharedPreferences(
-            "keykii_prefs",
-            MODE_PRIVATE
-        ).getInt("theme",0);
+        theme=resolvedTheme(keykiiPrefs);
 
         root=new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -234,7 +231,7 @@ public class KeyKiiService extends InputMethodService {
                 MODE_PRIVATE
             );
 
-        theme=p.getInt("theme",0);
+        theme=resolvedTheme(p);
         keyHeight=p.getInt("key_height",46);
         floatGap=p.getInt("float_gap",96);
         haptic=p.getBoolean("haptic",false);
@@ -469,12 +466,49 @@ public class KeyKiiService extends InputMethodService {
 
                 theme=(theme+1)%3;
 
-                getSharedPreferences(
-                    "keykii_prefs",
-                    MODE_PRIVATE
-                ).edit()
-                 .putInt("theme",theme)
-                 .apply();
+                SharedPreferences themePrefs=
+                    getSharedPreferences(
+                        "keykii_prefs",
+                        MODE_PRIVATE
+                    );
+
+                SharedPreferences.Editor themeEdit=
+                    themePrefs.edit();
+
+                if(
+                    themePrefs.getBoolean(
+                        "theme_auto_day_night",
+                        false
+                    )
+                ) {
+                    int nightMode=
+                        getResources()
+                            .getConfiguration()
+                            .uiMode &
+                        android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+
+                    if(
+                        nightMode==
+                        android.content.res.Configuration.UI_MODE_NIGHT_YES
+                    ) {
+                        themeEdit.putInt(
+                            "theme_dark",
+                            theme
+                        );
+                    } else {
+                        themeEdit.putInt(
+                            "theme_light",
+                            theme
+                        );
+                    }
+                } else {
+                    themeEdit.putInt(
+                        "theme",
+                        theme
+                    );
+                }
+
+                themeEdit.apply();
 
                 buildShell();
 
@@ -4517,9 +4551,7 @@ public class KeyKiiService extends InputMethodService {
             clipboardShortcutMode
             ? round(keyColor(false),14,borderColor())
             : round(
-                theme==1
-                ? Color.rgb(221,226,239)
-                : Color.argb(90,120,150,220),
+                accentFillColor(),
                 14,
                 borderColor()
             )
@@ -4528,9 +4560,7 @@ public class KeyKiiService extends InputMethodService {
         shortcutsTab.setBackground(
             clipboardShortcutMode
             ? round(
-                theme==1
-                ? Color.rgb(221,226,239)
-                : Color.argb(90,120,150,220),
+                accentFillColor(),
                 14,
                 borderColor()
             )
@@ -5213,9 +5243,7 @@ public class KeyKiiService extends InputMethodService {
             if(i==dragChoiceIndex) {
                 v.setBackground(
                     round(
-                        theme==1
-                        ? Color.rgb(221,226,239)
-                        : Color.argb(90,120,150,220),
+                        accentFillColor(),
                         18,
                         Color.TRANSPARENT
                     )
@@ -5909,6 +5937,109 @@ public class KeyKiiService extends InputMethodService {
         );
     }
 
+    int resolvedTheme(SharedPreferences p) {
+        if(p==null) return 0;
+
+        if(!p.getBoolean("theme_auto_day_night",false))
+            return p.getInt("theme",0);
+
+        int nightMode=
+            getResources()
+                .getConfiguration()
+                .uiMode &
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+
+        if(
+            nightMode==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        ) {
+            return p.getInt("theme_dark",0);
+        }
+
+        return p.getInt("theme_light",1);
+    }
+
+
+    int accentColor() {
+        return getSharedPreferences(
+            "keykii_prefs",
+            MODE_PRIVATE
+        ).getInt(
+            "accent_color",
+            Color.rgb(93,118,171)
+        );
+    }
+
+
+    int accentFillColor() {
+        int c=accentColor();
+
+        if(theme==1) {
+            return Color.rgb(
+                (Color.red(c)+255)/2,
+                (Color.green(c)+255)/2,
+                (Color.blue(c)+255)/2
+            );
+        }
+
+        return Color.argb(
+            105,
+            Color.red(c),
+            Color.green(c),
+            Color.blue(c)
+        );
+    }
+
+
+    int themeTransparencyPercent() {
+        int value=
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            ).getInt(
+                "theme_transparency",
+                100
+            );
+
+        return Math.max(
+            45,
+            Math.min(100,value)
+        );
+    }
+
+
+    int adjustedAlpha(int baseAlpha) {
+        return Math.max(
+            0,
+            Math.min(
+                255,
+                Math.round(
+                    baseAlpha *
+                    themeTransparencyPercent() /
+                    100f
+                )
+            )
+        );
+    }
+
+
+    int keyCornerRadius() {
+        int value=
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            ).getInt(
+                "key_corner_radius",
+                15
+            );
+
+        return Math.max(
+            4,
+            Math.min(28,value)
+        );
+    }
+
+
     void applyPanelThemeBackground() {
         if(panel==null) return;
 
@@ -5960,12 +6091,23 @@ public class KeyKiiService extends InputMethodService {
 
             image.setGravity(Gravity.FILL);
 
+            int overlayBaseAlpha=
+                theme==1
+                ? 115
+                : theme==2
+                    ? 70
+                    : 95;
+
             int overlayColor=
                 theme==1
-                ? Color.argb(115,255,255,255)
-                : theme==2
-                    ? Color.argb(70,0,0,0)
-                    : Color.argb(95,0,0,0);
+                ? Color.argb(
+                    adjustedAlpha(overlayBaseAlpha),
+                    255,255,255
+                )
+                : Color.argb(
+                    adjustedAlpha(overlayBaseAlpha),
+                    0,0,0
+                );
 
             GradientDrawable overlay=
                 round(
@@ -6021,16 +6163,19 @@ public class KeyKiiService extends InputMethodService {
 
         if(theme==1)
             return Color.argb(
-                235,247,245,242
+                adjustedAlpha(235),
+                247,245,242
             );
 
         if(theme==2)
             return Color.argb(
-                145,30,32,37
+                adjustedAlpha(145),
+                30,32,37
             );
 
         return Color.argb(
-            220,35,37,42
+            adjustedAlpha(220),
+            35,37,42
         );
     }
 
@@ -6053,14 +6198,21 @@ public class KeyKiiService extends InputMethodService {
     }
 
     int spaceColor() {
+        int c=accentColor();
 
-        if(theme==1)
+        if(theme==1) {
             return Color.rgb(
-                239,232,221
+                (Color.red(c)+255*3)/4,
+                (Color.green(c)+255*3)/4,
+                (Color.blue(c)+255*3)/4
             );
+        }
 
         return Color.argb(
-            145,235,239,242
+            165,
+            Color.red(c),
+            Color.green(c),
+            Color.blue(c)
         );
     }
 
@@ -6100,14 +6252,14 @@ public class KeyKiiService extends InputMethodService {
         GradientDrawable normal=
             round(
                 normalColor,
-                15,
+                keyCornerRadius(),
                 borderColor()
             );
 
         GradientDrawable pressed=
             round(
                 pressedColor,
-                15,
+                keyCornerRadius(),
                 borderColor()
             );
 

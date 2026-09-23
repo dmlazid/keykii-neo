@@ -311,13 +311,116 @@ public class SettingsActivity extends Activity {
         screen = "theme";
         LinearLayout page = page(
                 "Theme",
-                "Choose colors or add your own keyboard background image",
+                "Customize colors, transparency, corners and background",
                 true
         );
+
+        addSection(page, "Base theme");
 
         addThemeChoice(page, "Glass Dark", "Dark translucent KeyKii panel", 0);
         addThemeChoice(page, "Morning Cream", "Warm cream floating keyboard", 1);
         addThemeChoice(page, "Clear Glass", "Darker transparent glass look", 2);
+
+        addSection(page, "Customization");
+
+        addChoiceRow(
+                page,
+                "Accent color",
+                accentColorName(),
+                new String[]{
+                        "Blue",
+                        "Rose",
+                        "Purple",
+                        "Teal",
+                        "Green",
+                        "Orange"
+                },
+                new int[]{
+                        Color.rgb(93,118,171),
+                        Color.rgb(210,91,113),
+                        Color.rgb(142,96,190),
+                        Color.rgb(57,145,151),
+                        Color.rgb(85,145,91),
+                        Color.rgb(217,133,62)
+                },
+                "accent_color",
+                Color.rgb(93,118,171),
+                this::showTheme
+        );
+
+        addChoiceRow(
+                page,
+                "Keyboard transparency",
+                themeTransparencyName(),
+                new String[]{
+                        "More transparent",
+                        "Transparent",
+                        "Balanced",
+                        "Solid"
+                },
+                new int[]{55,70,85,100},
+                "theme_transparency",
+                100,
+                this::showTheme
+        );
+
+        addChoiceRow(
+                page,
+                "Key corner roundness",
+                keyCornerName(),
+                new String[]{
+                        "Small",
+                        "Medium",
+                        "Default",
+                        "Very round"
+                },
+                new int[]{6,11,15,22},
+                "key_corner_radius",
+                15,
+                this::showTheme
+        );
+
+        addSection(page, "Light & dark appearance");
+
+        addSwitchRow(
+                page,
+                "Automatic light/dark themes",
+                "Use a different KeyKii theme for light and dark phone appearance",
+                "theme_auto_day_night",
+                false
+        );
+
+        if (prefs.getBoolean("theme_auto_day_night", false)) {
+            addChoiceRow(
+                    page,
+                    "Light appearance",
+                    themeDisplayName(prefs.getInt("theme_light", 1)),
+                    new String[]{
+                            "Glass Dark",
+                            "Morning Cream",
+                            "Clear Glass"
+                    },
+                    new int[]{0,1,2},
+                    "theme_light",
+                    1,
+                    this::showTheme
+            );
+
+            addChoiceRow(
+                    page,
+                    "Dark appearance",
+                    themeDisplayName(prefs.getInt("theme_dark", 0)),
+                    new String[]{
+                            "Glass Dark",
+                            "Morning Cream",
+                            "Clear Glass"
+                    },
+                    new int[]{0,1,2},
+                    "theme_dark",
+                    0,
+                    this::showTheme
+            );
+        }
 
         addSection(page, "Background image");
 
@@ -328,7 +431,7 @@ public class SettingsActivity extends Activity {
                 "Custom image",
                 imageUri == null || imageUri.isEmpty()
                         ? "No image selected. Your normal KeyKii theme background is being used."
-                        : "A custom image is active behind the keyboard. Theme colors add a light overlay so the keys stay readable."
+                        : "A custom image is active behind the keyboard. Your theme overlay keeps the keys readable."
         );
 
         addActionButton(page, "Choose background image", v -> {
@@ -357,12 +460,29 @@ public class SettingsActivity extends Activity {
             });
         }
 
-        addInfoCard(page,
-                "Current theme",
-                themeName() + ". Theme and image changes apply the next time the keyboard view refreshes.");
+        addActionButton(page, "Reset theme customization", v -> {
+            prefs.edit()
+                    .remove("accent_color")
+                    .remove("theme_transparency")
+                    .remove("key_corner_radius")
+                    .putBoolean("theme_auto_day_night", false)
+                    .remove("theme_light")
+                    .remove("theme_dark")
+                    .apply();
+
+            toast("Theme customization reset");
+            showTheme();
+        });
+
+        addInfoCard(
+                page,
+                "Current appearance",
+                themeName() + ". Changes apply the next time the keyboard view refreshes."
+        );
 
         setContentView(wrap(page));
     }
+
 
     private void showVoice() {
         screen = "voice";
@@ -928,7 +1048,19 @@ public class SettingsActivity extends Activity {
     }
 
     private void addThemeChoice(LinearLayout page, String title, String subtitle, int value) {
-        int current = prefs.getInt("theme", 1);
+        int current;
+
+        if (prefs.getBoolean("theme_auto_day_night", false)) {
+            int nightMode =
+                    getResources().getConfiguration().uiMode &
+                    android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+
+            current = nightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES
+                    ? prefs.getInt("theme_dark", 0)
+                    : prefs.getInt("theme_light", 1);
+        } else {
+            current = prefs.getInt("theme", 1);
+        }
 
         LinearLayout row = card();
         row.setGravity(Gravity.CENTER_VERTICAL);
@@ -960,7 +1092,23 @@ public class SettingsActivity extends Activity {
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         row.setOnClickListener(v -> {
-            prefs.edit().putInt("theme", value).apply();
+            SharedPreferences.Editor e = prefs.edit();
+
+            if (prefs.getBoolean("theme_auto_day_night", false)) {
+                int nightMode =
+                        getResources().getConfiguration().uiMode &
+                        android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+
+                if (nightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
+                    e.putInt("theme_dark", value);
+                } else {
+                    e.putInt("theme_light", value);
+                }
+            } else {
+                e.putInt("theme", value);
+            }
+
+            e.apply();
             toast(title + " selected");
             showTheme();
         });
@@ -1044,11 +1192,64 @@ public class SettingsActivity extends Activity {
         return d;
     }
 
+    private String themeDisplayName(int value) {
+        if (value == 1) return "Morning Cream";
+        if (value == 2) return "Clear Glass";
+        return "Glass Dark";
+    }
+
+
+    private String accentColorName() {
+        int value = prefs.getInt(
+                "accent_color",
+                Color.rgb(93,118,171)
+        );
+
+        if (value == Color.rgb(210,91,113)) return "Rose";
+        if (value == Color.rgb(142,96,190)) return "Purple";
+        if (value == Color.rgb(57,145,151)) return "Teal";
+        if (value == Color.rgb(85,145,91)) return "Green";
+        if (value == Color.rgb(217,133,62)) return "Orange";
+        return "Blue";
+    }
+
+
+    private String themeTransparencyName() {
+        int value = prefs.getInt("theme_transparency", 100);
+
+        if (value <= 55) return "More transparent";
+        if (value <= 70) return "Transparent";
+        if (value <= 85) return "Balanced";
+        return "Solid";
+    }
+
+
+    private String keyCornerName() {
+        int value = prefs.getInt("key_corner_radius", 15);
+
+        if (value <= 6) return "Small";
+        if (value <= 11) return "Medium";
+        if (value >= 22) return "Very round";
+        return "Default";
+    }
+
+
     private String themeName() {
-        int theme = prefs.getInt("theme", 1);
-        if (theme == 0) return "Glass Dark";
-        if (theme == 2) return "Clear Glass";
-        return "Morning Cream";
+        int theme;
+
+        if (prefs.getBoolean("theme_auto_day_night", false)) {
+            int nightMode =
+                    getResources().getConfiguration().uiMode &
+                    android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+
+            theme = nightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES
+                    ? prefs.getInt("theme_dark", 0)
+                    : prefs.getInt("theme_light", 1);
+        } else {
+            theme = prefs.getInt("theme", 1);
+        }
+
+        return themeDisplayName(theme);
     }
 
     private String keyHeightName() {
