@@ -15,15 +15,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Restore stable KeyKii signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.keykii/keykii-debug.keystore
+          key: keykii-neo-stable-debug-keystore-v1
+
       - name: Download repository APKs
         run: |
           curl -L --fail -o keykii-2.10.5.apk https://raw.githubusercontent.com/dmlazid/keykii-neo/main/KeyKii-Neo-2.10.5.apk
           curl -L --fail -o keykii-2.10.6.apk https://raw.githubusercontent.com/dmlazid/keykii-neo/main/KeyKii-Neo-2.10.6.apk
-      - name: Print signing certificates
+
+      - name: Print cached key certificate
+        run: |
+          echo "=== CACHED KEY ==="
+          keytool -list -v             -keystore "$HOME/.keykii/keykii-debug.keystore"             -storepass android             -alias androiddebugkey | grep -E "Owner:|SHA256:"
+
+      - name: Print APK signing certificates
         run: |
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
-          echo "Using $APKSIGNER"
           echo "=== 2.10.5 ==="
-          "$APKSIGNER" verify --print-certs keykii-2.10.5.apk
+          "$APKSIGNER" verify --print-certs keykii-2.10.5.apk | grep -E "certificate DN|certificate SHA-256 digest"
           echo "=== 2.10.6 ==="
-          "$APKSIGNER" verify --print-certs keykii-2.10.6.apk
+          "$APKSIGNER" verify --print-certs keykii-2.10.6.apk | grep -E "certificate DN|certificate SHA-256 digest"
