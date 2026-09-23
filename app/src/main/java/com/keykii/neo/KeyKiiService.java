@@ -6056,32 +6056,79 @@ public class KeyKiiService extends InputMethodService {
             );
 
         if(uriText==null || uriText.isEmpty()) {
-            panel.setBackground(
-                round(
-                    panelColor(),
-                    24,
-                    borderColor()
-                )
-            );
+            applyPlainPanelBackground();
             return;
         }
 
+        android.graphics.Bitmap bitmap=null;
+
         try {
+            android.net.Uri uri=
+                android.net.Uri.parse(uriText);
+
+            // Read only the image dimensions first. Phone photos can be
+            // thousands of pixels wide, so decoding the original directly
+            // inside the IME can exhaust memory and stop the keyboard.
+            android.graphics.BitmapFactory.Options bounds=
+                new android.graphics.BitmapFactory.Options();
+
+            bounds.inJustDecodeBounds=true;
+
+            java.io.InputStream boundsIn=
+                getContentResolver()
+                    .openInputStream(uri);
+
+            if(boundsIn!=null) {
+                android.graphics.BitmapFactory
+                    .decodeStream(
+                        boundsIn,
+                        null,
+                        bounds
+                    );
+                boundsIn.close();
+            }
+
+            int sample=1;
+            int maxSide=1440;
+
+            if(
+                bounds.outWidth>0 &&
+                bounds.outHeight>0
+            ) {
+                while(
+                    bounds.outWidth/sample>maxSide ||
+                    bounds.outHeight/sample>maxSide
+                ) {
+                    sample*=2;
+                }
+            }
+
+            android.graphics.BitmapFactory.Options options=
+                new android.graphics.BitmapFactory.Options();
+
+            options.inSampleSize=Math.max(1,sample);
+            options.inPreferredConfig=
+                android.graphics.Bitmap.Config.RGB_565;
+
             java.io.InputStream in=
                 getContentResolver()
-                    .openInputStream(
-                        android.net.Uri.parse(uriText)
-                    );
+                    .openInputStream(uri);
 
-            android.graphics.Bitmap bitmap=
-                android.graphics.BitmapFactory
-                    .decodeStream(in);
-
-            if(in!=null)
+            if(in!=null) {
+                bitmap=
+                    android.graphics.BitmapFactory
+                        .decodeStream(
+                            in,
+                            null,
+                            options
+                        );
                 in.close();
+            }
 
-            if(bitmap==null)
-                throw new Exception("Image unavailable");
+            if(bitmap==null) {
+                applyPlainPanelBackground();
+                return;
+            }
 
             android.graphics.drawable.BitmapDrawable image=
                 new android.graphics.drawable.BitmapDrawable(
@@ -6138,8 +6185,8 @@ public class KeyKiiService extends InputMethodService {
                             outline.setRoundRect(
                                 0,
                                 0,
-                                view.getWidth(),
-                                view.getHeight(),
+                                Math.max(1,view.getWidth()),
+                                Math.max(1,view.getHeight()),
                                 dp(24)
                             );
                         }
@@ -6147,15 +6194,34 @@ public class KeyKiiService extends InputMethodService {
                 );
             }
 
-        } catch(Exception ignored) {
-            panel.setBackground(
-                round(
-                    panelColor(),
-                    24,
-                    borderColor()
-                )
+        } catch(OutOfMemoryError memoryError) {
+            // Never let a very large/corrupt image take the IME down.
+            applyPlainPanelBackground();
+
+        } catch(Throwable ignored) {
+            // Broken permissions or unsupported images fall back safely.
+            applyPlainPanelBackground();
+        }
+    }
+
+
+    void applyPlainPanelBackground() {
+        if(panel==null) return;
+
+        if(android.os.Build.VERSION.SDK_INT>=21) {
+            panel.setClipToOutline(false);
+            panel.setOutlineProvider(
+                android.view.ViewOutlineProvider.BACKGROUND
             );
         }
+
+        panel.setBackground(
+            round(
+                panelColor(),
+                24,
+                borderColor()
+            )
+        );
     }
 
 
