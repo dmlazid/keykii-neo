@@ -2074,6 +2074,83 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    java.util.ArrayList<String> loadEmojiFavorites() {
+        java.util.ArrayList<String> out=
+            new java.util.ArrayList<>();
+
+        android.content.SharedPreferences prefs=
+            getSharedPreferences(
+                "keykii_prefs",
+                android.content.Context.MODE_PRIVATE
+            );
+
+        String raw=prefs.getString(
+            "emoji_favorites_v1",
+            ""
+        );
+
+        if(raw!=null && !raw.isEmpty()) {
+            for(String emoji:raw.split("~~K~~")) {
+                if(
+                    displayableEmoji(emoji) &&
+                    !out.contains(emoji)
+                ) {
+                    out.add(emoji);
+                }
+
+                if(out.size()>=48)
+                    break;
+            }
+        }
+
+        return out;
+    }
+
+
+    boolean toggleEmojiFavorite(String emoji) {
+        if(emoji==null || emoji.isEmpty())
+            return false;
+
+        java.util.ArrayList<String> list=
+            loadEmojiFavorites();
+
+        boolean added;
+
+        if(list.contains(emoji)) {
+            list.remove(emoji);
+            added=false;
+        } else {
+            list.add(0,emoji);
+            added=true;
+        }
+
+        while(list.size()>48)
+            list.remove(list.size()-1);
+
+        StringBuilder joined=
+            new StringBuilder();
+
+        for(String value:list) {
+            if(joined.length()>0)
+                joined.append("~~K~~");
+
+            joined.append(value);
+        }
+
+        getSharedPreferences(
+            "keykii_prefs",
+            android.content.Context.MODE_PRIVATE
+        ).edit()
+         .putString(
+             "emoji_favorites_v1",
+             joined.toString()
+         )
+         .apply();
+
+        return added;
+    }
+
+
     void rememberFastRecent(String emoji) {
 
         if(emoji==null || emoji.isEmpty())
@@ -2197,6 +2274,28 @@ public class KeyKiiService extends InputMethodService {
             : query.trim().toLowerCase();
 
         if(q.isEmpty()) {
+            fastEmojiJump.put("Favorites",rows.size());
+            rows.add("Favorites");
+
+            java.util.ArrayList<String> favorites=
+                loadEmojiFavorites();
+
+            for(int i=0;i<favorites.size();i+=10) {
+                java.util.ArrayList<String> row=
+                    new java.util.ArrayList<>();
+
+                for(
+                    int j=i;
+                    j<Math.min(i+10,favorites.size());
+                    j++
+                ) {
+                    row.add(favorites.get(j));
+                }
+
+                if(!row.isEmpty())
+                    rows.add(row);
+            }
+
             fastEmojiJump.put("Recent emoji",rows.size());
             rows.add("Recent Emoji");
 
@@ -2990,15 +3089,15 @@ public class KeyKiiService extends InputMethodService {
         TextView close=
             new TextView(this);
 
-        close.setText("×");
+        close.setText(
+            (emojiSearchMode || kaomojiMode)
+            ? "×"
+            : "★"
+        );
         close.setTextSize(22);
         close.setTextColor(textColor());
         close.setGravity(Gravity.CENTER);
-        close.setVisibility(
-            (emojiSearchMode || kaomojiMode)
-            ? View.VISIBLE
-            : View.INVISIBLE
-        );
+        close.setVisibility(View.VISIBLE);
 
         close.setOnTouchListener((v,e) -> {
 
@@ -3034,6 +3133,12 @@ public class KeyKiiService extends InputMethodService {
         });
 
         close.setOnClickListener(v -> {
+
+            if(!emojiSearchMode && !kaomojiMode) {
+                emojiCategory=0;
+                showPage();
+                return;
+            }
 
             if(suppressBackspaceClick) {
                 suppressBackspaceClick=false;
@@ -3121,6 +3226,7 @@ public class KeyKiiService extends InputMethodService {
 
         // CATEGORY ICONS
         final String[] groups={
+            "Favorites",
             "Recent emoji",
             "Smileys & Emotion",
             "People & Body",
@@ -3134,7 +3240,7 @@ public class KeyKiiService extends InputMethodService {
         };
 
         String[] icons={
-            "🕘","😀","🧑","🐻","🍔",
+            "★","🕘","😀","🧑","🐻","🍔",
             "🚗","⚽","💡","❤️","🏳️"
         };
 
@@ -3379,7 +3485,19 @@ public class KeyKiiService extends InputMethodService {
                                     return true;
                                 }
 
-                                return false;
+                                boolean added=
+                                    toggleEmojiFavorite(value);
+
+                                android.widget.Toast.makeText(
+                                    KeyKiiService.this,
+                                    added
+                                        ? "Added to favorites"
+                                        : "Removed from favorites",
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show();
+
+                                showPage();
+                                return true;
                             });
                             e.setOnTouchListener((v,event) ->
                                 handleDragChoiceTouch(event)

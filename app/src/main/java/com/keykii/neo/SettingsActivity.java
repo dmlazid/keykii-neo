@@ -1306,11 +1306,34 @@ public class SettingsActivity extends Activity {
 
     private void showEmoji() {
         screen = "emoji";
-        LinearLayout page = page("Emoji & kaomoji", "Manage recent emoji data", true);
+        LinearLayout page = page(
+                "Emoji & kaomoji",
+                "Manage favorites and recent emoji",
+                true
+        );
 
         String recent = getSharedPreferences("keykii_emoji", MODE_PRIVATE)
                 .getString("recent", "");
         int count = recent.trim().isEmpty() ? 0 : recent.trim().split(" ").length;
+
+        String favoriteRaw = prefs.getString(
+                "emoji_favorites_v1",
+                ""
+        );
+        int favoriteCount =
+                favoriteRaw == null || favoriteRaw.isEmpty()
+                        ? 0
+                        : favoriteRaw.split("~~K~~").length;
+
+        addInfoCard(
+                page,
+                "Favorites",
+                favoriteCount +
+                        (favoriteCount == 1
+                                ? " favorite emoji is"
+                                : " favorite emojis are") +
+                        " saved. In the emoji panel, hold an emoji without skin-tone choices to add or remove it."
+        );
 
         addInfoCard(page,
                 "Recent emoji",
@@ -1324,16 +1347,28 @@ public class SettingsActivity extends Activity {
                 "Kaomoji",
                 "The full KeyKii kaomoji library remains available from the :-) tab.");
 
+        addActionButton(page, "Clear favorites", v -> {
+            prefs.edit()
+                    .remove("emoji_favorites_v1")
+                    .apply();
+
+            toast("Emoji favorites cleared");
+            showEmoji();
+        });
+
         addActionButton(page, "Clear recent emoji", v -> {
             getSharedPreferences("keykii_emoji", MODE_PRIVATE)
                     .edit()
                     .remove("recent")
                     .apply();
 
-            // Also clear the newer fast-recents store if present.
             getSharedPreferences("keykii_fast_emoji", MODE_PRIVATE)
                     .edit()
                     .clear()
+                    .apply();
+
+            prefs.edit()
+                    .remove("fast_recent_v2")
                     .apply();
 
             toast("Recent emoji cleared");
