@@ -14,6 +14,7 @@ import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -52,7 +53,20 @@ public class SettingsActivity extends Activity {
 
     private void showHome() {
         screen = "home";
-        LinearLayout page = page("KeyKii settings", "KeyKii Neo 2.10.1", false);
+        LinearLayout page = page("KeyKii settings", "KeyKii Neo " + appVersion(), false);
+
+        addSection(page, "Set up keyboard");
+        addActionButton(page, "Enable KeyKii", v -> {
+            try {
+                startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS));
+            } catch (Exception e) {
+                toast("Android keyboard settings are unavailable on this device.");
+            }
+        });
+        addActionButton(page, "Choose Keyboard", v -> {
+            InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (imm != null) imm.showInputMethodPicker();
+        });
 
         addSection(page, "Keyboard");
         addRow(page, "⌨", "Languages", "Keyboard language and Android input settings", v -> showLanguages());
@@ -306,7 +320,7 @@ public class SettingsActivity extends Activity {
         screen = "about";
         LinearLayout page = page("About", "KeyKii Neo", true);
 
-        addInfoCard(page, "Version", "2.10.1");
+        addInfoCard(page, "Version", appVersion());
         addInfoCard(page, "Package", "com.keykii.neo");
         addInfoCard(page,
                 "Keyboard",
@@ -349,10 +363,24 @@ public class SettingsActivity extends Activity {
         setContentView(wrap(page));
     }
 
+    private String appVersion() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+            return "Unknown";
+        }
+    }
+
     private ScrollView wrap(LinearLayout content) {
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
         scroll.setBackgroundColor(BG);
+        // Android 15 draws behind system bars; keep settings clear of them.
+        scroll.setOnApplyWindowInsetsListener((view, insets) -> {
+            view.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
+                    insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
+            return insets;
+        });
         scroll.addView(content, new ScrollView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));

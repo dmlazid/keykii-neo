@@ -19,22 +19,26 @@ android {
         applicationId 'com.keykii.neo'
         minSdk 23
         targetSdk 35
-        versionCode 41
-        versionName '2.10.1'
+        versionCode 42
+        versionName '2.10.2'
     }
 
     signingConfigs {
         release {
-            storeFile rootProject.file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
+            if (keystorePropertiesFile.exists()) {
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
         }
     }

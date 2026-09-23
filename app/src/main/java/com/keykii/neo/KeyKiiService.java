@@ -1555,71 +1555,6 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
-    java.util.ArrayList<Object>
-    makeFastEmojiCategoryRows(String wantedGroup) {
-
-        loadFastEmojiDb();
-
-        java.util.ArrayList<Object> rows=
-            new java.util.ArrayList<>();
-
-        if(wantedGroup==null || wantedGroup.isEmpty())
-            wantedGroup="Recent emoji";
-
-        if(wantedGroup.equalsIgnoreCase("Recent emoji")) {
-            rows.add("Recent Emoji");
-            java.util.ArrayList<String> recent=loadFastRecent();
-
-            for(int i=0;i<recent.size();i+=10) {
-                java.util.ArrayList<String> row=
-                    new java.util.ArrayList<>();
-                for(int j=i;j<Math.min(i+10,recent.size());j++)
-                    row.add(recent.get(j));
-                if(!row.isEmpty()) rows.add(row);
-            }
-            return rows;
-        }
-
-        rows.add(fastGroupLabel(wantedGroup));
-
-        java.util.ArrayList<String> list=
-            new java.util.ArrayList<>();
-        java.util.HashSet<String> seen=
-            new java.util.HashSet<>();
-
-        for(String[] x:fastEmojiDb) {
-            if(x.length<3) continue;
-
-            String group=x[0];
-            String emoji=x[2];
-
-            if(!group.equalsIgnoreCase(wantedGroup))
-                continue;
-            if(group.equalsIgnoreCase("Component"))
-                continue;
-            if(hasSkinToneModifier(emoji))
-                continue;
-            if(!displayableEmoji(emoji))
-                continue;
-            if(!seen.add(emoji))
-                continue;
-
-            list.add(emoji);
-        }
-
-        for(int i=0;i<list.size();i+=10) {
-            java.util.ArrayList<String> row=
-                new java.util.ArrayList<>();
-            for(int j=i;j<Math.min(i+10,list.size());j++)
-                row.add(list.get(j));
-            if(!row.isEmpty()) rows.add(row);
-        }
-
-        return rows;
-    }
-
-
-
 
     boolean emojiSearchMatches(String haystack, String q) {
 
@@ -2138,6 +2073,26 @@ public class KeyKiiService extends InputMethodService {
         body.addView(bar,new LinearLayout.LayoutParams(-1,dp(52)));
     }
 
+    void highlightEmojiCategory(TextView[] buttons,int selected) {
+        for(int i=0;i<buttons.length;i++) {
+            int color=theme==1
+                ? Color.rgb(201,218,255)
+                : Color.argb(120,150,180,255);
+            buttons[i].setBackground(
+                i==selected ? round(color,20,Color.TRANSPARENT) : null
+            );
+        }
+    }
+
+    void highlightKaomojiCategory(TextView[] buttons,int selected) {
+        for(int i=0;i<buttons.length;i++)
+            buttons[i].setBackground(
+                i==selected
+                ? round(keyColor(false),18,borderColor())
+                : null
+            );
+    }
+
 
     void buildEmoji() {
 
@@ -2391,6 +2346,14 @@ public class KeyKiiService extends InputMethodService {
             "⚽","🚗","💡","❤️","🏳️"
         };
 
+        // One adapter holds every section; tabs only move its scroll position.
+        final java.util.ArrayList<Object> rows=makeFastEmojiRows("");
+        final java.util.HashMap<String,Integer> sectionStarts=
+            new java.util.HashMap<>(fastEmojiJump);
+        final TextView[] categoryButtons=new TextView[icons.length];
+        final int initialEmojiCategory=
+            Math.max(0,Math.min(emojiCategory,groups.length-1));
+
         HorizontalScrollView hsv=
             new HorizontalScrollView(this);
 
@@ -2414,41 +2377,14 @@ public class KeyKiiService extends InputMethodService {
             b.setTextSize(21);
             b.setGravity(Gravity.CENTER);
 
-            if(index==emojiCategory) {
-                int selectedColor = theme==1
-                    ? Color.rgb(201,218,255)
-                    : Color.argb(120,150,180,255);
-                b.setBackground(
-                    round(
-                        selectedColor,
-                        20,
-                        Color.TRANSPARENT
-                    )
-                );
-            }
+            categoryButtons[i]=b;
 
             b.setOnClickListener(v -> {
-
                 emojiCategory=index;
-
-                // Category tap exits Search first.
-                if(
-                    emojiSearchMode ||
-                    (
-                        emojiSearchQuery!=null &&
-                        !emojiSearchQuery.isEmpty()
-                    )
-                ) {
-
-                    emojiSearchMode=false;
-                    emojiSearchQuery="";
-                    showPage();
-                    return;
-                }
-
-                // Rebuild once so the selected category highlight updates,
-                // then KEYKII_INITIAL_EMOJI_JUMP moves to the right section.
-                showPage();
+                highlightEmojiCategory(categoryButtons,index);
+                Integer position=sectionStarts.get(groups[index]);
+                if(position!=null && fastEmojiList!=null)
+                    fastEmojiList.setSelectionFromTop(position,0);
             });
 
             cats.addView(
@@ -2460,6 +2396,7 @@ public class KeyKiiService extends InputMethodService {
             );
         }
 
+        highlightEmojiCategory(categoryButtons,initialEmojiCategory);
         hsv.addView(cats);
 
         body.addView(
@@ -2472,17 +2409,12 @@ public class KeyKiiService extends InputMethodService {
 
         // Keep the selected category visible instead of snapping the
         // horizontal category strip back to the first icon after rebuild.
-        final int selectedEmojiCategory=emojiCategory;
+        final int selectedEmojiCategory=initialEmojiCategory;
         hsv.post(() -> hsv.scrollTo(
             Math.max(0, selectedEmojiCategory*dp(48)-dp(72)),
             0
         ));
 
-
-        final java.util.ArrayList<Object> rows=
-            makeFastEmojiCategoryRows(
-                groups[Math.max(0,Math.min(emojiCategory,groups.length-1))]
-            );
 
         fastEmojiList=
             new android.widget.ListView(this);
@@ -2492,6 +2424,27 @@ public class KeyKiiService extends InputMethodService {
         fastEmojiList.setVerticalScrollBarEnabled(
             true
         );
+
+        fastEmojiList.setOnScrollListener(new android.widget.AbsListView.OnScrollListener() {
+            public void onScrollStateChanged(android.widget.AbsListView view,int state) {}
+
+            public void onScroll(android.widget.AbsListView view,
+                                 int first,int visible,int total) {
+                int active=0;
+                int latest=-1;
+                for(int i=0;i<groups.length;i++) {
+                    Integer start=sectionStarts.get(groups[i]);
+                    if(start!=null && start<=first && start>latest) {
+                        latest=start;
+                        active=i;
+                    }
+                }
+                if(emojiCategory!=active) {
+                    emojiCategory=active;
+                    highlightEmojiCategory(categoryButtons,active);
+                }
+            }
+        });
 
         fastEmojiList.setAdapter(
             new android.widget.BaseAdapter() {
@@ -2635,7 +2588,12 @@ public class KeyKiiService extends InputMethodService {
             )
         );
 
-        // Category rows are already filtered, so no delayed jump is needed.
+        // Restore the selected section when returning from another panel.
+        Integer initialPosition=sectionStarts.get(groups[selectedEmojiCategory]);
+        if(initialPosition!=null && initialPosition>0)
+            fastEmojiList.post(() -> fastEmojiList.setSelectionFromTop(
+                initialPosition,0
+            ));
 
         addFastEmojiModeBar();
     }
@@ -3713,6 +3671,32 @@ public class KeyKiiService extends InputMethodService {
         )
             kaomojiCategory=0;
 
+        final int initialKaomojiCategory=kaomojiCategory;
+        final TextView[] categoryButtons=
+            new TextView[fullKaomojiCategories.size()];
+        final int[] sectionStarts=
+            new int[fullKaomojiCategories.size()];
+        final java.util.ArrayList<Object> rows=
+            new java.util.ArrayList<>();
+
+        for(int i=0;i<fullKaomojiCategories.size();i++) {
+            String category=fullKaomojiCategories.get(i);
+            sectionStarts[i]=rows.size();
+            rows.add(category);
+
+            java.util.ArrayList<String> faces=fullKaomoji.get(category);
+            if(faces==null) continue;
+            for(int j=0;j<faces.size();j+=2) {
+                java.util.ArrayList<String> pair=
+                    new java.util.ArrayList<>();
+                pair.add(faces.get(j));
+                if(j+1<faces.size()) pair.add(faces.get(j+1));
+                rows.add(pair);
+            }
+        }
+
+        final android.widget.ListView list=
+            new android.widget.ListView(this);
 
         HorizontalScrollView tabsScroll=
             new HorizontalScrollView(this);
@@ -3747,22 +3731,12 @@ public class KeyKiiService extends InputMethodService {
             tab.setTextSize(14);
             tab.setTextColor(textColor());
             tab.setGravity(Gravity.CENTER);
-
-            if(i==kaomojiCategory) {
-
-                tab.setBackground(
-                    round(
-                        keyColor(false),
-                        18,
-                        borderColor()
-                    )
-                );
-            }
+            categoryButtons[i]=tab;
 
             tab.setOnClickListener(v -> {
-
                 kaomojiCategory=index;
-                showPage();
+                highlightKaomojiCategory(categoryButtons,index);
+                list.setSelectionFromTop(sectionStarts[index],0);
             });
 
             LinearLayout.LayoutParams lp=
@@ -3779,7 +3753,7 @@ public class KeyKiiService extends InputMethodService {
             tabs.addView(tab,lp);
         }
 
-
+        highlightKaomojiCategory(categoryButtons,initialKaomojiCategory);
         tabsScroll.addView(tabs);
 
         body.addView(
@@ -3792,25 +3766,12 @@ public class KeyKiiService extends InputMethodService {
 
         // Rebuilding the kaomoji page used to visually snap the tab strip
         // back to the first category. Keep the active tab in view.
-        final int selectedKaomojiCategory=kaomojiCategory;
+        final int selectedKaomojiCategory=initialKaomojiCategory;
         tabsScroll.post(() -> tabsScroll.scrollTo(
             Math.max(0, selectedKaomojiCategory*dp(118)-dp(42)),
             0
         ));
 
-
-        final String category=
-            fullKaomojiCategories.get(
-                kaomojiCategory
-            );
-
-        final java.util.ArrayList<String>
-            faces=
-            fullKaomoji.get(category);
-
-
-        android.widget.ListView list=
-            new android.widget.ListView(this);
 
         list.setDivider(null);
 
@@ -3818,6 +3779,24 @@ public class KeyKiiService extends InputMethodService {
             true
         );
 
+        list.setOnScrollListener(new android.widget.AbsListView.OnScrollListener() {
+            public void onScrollStateChanged(android.widget.AbsListView view,int state) {}
+
+            public void onScroll(android.widget.AbsListView view,
+                                 int first,int visible,int total) {
+                int active=0;
+                for(int i=1;i<sectionStarts.length;i++) {
+                    if(sectionStarts[i]<=first)
+                        active=i;
+                    else
+                        break;
+                }
+                if(kaomojiCategory!=active) {
+                    kaomojiCategory=active;
+                    highlightKaomojiCategory(categoryButtons,active);
+                }
+            }
+        });
 
         list.setAdapter(
             new android.widget.BaseAdapter() {
@@ -3825,14 +3804,11 @@ public class KeyKiiService extends InputMethodService {
                 final int columns=2;
 
                 public int getCount() {
-
-                    return
-                        (faces.size()+columns-1)
-                        /columns;
+                    return rows.size();
                 }
 
                 public Object getItem(int p) {
-                    return null;
+                    return rows.get(p);
                 }
 
                 public long getItemId(int p) {
@@ -3844,6 +3820,20 @@ public class KeyKiiService extends InputMethodService {
                     View convertView,
                     android.view.ViewGroup parent
                 ) {
+                    Object item=rows.get(position);
+                    if(item instanceof String) {
+                        TextView heading=new TextView(KeyKiiService.this);
+                        heading.setText((String)item);
+                        heading.setTextSize(16);
+                        heading.setTextColor(textColor());
+                        heading.setGravity(Gravity.CENTER_VERTICAL);
+                        heading.setPadding(dp(10),dp(9),dp(4),dp(5));
+                        return heading;
+                    }
+
+                    @SuppressWarnings("unchecked")
+                    java.util.ArrayList<String> pair=
+                        (java.util.ArrayList<String>)item;
 
                     LinearLayout row=
                         new LinearLayout(
@@ -3855,10 +3845,6 @@ public class KeyKiiService extends InputMethodService {
                     );
 
                     for(int c=0;c<columns;c++) {
-
-                        int index=
-                            position*columns+c;
-
                         TextView face=
                             new TextView(
                                 KeyKiiService.this
@@ -3884,10 +3870,10 @@ public class KeyKiiService extends InputMethodService {
                         );
 
 
-                        if(index<faces.size()) {
+                        if(c<pair.size()) {
 
                             final String value=
-                                faces.get(index);
+                                pair.get(c);
 
                             face.setText(value);
 
@@ -3933,6 +3919,11 @@ public class KeyKiiService extends InputMethodService {
                 dp(285)
             )
         );
+
+        if(sectionStarts[selectedKaomojiCategory]>0)
+            list.post(() -> list.setSelectionFromTop(
+                sectionStarts[selectedKaomojiCategory],0
+            ));
     }
 
 
