@@ -7,4 +7,8 @@
         <item name="android:navigationBarColor">#F7F2E8</item>
         <item name="android:windowBackground">#F7F2E8</item>
     </style>
+    <style name="Theme.KeyKiiIME" parent="@android:style/Theme.InputMethod">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
 </resources>
