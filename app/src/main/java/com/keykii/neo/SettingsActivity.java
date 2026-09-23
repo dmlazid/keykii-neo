@@ -1302,7 +1302,7 @@ public class SettingsActivity extends Activity {
     }
 
     private ScrollView wrap(LinearLayout content) {
-        // Save the previous screen before replacing its view.
+        // Save the old page position before replacing its view.
         if (
                 activeSettingsScrollView != null &&
                 activeSettingsScrollScreen != null &&
@@ -1356,16 +1356,51 @@ public class SettingsActivity extends Activity {
         activeSettingsScrollView = scroll;
         activeSettingsScrollScreen = scrollScreen;
 
-        // Restore after layout so Android does not override the position.
-        scroll.post(() ->
-                scroll.scrollTo(
-                        0,
-                        restoreY
-                )
-        );
+        if(restoreY>0) {
+            /*
+             * Important: restore BEFORE Android draws the replacement page.
+             * The old post() version drew frame 1 at the top and then moved
+             * to the saved position on frame 2, which looked like a jump.
+             */
+            scroll.setScrollY(restoreY);
+
+            final android.view.ViewTreeObserver.OnPreDrawListener[] holder =
+                    new android.view.ViewTreeObserver.OnPreDrawListener[1];
+
+            holder[0] =
+                    new android.view.ViewTreeObserver.OnPreDrawListener() {
+                        @Override
+                        public boolean onPreDraw() {
+                            if(
+                                    scroll.getViewTreeObserver()
+                                            .isAlive()
+                            ) {
+                                scroll.getViewTreeObserver()
+                                        .removeOnPreDrawListener(
+                                            holder[0]
+                                        );
+                            }
+
+                            scroll.scrollTo(
+                                    0,
+                                    restoreY
+                            );
+
+                            // Cancel this draw. The next draw starts directly
+                            // at the correct position, so there is no top flash.
+                            return false;
+                        }
+                    };
+
+            scroll.getViewTreeObserver()
+                    .addOnPreDrawListener(
+                        holder[0]
+                    );
+        }
 
         return scroll;
     }
+
 
     private LinearLayout page(String title, String subtitle, boolean back) {
         LinearLayout page = new LinearLayout(this);
