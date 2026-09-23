@@ -1548,6 +1548,30 @@ public class SettingsActivity extends Activity {
             top.addView(b, new LinearLayout.LayoutParams(dp(52), dp(52)));
         }
 
+        if (!back && "home".equals(screen)) {
+            ImageView logo = new ImageView(this);
+            logo.setImageResource(R.drawable.keykii_app_icon);
+            logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+            LinearLayout.LayoutParams logoParams =
+                    new LinearLayout.LayoutParams(
+                            dp(64),
+                            dp(64)
+                    );
+
+            logoParams.setMargins(
+                    0,
+                    0,
+                    dp(12),
+                    0
+            );
+
+            top.addView(
+                    logo,
+                    logoParams
+            );
+        }
+
         LinearLayout names = new LinearLayout(this);
         names.setOrientation(LinearLayout.VERTICAL);
 
