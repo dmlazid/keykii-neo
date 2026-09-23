@@ -30,6 +30,11 @@ jobs:
         with:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
+      - name: Keep one debug signing key for update installs
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: keykii-neo-debug-keystore-v1
       - name: Install Android SDK
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
       - name: Build debug APK
