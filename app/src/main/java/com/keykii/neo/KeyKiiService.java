@@ -298,10 +298,10 @@ public class KeyKiiService extends InputMethodService {
 
         int bottomPadding=
             wideMode
-            ? 34
+            ? 30
             : hand!=0
-                ? Math.min(floatGap,54)
-                : Math.min(floatGap,60);
+                ? Math.min(floatGap,48)
+                : Math.min(floatGap,52);
 
         root.setPadding(
             dp(sidePadding),
@@ -348,8 +348,8 @@ public class KeyKiiService extends InputMethodService {
             wideMode
             ? .985f
             : hand!=0
-                ? .74f
-                : .88f;
+                ? .82f
+                : .91f;
 
         LinearLayout.LayoutParams panelParams=
             new LinearLayout.LayoutParams(
@@ -751,10 +751,10 @@ public class KeyKiiService extends InputMethodService {
 
         int toolbarHeight=
             wideMode
-            ? 44
+            ? 42
             : hand!=0
-                ? 42
-                : 42;
+                ? 40
+                : 40;
 
         panel.addView(
             r,
@@ -1231,7 +1231,7 @@ public class KeyKiiService extends InputMethodService {
 
         p.setMargins(
             0,
-            dp(1),
+            0,
             0,
             dp(1)
         );
@@ -1283,8 +1283,20 @@ public class KeyKiiService extends InputMethodService {
         main.setIncludeFontPadding(false);
         main.setAllCaps(false);
 
+        boolean mainNumberLabel=
+                page==0 &&
+                !symbols &&
+                label!=null &&
+                label.length()==1 &&
+                Character.isDigit(
+                    label.charAt(0)
+                );
+
         if(label.equals("KeyKii"))
             main.setTextSize(16);
+
+        else if(mainNumberLabel)
+            main.setTextSize(15);
 
         else if(label.length()>2)
             main.setTextSize(13);
@@ -1510,24 +1522,44 @@ public class KeyKiiService extends InputMethodService {
         int effectiveKeyHeight;
 
         if(hand!=0) {
-            // Keep the same vertical proportions as the approved mockup:
-            // reduced width, but normal-looking key height.
             effectiveKeyHeight=
                 Math.min(
                     keyHeight,
-                    45
+                    39
                 );
 
         } else if(!wideMode) {
             effectiveKeyHeight=
                 Math.min(
                     keyHeight,
-                    45
+                    40
                 );
 
         } else {
-            effectiveKeyHeight=keyHeight;
+            // Even the true full-width keyboard keeps the same clean,
+            // compact proportions instead of becoming tall.
+            effectiveKeyHeight=
+                Math.min(
+                    keyHeight,
+                    42
+                );
         }
+
+        boolean mainNumberKey=
+                page==0 &&
+                !symbols &&
+                action!=null &&
+                action.length()==1 &&
+                Character.isDigit(
+                    action.charAt(0)
+                );
+
+        if(mainNumberKey)
+            effectiveKeyHeight=
+                Math.max(
+                    34,
+                    effectiveKeyHeight-4
+                );
 
         int height=dp(effectiveKeyHeight);
 
