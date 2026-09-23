@@ -204,9 +204,6 @@ public class KeyKiiService extends InputMethodService {
 
     @Override
     public boolean onEvaluateFullscreenMode() {
-        // KeyKii is a normal bottom IME. Never switch into Android's
-        // fullscreen extract editor, because the real app field should stay
-        // visible above the keyboard.
         return false;
     }
 
@@ -215,21 +212,9 @@ public class KeyKiiService extends InputMethodService {
     public void onComputeInsets(Insets outInsets) {
         super.onComputeInsets(outInsets);
 
-        // Report the real top edge of our input view to Android. This lets
-        // browsers and other apps resize/pan their focused text field above
-        // KeyKii instead of leaving the composer hidden behind the keyboard.
-        if(root!=null && root.isShown()) {
-            try {
-                int[] location=new int[2];
-                root.getLocationInWindow(location);
-
-                int top=Math.max(0,location[1]);
-
-                outInsets.contentTopInsets=top;
-                outInsets.visibleTopInsets=top;
-                outInsets.touchableInsets=
-                    Insets.TOUCHABLE_INSETS_CONTENT;
-            } catch(Exception ignored) {}
+        if(!isFullscreenMode()) {
+            outInsets.contentTopInsets=
+                outInsets.visibleTopInsets;
         }
     }
 

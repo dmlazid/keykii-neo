@@ -19,7 +19,6 @@
             android:name=".KeyKiiService"
             android:exported="true"
             android:label="KeyKii Neo"
-            android:theme="@style/Theme.KeyKiiIME"
             android:permission="android.permission.BIND_INPUT_METHOD">
 
             <intent-filter>
