@@ -9,7 +9,6 @@ Smileys & Emotion	face-smiling	😂	face with tears of joy
 Smileys & Emotion	face-smiling	🙂	slightly smiling face
 Smileys & Emotion	face-smiling	🙃	upside-down face
 Smileys & Emotion	face-smiling	🫠	melting face
-Smileys & Emotion	face-smiling	🫫	cracking face
 Smileys & Emotion	face-smiling	😉	winking face
 Smileys & Emotion	face-smiling	😊	smiling face with smiling eyes
 Smileys & Emotion	face-smiling	😇	smiling face with halo
@@ -56,7 +55,6 @@ Smileys & Emotion	face-sleepy	😔	pensive face
 Smileys & Emotion	face-sleepy	😪	sleepy face
 Smileys & Emotion	face-sleepy	🤤	drooling face
 Smileys & Emotion	face-sleepy	😴	sleeping face
-Smileys & Emotion	face-sleepy	🫩	face with bags under eyes
 Smileys & Emotion	face-unwell	😷	face with medical mask
 Smileys & Emotion	face-unwell	🤒	face with thermometer
 Smileys & Emotion	face-unwell	🤕	face with head-bandage
@@ -84,7 +82,6 @@ Smileys & Emotion	face-concerned	😮	face with open mouth
 Smileys & Emotion	face-concerned	😯	hushed face
 Smileys & Emotion	face-concerned	😲	astonished face
 Smileys & Emotion	face-concerned	😳	flushed face
-Smileys & Emotion	face-concerned	🫪	distorted face
 Smileys & Emotion	face-concerned	🥺	pleading face
 Smileys & Emotion	face-concerned	🥹	face holding back tears
 Smileys & Emotion	face-concerned	😦	frowning face with open mouth
@@ -158,7 +155,6 @@ Smileys & Emotion	heart	🤍	white heart
 Smileys & Emotion	emotion	💋	kiss mark
 Smileys & Emotion	emotion	💯	hundred points
 Smileys & Emotion	emotion	💢	anger symbol
-Smileys & Emotion	emotion	🫯	fight cloud
 Smileys & Emotion	emotion	💥	collision
 Smileys & Emotion	emotion	💫	dizzy
 Smileys & Emotion	emotion	💦	sweat droplets
@@ -344,18 +340,6 @@ People & Body	hand-fingers-closed	👎🏼	thumbs down: medium-light skin tone
 People & Body	hand-fingers-closed	👎🏽	thumbs down: medium skin tone
 People & Body	hand-fingers-closed	👎🏾	thumbs down: medium-dark skin tone
 People & Body	hand-fingers-closed	👎🏿	thumbs down: dark skin tone
-People & Body	hand-fingers-closed	🫹	leftwards thumb sign
-People & Body	hand-fingers-closed	🫹🏻	leftwards thumb sign: light skin tone
-People & Body	hand-fingers-closed	🫹🏼	leftwards thumb sign: medium-light skin tone
-People & Body	hand-fingers-closed	🫹🏽	leftwards thumb sign: medium skin tone
-People & Body	hand-fingers-closed	🫹🏾	leftwards thumb sign: medium-dark skin tone
-People & Body	hand-fingers-closed	🫹🏿	leftwards thumb sign: dark skin tone
-People & Body	hand-fingers-closed	🫺	rightwards thumb sign
-People & Body	hand-fingers-closed	🫺🏻	rightwards thumb sign: light skin tone
-People & Body	hand-fingers-closed	🫺🏼	rightwards thumb sign: medium-light skin tone
-People & Body	hand-fingers-closed	🫺🏽	rightwards thumb sign: medium skin tone
-People & Body	hand-fingers-closed	🫺🏾	rightwards thumb sign: medium-dark skin tone
-People & Body	hand-fingers-closed	🫺🏿	rightwards thumb sign: dark skin tone
 People & Body	hand-fingers-closed	✊	raised fist
 People & Body	hand-fingers-closed	✊🏻	raised fist: light skin tone
 People & Body	hand-fingers-closed	✊🏼	raised fist: medium-light skin tone
@@ -1505,7 +1489,6 @@ People & Body	person-fantasy	🧟	zombie
 People & Body	person-fantasy	🧟‍♂️	man zombie
 People & Body	person-fantasy	🧟‍♀️	woman zombie
 People & Body	person-fantasy	🧌	troll
-People & Body	person-fantasy	🫈	hairy creature
 People & Body	person-activity	💆	person getting massage
 People & Body	person-activity	💆🏻	person getting massage: light skin tone
 People & Body	person-activity	💆🏼	person getting massage: medium-light skin tone
@@ -2108,66 +2091,6 @@ People & Body	person-sport	🤼🏼‍♀️	women wrestling: medium-light skin 
 People & Body	person-sport	🤼🏽‍♀️	women wrestling: medium skin tone
 People & Body	person-sport	🤼🏾‍♀️	women wrestling: medium-dark skin tone
 People & Body	person-sport	🤼🏿‍♀️	women wrestling: dark skin tone
-People & Body	person-sport	🧑🏻‍🫯‍🧑🏼	people wrestling: light skin tone, medium-light skin tone
-People & Body	person-sport	🧑🏻‍🫯‍🧑🏽	people wrestling: light skin tone, medium skin tone
-People & Body	person-sport	🧑🏻‍🫯‍🧑🏾	people wrestling: light skin tone, medium-dark skin tone
-People & Body	person-sport	🧑🏻‍🫯‍🧑🏿	people wrestling: light skin tone, dark skin tone
-People & Body	person-sport	🧑🏼‍🫯‍🧑🏻	people wrestling: medium-light skin tone, light skin tone
-People & Body	person-sport	🧑🏼‍🫯‍🧑🏽	people wrestling: medium-light skin tone, medium skin tone
-People & Body	person-sport	🧑🏼‍🫯‍🧑🏾	people wrestling: medium-light skin tone, medium-dark skin tone
-People & Body	person-sport	🧑🏼‍🫯‍🧑🏿	people wrestling: medium-light skin tone, dark skin tone
-People & Body	person-sport	🧑🏽‍🫯‍🧑🏻	people wrestling: medium skin tone, light skin tone
-People & Body	person-sport	🧑🏽‍🫯‍🧑🏼	people wrestling: medium skin tone, medium-light skin tone
-People & Body	person-sport	🧑🏽‍🫯‍🧑🏾	people wrestling: medium skin tone, medium-dark skin tone
-People & Body	person-sport	🧑🏽‍🫯‍🧑🏿	people wrestling: medium skin tone, dark skin tone
-People & Body	person-sport	🧑🏾‍🫯‍🧑🏻	people wrestling: medium-dark skin tone, light skin tone
-People & Body	person-sport	🧑🏾‍🫯‍🧑🏼	people wrestling: medium-dark skin tone, medium-light skin tone
-People & Body	person-sport	🧑🏾‍🫯‍🧑🏽	people wrestling: medium-dark skin tone, medium skin tone
-People & Body	person-sport	🧑🏾‍🫯‍🧑🏿	people wrestling: medium-dark skin tone, dark skin tone
-People & Body	person-sport	🧑🏿‍🫯‍🧑🏻	people wrestling: dark skin tone, light skin tone
-People & Body	person-sport	🧑🏿‍🫯‍🧑🏼	people wrestling: dark skin tone, medium-light skin tone
-People & Body	person-sport	🧑🏿‍🫯‍🧑🏽	people wrestling: dark skin tone, medium skin tone
-People & Body	person-sport	🧑🏿‍🫯‍🧑🏾	people wrestling: dark skin tone, medium-dark skin tone
-People & Body	person-sport	👨🏻‍🫯‍👨🏼	men wrestling: light skin tone, medium-light skin tone
-People & Body	person-sport	👨🏻‍🫯‍👨🏽	men wrestling: light skin tone, medium skin tone
-People & Body	person-sport	👨🏻‍🫯‍👨🏾	men wrestling: light skin tone, medium-dark skin tone
-People & Body	person-sport	👨🏻‍🫯‍👨🏿	men wrestling: light skin tone, dark skin tone
-People & Body	person-sport	👨🏼‍🫯‍👨🏻	men wrestling: medium-light skin tone, light skin tone
-People & Body	person-sport	👨🏼‍🫯‍👨🏽	men wrestling: medium-light skin tone, medium skin tone
-People & Body	person-sport	👨🏼‍🫯‍👨🏾	men wrestling: medium-light skin tone, medium-dark skin tone
-People & Body	person-sport	👨🏼‍🫯‍👨🏿	men wrestling: medium-light skin tone, dark skin tone
-People & Body	person-sport	👨🏽‍🫯‍👨🏻	men wrestling: medium skin tone, light skin tone
-People & Body	person-sport	👨🏽‍🫯‍👨🏼	men wrestling: medium skin tone, medium-light skin tone
-People & Body	person-sport	👨🏽‍🫯‍👨🏾	men wrestling: medium skin tone, medium-dark skin tone
-People & Body	person-sport	👨🏽‍🫯‍👨🏿	men wrestling: medium skin tone, dark skin tone
-People & Body	person-sport	👨🏾‍🫯‍👨🏻	men wrestling: medium-dark skin tone, light skin tone
-People & Body	person-sport	👨🏾‍🫯‍👨🏼	men wrestling: medium-dark skin tone, medium-light skin tone
-People & Body	person-sport	👨🏾‍🫯‍👨🏽	men wrestling: medium-dark skin tone, medium skin tone
-People & Body	person-sport	👨🏾‍🫯‍👨🏿	men wrestling: medium-dark skin tone, dark skin tone
-People & Body	person-sport	👨🏿‍🫯‍👨🏻	men wrestling: dark skin tone, light skin tone
-People & Body	person-sport	👨🏿‍🫯‍👨🏼	men wrestling: dark skin tone, medium-light skin tone
-People & Body	person-sport	👨🏿‍🫯‍👨🏽	men wrestling: dark skin tone, medium skin tone
-People & Body	person-sport	👨🏿‍🫯‍👨🏾	men wrestling: dark skin tone, medium-dark skin tone
-People & Body	person-sport	👩🏻‍🫯‍👩🏼	women wrestling: light skin tone, medium-light skin tone
-People & Body	person-sport	👩🏻‍🫯‍👩🏽	women wrestling: light skin tone, medium skin tone
-People & Body	person-sport	👩🏻‍🫯‍👩🏾	women wrestling: light skin tone, medium-dark skin tone
-People & Body	person-sport	👩🏻‍🫯‍👩🏿	women wrestling: light skin tone, dark skin tone
-People & Body	person-sport	👩🏼‍🫯‍👩🏻	women wrestling: medium-light skin tone, light skin tone
-People & Body	person-sport	👩🏼‍🫯‍👩🏽	women wrestling: medium-light skin tone, medium skin tone
-People & Body	person-sport	👩🏼‍🫯‍👩🏾	women wrestling: medium-light skin tone, medium-dark skin tone
-People & Body	person-sport	👩🏼‍🫯‍👩🏿	women wrestling: medium-light skin tone, dark skin tone
-People & Body	person-sport	👩🏽‍🫯‍👩🏻	women wrestling: medium skin tone, light skin tone
-People & Body	person-sport	👩🏽‍🫯‍👩🏼	women wrestling: medium skin tone, medium-light skin tone
-People & Body	person-sport	👩🏽‍🫯‍👩🏾	women wrestling: medium skin tone, medium-dark skin tone
-People & Body	person-sport	👩🏽‍🫯‍👩🏿	women wrestling: medium skin tone, dark skin tone
-People & Body	person-sport	👩🏾‍🫯‍👩🏻	women wrestling: medium-dark skin tone, light skin tone
-People & Body	person-sport	👩🏾‍🫯‍👩🏼	women wrestling: medium-dark skin tone, medium-light skin tone
-People & Body	person-sport	👩🏾‍🫯‍👩🏽	women wrestling: medium-dark skin tone, medium skin tone
-People & Body	person-sport	👩🏾‍🫯‍👩🏿	women wrestling: medium-dark skin tone, dark skin tone
-People & Body	person-sport	👩🏿‍🫯‍👩🏻	women wrestling: dark skin tone, light skin tone
-People & Body	person-sport	👩🏿‍🫯‍👩🏼	women wrestling: dark skin tone, medium-light skin tone
-People & Body	person-sport	👩🏿‍🫯‍👩🏽	women wrestling: dark skin tone, medium skin tone
-People & Body	person-sport	👩🏿‍🫯‍👩🏾	women wrestling: dark skin tone, medium-dark skin tone
 People & Body	person-sport	🤽	person playing water polo
 People & Body	person-sport	🤽🏻	person playing water polo: light skin tone
 People & Body	person-sport	🤽🏼	person playing water polo: medium-light skin tone
@@ -2599,7 +2522,6 @@ People & Body	person-symbol	🧑‍🧑‍🧒‍🧒	family: adult, adult, chil
 People & Body	person-symbol	🧑‍🧒	family: adult, child
 People & Body	person-symbol	🧑‍🧒‍🧒	family: adult, child, child
 People & Body	person-symbol	👣	footprints
-People & Body	person-symbol	🫆	fingerprint
 Animals & Nature	animal-mammal	🐵	monkey face
 Animals & Nature	animal-mammal	🐒	monkey
 Animals & Nature	animal-mammal	🦍	gorilla
@@ -2700,7 +2622,6 @@ Animals & Nature	animal-reptile	🦖	T-Rex
 Animals & Nature	animal-marine	🐳	spouting whale
 Animals & Nature	animal-marine	🐋	whale
 Animals & Nature	animal-marine	🐬	dolphin
-Animals & Nature	animal-marine	🫍	orca
 Animals & Nature	animal-marine	🦭	seal
 Animals & Nature	animal-marine	🐟	fish
 Animals & Nature	animal-marine	🐠	tropical fish
@@ -2717,7 +2638,6 @@ Animals & Nature	animal-marine	🦑	squid
 Animals & Nature	animal-marine	🦪	oyster
 Animals & Nature	animal-bug	🐌	snail
 Animals & Nature	animal-bug	🦋	butterfly
-Animals & Nature	animal-bug	🫌	monarch butterfly
 Animals & Nature	animal-bug	🐛	bug
 Animals & Nature	animal-bug	🐜	ant
 Animals & Nature	animal-bug	🐝	honeybee
@@ -2760,7 +2680,6 @@ Animals & Nature	plant-other	🍃	leaf fluttering in wind
 Animals & Nature	plant-other	🪹	empty nest
 Animals & Nature	plant-other	🪺	nest with eggs
 Animals & Nature	plant-other	🍄	mushroom
-Animals & Nature	plant-other	🪾	leafless tree
 Food & Drink	food-fruit	🍇	grapes
 Food & Drink	food-fruit	🍈	melon
 Food & Drink	food-fruit	🍉	watermelon
@@ -2789,7 +2708,6 @@ Food & Drink	food-vegetable	🌽	ear of corn
 Food & Drink	food-vegetable	🌶️	hot pepper
 Food & Drink	food-vegetable	🫑	bell pepper
 Food & Drink	food-vegetable	🥒	cucumber
-Food & Drink	food-vegetable	🫝	pickle
 Food & Drink	food-vegetable	🥬	leafy green
 Food & Drink	food-vegetable	🥦	broccoli
 Food & Drink	food-vegetable	🧄	garlic
@@ -2800,7 +2718,6 @@ Food & Drink	food-vegetable	🌰	chestnut
 Food & Drink	food-vegetable	🫚	ginger root
 Food & Drink	food-vegetable	🫛	pea pod
 Food & Drink	food-vegetable	🍄‍🟫	brown mushroom
-Food & Drink	food-vegetable	🫜	root vegetable
 Food & Drink	food-prepared	🍞	bread
 Food & Drink	food-prepared	🥐	croissant
 Food & Drink	food-prepared	🥖	baguette bread
@@ -2902,7 +2819,6 @@ Travel & Places	place-map	🗾	map of Japan
 Travel & Places	place-map	🧭	compass
 Travel & Places	place-geographic	🏔️	snow-capped mountain
 Travel & Places	place-geographic	⛰️	mountain
-Travel & Places	place-geographic	🛘	landslide
 Travel & Places	place-geographic	🌋	volcano
 Travel & Places	place-geographic	🗻	mount fuji
 Travel & Places	place-geographic	🏕️	camping
@@ -3010,7 +2926,6 @@ Travel & Places	transport-ground	🚥	horizontal traffic light
 Travel & Places	transport-ground	🚦	vertical traffic light
 Travel & Places	transport-ground	🛑	stop sign
 Travel & Places	transport-ground	🚧	construction
-Travel & Places	transport-water	🛙	lighthouse
 Travel & Places	transport-water	⚓	anchor
 Travel & Places	transport-water	🛟	ring buoy
 Travel & Places	transport-water	⛵	sailboat
@@ -3110,7 +3025,6 @@ Travel & Places	sky & weather	❄️	snowflake
 Travel & Places	sky & weather	☃️	snowman
 Travel & Places	sky & weather	⛄	snowman without snow
 Travel & Places	sky & weather	☄️	comet
-Travel & Places	sky & weather	🪋	meteor
 Travel & Places	sky & weather	🔥	fire
 Travel & Places	sky & weather	💧	droplet
 Travel & Places	sky & weather	🌊	water wave
@@ -3266,7 +3180,6 @@ Objects	music	🎧	headphone
 Objects	music	📻	radio
 Objects	musical-instrument	🎷	saxophone
 Objects	musical-instrument	🎺	trumpet
-Objects	musical-instrument	🪊	trombone
 Objects	musical-instrument	🪗	accordion
 Objects	musical-instrument	🎸	guitar
 Objects	musical-instrument	🎹	musical keyboard
@@ -3276,7 +3189,6 @@ Objects	musical-instrument	🥁	drum
 Objects	musical-instrument	🪘	long drum
 Objects	musical-instrument	🪇	maracas
 Objects	musical-instrument	🪈	flute
-Objects	musical-instrument	🪉	harp
 Objects	phone	📱	mobile phone
 Objects	phone	📲	mobile phone with arrow
 Objects	phone	☎️	telephone
@@ -3332,7 +3244,6 @@ Objects	book-paper	🔖	bookmark
 Objects	book-paper	🏷️	label
 Objects	money	🪙	coin
 Objects	money	💰	money bag
-Objects	money	🪎	treasure chest
 Objects	money	💴	yen banknote
 Objects	money	💵	dollar banknote
 Objects	money	💶	euro banknote
@@ -3361,7 +3272,6 @@ Objects	writing	🖊️	pen
 Objects	writing	🖌️	paintbrush
 Objects	writing	🖍️	crayon
 Objects	writing	📝	memo
-Objects	writing	🪌	eraser
 Objects	office	💼	briefcase
 Objects	office	📁	file folder
 Objects	office	📂	open file folder
@@ -3391,7 +3301,6 @@ Objects	lock	🔏	locked with pen
 Objects	lock	🔐	locked with key
 Objects	lock	🔑	key
 Objects	lock	🗝️	old key
-Objects	tool	🪍	net with handle
 Objects	tool	🔨	hammer
 Objects	tool	🪓	axe
 Objects	tool	⛏️	pick
@@ -3418,7 +3327,6 @@ Objects	tool	🪝	hook
 Objects	tool	🧰	toolbox
 Objects	tool	🧲	magnet
 Objects	tool	🪜	ladder
-Objects	tool	🪏	shovel
 Objects	science	⚗️	alembic
 Objects	science	🧪	test tube
 Objects	science	🧫	petri dish
@@ -3604,7 +3512,6 @@ Symbols	other-symbol	❇️	sparkle
 Symbols	other-symbol	©️	copyright
 Symbols	other-symbol	®️	registered
 Symbols	other-symbol	™️	trade mark
-Symbols	other-symbol	🫟	splatter
 Symbols	keycap	#️⃣	keycap: #
 Symbols	keycap	*️⃣	keycap: *
 Symbols	keycap	0️⃣	keycap: 0
