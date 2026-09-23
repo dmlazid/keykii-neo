@@ -180,10 +180,13 @@ public class SettingsActivity extends Activity {
         addRow(page, "☰", "Toolbar buttons", "Choose which tools appear above the keys", v -> showToolbar());
 
         addSection(page, "Typing");
-        addRow(page, "✓", "Corrections & suggestions", "Suggestion engine roadmap", v -> showComing(
-                "Corrections & suggestions",
-                "KeyKii currently sends text directly without a prediction engine. Auto-correction, suggestions and spell tools will be added in a later 2.10.x update."
-        ));
+        addRow(
+                page,
+                "✓",
+                "Smart typing",
+                "Auto-capitalization, double-space period and key preview",
+                v -> showSmartTyping()
+        );
         addRow(page, "〰", "Glide typing", "Swipe typing is not enabled yet", v -> showComing(
                 "Glide typing",
                 "Glide typing needs a gesture decoder and language model. The setting is shown here now so the structure is ready, but it is not enabled yet."
@@ -947,6 +950,51 @@ public class SettingsActivity extends Activity {
 
         updateThemePreview();
         refreshThemeTileSelection();
+    }
+
+
+    private void showSmartTyping() {
+        screen = "smart_typing";
+
+        LinearLayout page = page(
+                "Smart typing",
+                "Simple typing helpers that work directly on the keyboard",
+                true
+        );
+
+        addSwitchRow(
+                page,
+                "Auto-capitalization",
+                "Start sentences with a capital letter",
+                "auto_capitalization",
+                true
+        );
+
+        addSwitchRow(
+                page,
+                "Double-space period",
+                "Press space twice to insert a period and a space",
+                "double_space_period",
+                true
+        );
+
+        addSwitchRow(
+                page,
+                "Key preview",
+                "Show a small popup above a key while typing",
+                "key_preview",
+                true
+        );
+
+        addInfoCard(
+                page,
+                "About suggestions",
+                "These helpers work locally. Full word suggestions and auto-correction are still planned for a later update."
+        );
+
+        setContentView(
+                wrap(page)
+        );
     }
 
 

@@ -73,6 +73,10 @@ public class KeyKiiService extends InputMethodService {
     int floatGap=96;
 
     boolean haptic=false;
+    boolean autoCapitalization=true;
+    boolean doubleSpacePeriod=true;
+    boolean keyPreviewEnabled=true;
+    long lastSpaceTap=0L;
 
     android.os.Handler repeatBackspaceHandler=
         new android.os.Handler(
@@ -189,6 +193,21 @@ public class KeyKiiService extends InputMethodService {
             false
         );
 
+        autoCapitalization=keykiiPrefs.getBoolean(
+            "auto_capitalization",
+            true
+        );
+
+        doubleSpacePeriod=keykiiPrefs.getBoolean(
+            "double_space_period",
+            true
+        );
+
+        keyPreviewEnabled=keykiiPrefs.getBoolean(
+            "key_preview",
+            true
+        );
+
         numberRow=keykiiPrefs.getBoolean(
             "number_row",
             false
@@ -244,6 +263,18 @@ public class KeyKiiService extends InputMethodService {
         floatGap=p.getInt("float_gap",96);
         haptic=p.getBoolean("haptic",false);
         numberRow=p.getBoolean("number_row",false);
+        autoCapitalization=p.getBoolean(
+            "auto_capitalization",
+            true
+        );
+        doubleSpacePeriod=p.getBoolean(
+            "double_space_period",
+            true
+        );
+        keyPreviewEnabled=p.getBoolean(
+            "key_preview",
+            true
+        );
 
         wideMode=p.getBoolean(
             "wide_default",
@@ -274,9 +305,10 @@ public class KeyKiiService extends InputMethodService {
         );
 
         loadKeyKiiSettings();
-        shift=false;
+        shift=autoCapitalization;
         capsLock=false;
         lastShiftTap=0L;
+        lastSpaceTap=0L;
 
         if(root!=null)
             buildShell();
@@ -1441,6 +1473,7 @@ public class KeyKiiService extends InputMethodService {
                 // Never pop the KeyKii spacebar text. Preview only an
                 // actual one-character typing key.
                 if(
+                    keyPreviewEnabled &&
                     !special &&
                     !action.equals("SPACE") &&
                     shown!=null &&
@@ -6543,11 +6576,19 @@ public class KeyKiiService extends InputMethodService {
                 break;
 
             case "SPACE":
-                i.commitText(" ",1);
+                smartSpace(i);
                 break;
 
             case "ENTER":
                 enter(i);
+
+                if(autoCapitalization) {
+                    shift=true;
+                    capsLock=false;
+                    lastShiftTap=0L;
+                    showPage();
+                }
+
                 break;
 
             case "SHIFT":
@@ -6695,6 +6736,98 @@ public class KeyKiiService extends InputMethodService {
                 }
         }
     }
+
+    void smartSpace(InputConnection i) {
+        if(i==null)
+            return;
+
+        long now=
+            android.os.SystemClock.uptimeMillis();
+
+        if(doubleSpacePeriod) {
+            try {
+                CharSequence before=
+                    i.getTextBeforeCursor(
+                        3,
+                        0
+                    );
+
+                if(
+                    before!=null &&
+                    before.length()>=2 &&
+                    before.charAt(before.length()-1)==' '
+                ) {
+                    char previous=
+                        before.charAt(
+                            before.length()-2
+                        );
+
+                    if(
+                        !Character.isWhitespace(previous) &&
+                        previous!='.' &&
+                        previous!='!' &&
+                        previous!='?' &&
+                        previous!=',' &&
+                        previous!=';' &&
+                        previous!=':'
+                    ) {
+                        i.deleteSurroundingText(
+                            1,
+                            0
+                        );
+
+                        i.commitText(
+                            ". ",
+                            1
+                        );
+
+                        lastSpaceTap=now;
+
+                        if(autoCapitalization) {
+                            shift=true;
+                            capsLock=false;
+                            lastShiftTap=0L;
+                            showPage();
+                        }
+
+                        return;
+                    }
+                }
+            } catch(Exception ignored) {
+            }
+        }
+
+        i.commitText(" ",1);
+        lastSpaceTap=now;
+
+        if(autoCapitalization) {
+            try {
+                CharSequence before=
+                    i.getTextBeforeCursor(
+                        4,
+                        0
+                    );
+
+                if(before!=null) {
+                    String text=
+                        before.toString();
+
+                    if(
+                        text.endsWith(". ") ||
+                        text.endsWith("! ") ||
+                        text.endsWith("? ")
+                    ) {
+                        shift=true;
+                        capsLock=false;
+                        lastShiftTap=0L;
+                        showPage();
+                    }
+                }
+            } catch(Exception ignored) {
+            }
+        }
+    }
+
 
     void enter(InputConnection i) {
 
