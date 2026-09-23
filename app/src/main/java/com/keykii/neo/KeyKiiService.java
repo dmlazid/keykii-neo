@@ -887,6 +887,62 @@ public class KeyKiiService extends InputMethodService {
 
     void buildEmoji() {
 
+        // KEYKII_SEARCH_BAR
+        LinearLayout searchRow=new LinearLayout(this);
+        searchRow.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView search=new TextView(this);
+        search.setText(
+            emojiSearchQuery.isEmpty()
+            ? "🔍  Search emoji"
+            : "🔍  "+emojiSearchQuery
+        );
+        search.setTextSize(14);
+        search.setTextColor(textColor());
+        search.setGravity(Gravity.CENTER_VERTICAL);
+        search.setPadding(dp(14),0,dp(10),0);
+        search.setBackground(
+            round(keyColor(false),16,borderColor())
+        );
+
+        search.setOnClickListener(v -> {
+            emojiSearchMode=true;
+            showPage();
+        });
+
+        searchRow.addView(
+            search,
+            new LinearLayout.LayoutParams(
+                0,dp(40),1
+            )
+        );
+
+        TextView clear=new TextView(this);
+        clear.setText("×");
+        clear.setTextSize(20);
+        clear.setTextColor(textColor());
+        clear.setGravity(Gravity.CENTER);
+
+        clear.setOnClickListener(v -> {
+            emojiSearchQuery="";
+            emojiSearchMode=false;
+            showPage();
+        });
+
+        searchRow.addView(
+            clear,
+            new LinearLayout.LayoutParams(
+                dp(44),dp(40)
+            )
+        );
+
+        body.addView(
+            searchRow,
+            new LinearLayout.LayoutParams(
+                -1,dp(44)
+            )
+        );
+
         String[] groupNames={
             "Recent",
             "Smileys & Emotion",
@@ -959,6 +1015,8 @@ public class KeyKiiService extends InputMethodService {
             tab.setOnClickListener(v -> {
 
                 emojiCategory=category;
+                emojiSearchQuery="";
+                emojiSearchMode=false;
                 showPage();
             });
 
@@ -1050,6 +1108,16 @@ public class KeyKiiService extends InputMethodService {
 
             if(selected!=null)
                 emojis.addAll(selected);
+        }
+
+        if(
+            emojiSearchQuery!=null &&
+            !emojiSearchQuery.trim().isEmpty()
+        ){
+            emojis.clear();
+            emojis.addAll(
+                searchEmojiDatabase(emojiSearchQuery)
+            );
         }
 
         TextView heading=
