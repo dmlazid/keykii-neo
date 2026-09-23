@@ -25,6 +25,11 @@ public class KeyKiiService extends InputMethodService {
     @Override
     public View onCreateInputView() {
 
+        theme=getSharedPreferences(
+            "keykii_prefs",
+            MODE_PRIVATE
+        ).getInt("theme",0);
+
         root=new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.TRANSPARENT);
