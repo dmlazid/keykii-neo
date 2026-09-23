@@ -32,6 +32,17 @@ public class KeyKiiService extends InputMethodService {
     String dragChoiceMode="";
     boolean suppressNextKeyClick=false;
 
+    // Spacebar cursor control: slide left/right to move the caret.
+    android.os.Handler spaceGestureHandler=
+        new android.os.Handler(android.os.Looper.getMainLooper());
+    float spaceDownX=0f;
+    int spaceStartSelection=-1;
+    int spaceMinSelection=0;
+    int spaceMaxSelection=0;
+    int spaceFallbackStep=0;
+    boolean spaceCursorDragging=false;
+    boolean spacePickerShown=false;
+
 
     LinearLayout root, panel, body;
 
@@ -841,19 +852,10 @@ public class KeyKiiService extends InputMethodService {
         // a compact shortcut bubble above the key; the center smiley opens emoji.
         box.setOnLongClickListener(v -> {
 
-            // Long-press the real KeyKii spacebar to open Android's
-            // system keyboard picker. Tap behaviour stays a normal space.
-            if(action.equals("SPACE")) {
-                dismissKeyPreview();
-                android.view.inputmethod.InputMethodManager imm=
-                    (android.view.inputmethod.InputMethodManager)
-                    getSystemService(INPUT_METHOD_SERVICE);
-
-                if(imm!=null) {
-                    v.post(() -> imm.showInputMethodPicker());
-                    return true;
-                }
-            }
+            // SPACE gestures are handled entirely in onTouch:
+            // tap = space, slide = cursor, stationary hold = keyboard picker.
+            if(action.equals("SPACE"))
+                return true;
 
             if(action.equals(",") && page==0 && !symbols) {
                 dismissKeyPreview();
@@ -879,6 +881,9 @@ public class KeyKiiService extends InputMethodService {
         });
 
         box.setOnTouchListener((v,e)->{
+
+            if(action.equals("SPACE"))
+                return handleSpacebarTouch(v,e);
 
             if(dragChoiceActive) {
                 int a=e.getActionMasked();
@@ -1011,6 +1016,141 @@ public class KeyKiiService extends InputMethodService {
 
         r.addView(box,p);
     }
+
+
+    void openKeyboardPicker() {
+        android.view.inputmethod.InputMethodManager imm=
+            (android.view.inputmethod.InputMethodManager)
+            getSystemService(INPUT_METHOD_SERVICE);
+
+        if(imm!=null)
+            imm.showInputMethodPicker();
+    }
+
+
+    void beginSpaceCursorGesture() {
+        spaceStartSelection=-1;
+        spaceMinSelection=0;
+        spaceMaxSelection=0;
+        spaceFallbackStep=0;
+
+        InputConnection ic=getCurrentInputConnection();
+        if(ic==null) return;
+
+        try {
+            ExtractedTextRequest req=new ExtractedTextRequest();
+            ExtractedText et=ic.getExtractedText(req,0);
+
+            if(et!=null && et.text!=null && et.selectionStart>=0) {
+                spaceMinSelection=et.startOffset;
+                spaceMaxSelection=et.startOffset+et.text.length();
+                spaceStartSelection=et.startOffset+et.selectionStart;
+            }
+        } catch(Exception ignored) {}
+    }
+
+
+    void moveCursorFromSpace(float dx) {
+        InputConnection ic=getCurrentInputConnection();
+        if(ic==null) return;
+
+        int stepPx=Math.max(dp(14),1);
+        int steps=Math.round(dx/(float)stepPx);
+
+        if(spaceStartSelection>=0) {
+            int target=spaceStartSelection+steps;
+            target=Math.max(spaceMinSelection,Math.min(spaceMaxSelection,target));
+            try {
+                ic.setSelection(target,target);
+                return;
+            } catch(Exception ignored) {}
+        }
+
+        // Fallback for editors that do not expose selection text.
+        int delta=steps-spaceFallbackStep;
+        if(delta==0) return;
+
+        int key=delta<0
+            ? KeyEvent.KEYCODE_DPAD_LEFT
+            : KeyEvent.KEYCODE_DPAD_RIGHT;
+
+        for(int i=0;i<Math.min(Math.abs(delta),12);i++)
+            sendKey(ic,key);
+
+        spaceFallbackStep=steps;
+    }
+
+
+    boolean handleSpacebarTouch(View v, MotionEvent e) {
+        int a=e.getActionMasked();
+
+        if(a==MotionEvent.ACTION_DOWN) {
+            suppressNextKeyClick=true;
+            spaceDownX=e.getX();
+            spaceCursorDragging=false;
+            spacePickerShown=false;
+            beginSpaceCursorGesture();
+
+            v.animate()
+             .scaleX(1.02f)
+             .scaleY(1.02f)
+             .setDuration(30)
+             .start();
+
+            if(haptic)
+                v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+
+            spaceGestureHandler.removeCallbacksAndMessages(null);
+            spaceGestureHandler.postDelayed(() -> {
+                if(!spaceCursorDragging) {
+                    spacePickerShown=true;
+                    openKeyboardPicker();
+                }
+            },650);
+
+            return true;
+        }
+
+        if(a==MotionEvent.ACTION_MOVE) {
+            float dx=e.getX()-spaceDownX;
+
+            if(Math.abs(dx)>=dp(9)) {
+                if(!spaceCursorDragging) {
+                    spaceCursorDragging=true;
+                    spaceGestureHandler.removeCallbacksAndMessages(null);
+                }
+                moveCursorFromSpace(dx);
+            }
+
+            return true;
+        }
+
+        if(a==MotionEvent.ACTION_UP || a==MotionEvent.ACTION_CANCEL) {
+            spaceGestureHandler.removeCallbacksAndMessages(null);
+
+            v.animate()
+             .scaleX(1f)
+             .scaleY(1f)
+             .setDuration(45)
+             .start();
+
+            if(
+                a==MotionEvent.ACTION_UP &&
+                !spaceCursorDragging &&
+                !spacePickerShown
+            ) {
+                press("SPACE");
+            }
+
+            spaceCursorDragging=false;
+            spacePickerShown=false;
+            suppressNextKeyClick=true;
+            return true;
+        }
+
+        return true;
+    }
+
 
 
     boolean canRenderEmoji(String value) {
@@ -1413,6 +1553,71 @@ public class KeyKiiService extends InputMethodService {
 
         return rows;
     }
+
+
+    java.util.ArrayList<Object>
+    makeFastEmojiCategoryRows(String wantedGroup) {
+
+        loadFastEmojiDb();
+
+        java.util.ArrayList<Object> rows=
+            new java.util.ArrayList<>();
+
+        if(wantedGroup==null || wantedGroup.isEmpty())
+            wantedGroup="Recent emoji";
+
+        if(wantedGroup.equalsIgnoreCase("Recent emoji")) {
+            rows.add("Recent Emoji");
+            java.util.ArrayList<String> recent=loadFastRecent();
+
+            for(int i=0;i<recent.size();i+=10) {
+                java.util.ArrayList<String> row=
+                    new java.util.ArrayList<>();
+                for(int j=i;j<Math.min(i+10,recent.size());j++)
+                    row.add(recent.get(j));
+                if(!row.isEmpty()) rows.add(row);
+            }
+            return rows;
+        }
+
+        rows.add(fastGroupLabel(wantedGroup));
+
+        java.util.ArrayList<String> list=
+            new java.util.ArrayList<>();
+        java.util.HashSet<String> seen=
+            new java.util.HashSet<>();
+
+        for(String[] x:fastEmojiDb) {
+            if(x.length<3) continue;
+
+            String group=x[0];
+            String emoji=x[2];
+
+            if(!group.equalsIgnoreCase(wantedGroup))
+                continue;
+            if(group.equalsIgnoreCase("Component"))
+                continue;
+            if(hasSkinToneModifier(emoji))
+                continue;
+            if(!displayableEmoji(emoji))
+                continue;
+            if(!seen.add(emoji))
+                continue;
+
+            list.add(emoji);
+        }
+
+        for(int i=0;i<list.size();i+=10) {
+            java.util.ArrayList<String> row=
+                new java.util.ArrayList<>();
+            for(int j=i;j<Math.min(i+10,list.size());j++)
+                row.add(list.get(j));
+            if(!row.isEmpty()) rows.add(row);
+        }
+
+        return rows;
+    }
+
 
 
 
@@ -2265,10 +2470,18 @@ public class KeyKiiService extends InputMethodService {
             )
         );
 
+        // Keep the selected category visible instead of snapping the
+        // horizontal category strip back to the first icon after rebuild.
+        final int selectedEmojiCategory=emojiCategory;
+        hsv.post(() -> hsv.scrollTo(
+            Math.max(0, selectedEmojiCategory*dp(48)-dp(72)),
+            0
+        ));
+
 
         final java.util.ArrayList<Object> rows=
-            makeFastEmojiRows(
-                emojiSearchQuery
+            makeFastEmojiCategoryRows(
+                groups[Math.max(0,Math.min(emojiCategory,groups.length-1))]
             );
 
         fastEmojiList=
@@ -2422,28 +2635,7 @@ public class KeyKiiService extends InputMethodService {
             )
         );
 
-        // KEYKII_INITIAL_EMOJI_JUMP
-        if(
-            emojiCategory>=0 &&
-            emojiCategory<groups.length
-        ) {
-
-            Integer first=
-                fastEmojiJump.get(
-                    groups[emojiCategory]
-                );
-
-            if(first!=null) {
-
-                final int jumpPosition=first;
-
-                fastEmojiList.post(() ->
-                    fastEmojiList.setSelection(
-                        jumpPosition
-                    )
-                );
-            }
-        }
+        // Category rows are already filtered, so no delayed jump is needed.
 
         addFastEmojiModeBar();
     }
@@ -3597,6 +3789,14 @@ public class KeyKiiService extends InputMethodService {
                 dp(46)
             )
         );
+
+        // Rebuilding the kaomoji page used to visually snap the tab strip
+        // back to the first category. Keep the active tab in view.
+        final int selectedKaomojiCategory=kaomojiCategory;
+        tabsScroll.post(() -> tabsScroll.scrollTo(
+            Math.max(0, selectedKaomojiCategory*dp(118)-dp(42)),
+            0
+        ));
 
 
         final String category=

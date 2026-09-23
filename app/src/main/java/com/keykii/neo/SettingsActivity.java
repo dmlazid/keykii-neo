@@ -52,7 +52,7 @@ public class SettingsActivity extends Activity {
 
     private void showHome() {
         screen = "home";
-        LinearLayout page = page("KeyKii settings", "KeyKii Neo 2.10", false);
+        LinearLayout page = page("KeyKii settings", "KeyKii Neo 2.10.1", false);
 
         addSection(page, "Keyboard");
         addRow(page, "⌨", "Languages", "Keyboard language and Android input settings", v -> showLanguages());
@@ -306,7 +306,7 @@ public class SettingsActivity extends Activity {
         screen = "about";
         LinearLayout page = page("About", "KeyKii Neo", true);
 
-        addInfoCard(page, "Version", "2.10");
+        addInfoCard(page, "Version", "2.10.1");
         addInfoCard(page, "Package", "com.keykii.neo");
         addInfoCard(page,
                 "Keyboard",
