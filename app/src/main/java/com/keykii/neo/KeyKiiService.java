@@ -14,6 +14,7 @@ public class KeyKiiService extends InputMethodService {
     boolean emojiSearchMode=false;
     boolean kaomojiMode=false;
     int kaomojiCategory=0;
+    TextView emojiSearchField=null;
 
 
 
@@ -56,14 +57,14 @@ public class KeyKiiService extends InputMethodService {
             @Override
             public void run() {
 
-                InputConnection ic=
-                    getCurrentInputConnection();
-
-                if(ic!=null)
-                    ic.deleteSurroundingText(
-                        1,
-                        0
-                    );
+                if(page==1 && emojiSearchMode) {
+                    eraseEmojiSearchChar();
+                } else {
+                    InputConnection ic=
+                        getCurrentInputConnection();
+                    if(ic!=null)
+                        ic.deleteSurroundingText(1,0);
+                }
 
                 backspaceRepeating=true;
 
@@ -587,6 +588,52 @@ public class KeyKiiService extends InputMethodService {
 
         LinearLayout r=newRow();
 
+        if(page==1 && emojiSearchMode) {
+
+            key(
+                r,
+                symbols ? "ABC" : "123",
+                symbols ? "ABC" : "123",
+                1f,
+                true
+            );
+
+            key(
+                r,
+                ",",
+                ",",
+                .72f,
+                false
+            );
+
+            key(
+                r,
+                "KeyKii",
+                "SPACE",
+                3.05f,
+                false
+            );
+
+            key(
+                r,
+                ".",
+                ".",
+                .58f,
+                false
+            );
+
+            key(
+                r,
+                "🔍",
+                "ENTER",
+                1.05f,
+                true
+            );
+
+            body.addView(r);
+            return;
+        }
+
         key(
             r,
             symbols ? "ABC" : "123",
@@ -827,32 +874,10 @@ public class KeyKiiService extends InputMethodService {
                 e.getAction()==
                 MotionEvent.ACTION_DOWN
             ){
-
                 if(haptic)
                     v.performHapticFeedback(
-                        HapticFeedbackConstants
-                            .KEYBOARD_TAP
+                        HapticFeedbackConstants.KEYBOARD_TAP
                     );
-
-                v.animate()
-                 .scaleX(.96f)
-                 .scaleY(.96f)
-                 .setDuration(35)
-                 .start();
-            }
-
-            if(
-                e.getAction()==
-                MotionEvent.ACTION_UP ||
-                e.getAction()==
-                MotionEvent.ACTION_CANCEL
-            ){
-
-                v.animate()
-                 .scaleX(1f)
-                 .scaleY(1f)
-                 .setDuration(50)
-                 .start();
             }
 
             return false;
@@ -1490,23 +1515,26 @@ public class KeyKiiService extends InputMethodService {
 
 
     void addFastEmojiModeBar() {
-
-        LinearLayout bar=
-            new LinearLayout(this);
-
+        LinearLayout bar=new LinearLayout(this);
         bar.setGravity(Gravity.CENTER);
 
-        TextView emoji=
-            fastEmojiModeButton("😀");
+        TextView abc=fastEmojiModeButton("ABC");
+        TextView emoji=fastEmojiModeButton("😀");
+        TextView kao=fastEmojiModeButton(":-)");
+        TextView del=fastEmojiModeButton("⌫");
 
-        TextView kao=
-            fastEmojiModeButton(":-)");
-
-        TextView del=
-            fastEmojiModeButton("⌫");
+        abc.setOnClickListener(v -> {
+            page=0;
+            symbols=false;
+            symbolPage=1;
+            shift=false;
+            emojiSearchMode=false;
+            emojiSearchQuery="";
+            kaomojiMode=false;
+            showPage();
+        });
 
         emoji.setOnClickListener(v -> {
-
             kaomojiMode=false;
             emojiSearchMode=false;
             emojiSearchQuery="";
@@ -1514,7 +1542,6 @@ public class KeyKiiService extends InputMethodService {
         });
 
         kao.setOnClickListener(v -> {
-
             kaomojiMode=true;
             emojiSearchMode=false;
             emojiSearchQuery="";
@@ -1522,55 +1549,20 @@ public class KeyKiiService extends InputMethodService {
         });
 
         del.setOnClickListener(v -> {
-
-            InputConnection ic=
-                getCurrentInputConnection();
-
+            InputConnection ic=getCurrentInputConnection();
             if(ic!=null) {
-
-                ic.sendKeyEvent(
-                    new android.view.KeyEvent(
-                        android.view.KeyEvent.ACTION_DOWN,
-                        android.view.KeyEvent.KEYCODE_DEL
-                    )
-                );
-
-                ic.sendKeyEvent(
-                    new android.view.KeyEvent(
-                        android.view.KeyEvent.ACTION_UP,
-                        android.view.KeyEvent.KEYCODE_DEL
-                    )
-                );
+                ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DEL));
+                ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_DEL));
             }
         });
 
-        TextView[] buttons={
-            emoji,kao,del
-        };
-
-        for(TextView b:buttons) {
-
-            LinearLayout.LayoutParams lp=
-                new LinearLayout.LayoutParams(
-                    0,
-                    dp(46),
-                    1
-                );
-
-            lp.setMargins(
-                dp(4),dp(3),dp(4),dp(3)
-            );
-
+        for(TextView b:new TextView[]{abc,emoji,kao,del}) {
+            LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(46),1);
+            lp.setMargins(dp(3),dp(3),dp(3),dp(3));
             bar.addView(b,lp);
         }
 
-        body.addView(
-            bar,
-            new LinearLayout.LayoutParams(
-                -1,
-                dp(52)
-            )
-        );
+        body.addView(bar,new LinearLayout.LayoutParams(-1,dp(52)));
     }
 
 
@@ -1586,6 +1578,8 @@ public class KeyKiiService extends InputMethodService {
 
         TextView search=
             new TextView(this);
+
+        emojiSearchField=search;
 
         search.setText(
             kaomojiMode
@@ -1626,6 +1620,9 @@ public class KeyKiiService extends InputMethodService {
             }
 
             emojiSearchMode=true;
+            symbols=false;
+            symbolPage=1;
+            shift=false;
             showPage();
         });
 
@@ -1678,6 +1675,13 @@ public class KeyKiiService extends InputMethodService {
             buildKaomojiPanel();
             addFastEmojiModeBar();
 
+            return;
+        }
+
+
+        // Gboard-style emoji search: only search + the real KeyKii keyboard.
+        if(emojiSearchMode) {
+            buildKeyboard();
             return;
         }
 
@@ -1775,10 +1779,6 @@ public class KeyKiiService extends InputMethodService {
                 dp(46)
             )
         );
-
-
-        if(emojiSearchMode)
-            buildEmojiSearchPad();
 
 
         final java.util.ArrayList<Object> rows=
@@ -1924,10 +1924,7 @@ public class KeyKiiService extends InputMethodService {
             }
         );
 
-        int listHeight=
-            emojiSearchMode
-            ? dp(155)
-            : dp(285);
+        int listHeight=dp(285);
 
         body.addView(
             fastEmojiList,
@@ -2623,6 +2620,93 @@ public class KeyKiiService extends InputMethodService {
             .apply();
     }
 
+
+
+    void refreshEmojiSearchField() {
+        if(emojiSearchField==null) return;
+        emojiSearchField.setText(
+            emojiSearchQuery==null || emojiSearchQuery.isEmpty()
+            ? "🔍  Search emoji"
+            : "🔍  "+emojiSearchQuery
+        );
+    }
+
+    void eraseEmojiSearchChar() {
+        if(emojiSearchQuery==null || emojiSearchQuery.isEmpty()) return;
+        int end=emojiSearchQuery.length();
+        int start=emojiSearchQuery.offsetByCodePoints(end,-1);
+        emojiSearchQuery=emojiSearchQuery.substring(0,start);
+        refreshEmojiSearchField();
+    }
+
+    boolean handleEmojiSearchKey(String action) {
+        if(page!=1 || !emojiSearchMode) return false;
+
+        if(action.equals("BACK")) {
+            eraseEmojiSearchChar();
+            return true;
+        }
+        if(action.equals("ENTER")) {
+            emojiSearchMode=false;
+            symbols=false;
+            symbolPage=1;
+            shift=false;
+            showPage();
+            return true;
+        }
+        if(action.equals("EMOJI")) {
+            emojiSearchMode=false;
+            showPage();
+            return true;
+        }
+        if(action.equals("SHIFT")) {
+            shift=!shift;
+            showPage();
+            return true;
+        }
+        if(action.equals("123")) {
+            symbols=true;
+            symbolPage=1;
+            shift=false;
+            showPage();
+            return true;
+        }
+        if(action.equals("ABC")) {
+            symbols=false;
+            symbolPage=1;
+            shift=false;
+            showPage();
+            return true;
+        }
+        if(action.equals("SYM2")) {
+            symbolPage=2;
+            showPage();
+            return true;
+        }
+        if(action.equals("SYM1")) {
+            symbolPage=1;
+            showPage();
+            return true;
+        }
+        if(action.equals("SPACE")) {
+            emojiSearchQuery+=" ";
+            refreshEmojiSearchField();
+            return true;
+        }
+        if(action.length()==1) {
+            boolean oneShotShift=shift && !symbols;
+            String value=oneShotShift ? action.toUpperCase() : action;
+            emojiSearchQuery+=value;
+            if(oneShotShift) {
+                shift=false;
+                showPage();
+            } else {
+                refreshEmojiSearchField();
+            }
+            return true;
+        }
+        return false;
+    }
 
 
     void buildEmojiSearchPad() {
@@ -3551,6 +3635,9 @@ public class KeyKiiService extends InputMethodService {
 
 
     void press(String action) {
+
+        if(handleEmojiSearchKey(action))
+            return;
 
         InputConnection i=
             getCurrentInputConnection();
