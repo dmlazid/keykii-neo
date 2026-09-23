@@ -80,6 +80,7 @@ public class KeyKiiService extends InputMethodService {
     boolean doubleSpacePeriod=true;
     boolean keyPreviewEnabled=true;
     boolean swipeDeleteWord=true;
+    boolean quickPunctuation=true;
     long lastSpaceTap=0L;
 
     float backspaceGestureStartX=0f;
@@ -236,6 +237,11 @@ public class KeyKiiService extends InputMethodService {
             true
         );
 
+        quickPunctuation=keykiiPrefs.getBoolean(
+            "quick_punctuation",
+            true
+        );
+
         numberRow=keykiiPrefs.getBoolean(
             "number_row",
             false
@@ -311,6 +317,11 @@ public class KeyKiiService extends InputMethodService {
 
         swipeDeleteWord=p.getBoolean(
             "swipe_delete_word",
+            true
+        );
+
+        quickPunctuation=p.getBoolean(
+            "quick_punctuation",
             true
         );
 
@@ -1445,6 +1456,20 @@ public class KeyKiiService extends InputMethodService {
             if(action.equals(",") && page==0 && !symbols) {
                 dismissKeyPreview();
                 showCommaShortcutPopup(v);
+                return true;
+            }
+
+            if(
+                quickPunctuation &&
+                action.equals(".") &&
+                page==0 &&
+                !symbols
+            ) {
+                dismissKeyPreview();
+                showLongPressPopup(
+                    v,
+                    ".|,|?|!|:|;|@|#|&"
+                );
                 return true;
             }
 

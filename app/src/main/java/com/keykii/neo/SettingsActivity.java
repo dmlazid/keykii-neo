@@ -1013,6 +1013,14 @@ public class SettingsActivity extends Activity {
                 true
         );
 
+        addSwitchRow(
+                page,
+                "Quick punctuation",
+                "Hold the period key to choose common punctuation",
+                "quick_punctuation",
+                true
+        );
+
         addInfoCard(
                 page,
                 "About suggestions",
