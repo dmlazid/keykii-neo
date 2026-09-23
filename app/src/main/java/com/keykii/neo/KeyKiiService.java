@@ -25,6 +25,8 @@ public class KeyKiiService extends InputMethodService {
     int theme=0;
     int hand=0;
     int emojiCategory=0;
+    int keyHeight=46;
+    boolean haptic=false;
 
     @Override
     public void onCreate() {
@@ -89,6 +91,22 @@ public class KeyKiiService extends InputMethodService {
 
     @Override
     public View onCreateInputView() {
+
+        SharedPreferences keykiiPrefs=
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            );
+
+        keyHeight=keykiiPrefs.getInt(
+            "key_height",
+            46
+        );
+
+        haptic=keykiiPrefs.getBoolean(
+            "haptic",
+            false
+        );
 
         theme=getSharedPreferences(
             "keykii_prefs",
@@ -517,10 +535,11 @@ public class KeyKiiService extends InputMethodService {
         String action,
         float weight,
         boolean special
-    ) {
+    ){
 
-        TextView k=
-            new TextView(this);
+        FrameLayout box=new FrameLayout(this);
+
+        TextView main=new TextView(this);
 
         String shown=
             shift &&
@@ -529,49 +548,115 @@ public class KeyKiiService extends InputMethodService {
             ? label.toUpperCase()
             : label;
 
-        k.setText(shown);
-        k.setTextColor(textColor());
-        k.setGravity(Gravity.CENTER);
-        k.setIncludeFontPadding(false);
-        k.setAllCaps(false);
+        main.setText(shown);
+        main.setTextColor(textColor());
+        main.setGravity(Gravity.CENTER);
+        main.setIncludeFontPadding(false);
+        main.setAllCaps(false);
 
         if(label.equals("KeyKii"))
-            k.setTextSize(14);
+            main.setTextSize(16);
 
         else if(label.length()>2)
-            k.setTextSize(11);
+            main.setTextSize(13);
 
         else
-            k.setTextSize(14);
+            main.setTextSize(19);
 
         boolean space=
             action.equals("SPACE");
 
-        k.setBackground(
+        box.setBackground(
             keyBackground(
                 special,
                 space
             )
         );
 
-        // Visual press only.
-        // No vibration.
-        k.setOnTouchListener((v,e)->{
+        FrameLayout.LayoutParams mainParams=
+            new FrameLayout.LayoutParams(
+                -1,
+                -1
+            );
+
+        box.addView(main,mainParams);
+
+        /*
+         * Small Gboard-style symbol hint.
+         */
+        String hint=
+            (!symbols && page==0)
+            ? hintFor(action)
+            : "";
+
+        if(!hint.isEmpty()){
+
+            TextView small=
+                new TextView(this);
+
+            small.setText(hint);
+            small.setTextColor(textColor());
+            small.setAlpha(.62f);
+            small.setTextSize(9);
+            small.setGravity(Gravity.CENTER);
+
+            FrameLayout.LayoutParams hp=
+                new FrameLayout.LayoutParams(
+                    dp(18),
+                    dp(15),
+                    Gravity.TOP | Gravity.RIGHT
+                );
+
+            hp.setMargins(
+                0,
+                dp(2),
+                dp(4),
+                0
+            );
+
+            box.addView(small,hp);
+
+            /*
+             * Long press inserts the small symbol.
+             */
+            box.setOnLongClickListener(v -> {
+
+                InputConnection ic=
+                    getCurrentInputConnection();
+
+                if(ic!=null)
+                    ic.commitText(
+                        hint,
+                        1
+                    );
+
+                return true;
+            });
+        }
+
+        box.setOnTouchListener((v,e)->{
 
             if(e.getAction()==
-               MotionEvent.ACTION_DOWN) {
+               MotionEvent.ACTION_DOWN){
+
+                if(haptic)
+                    v.performHapticFeedback(
+                        HapticFeedbackConstants.KEYBOARD_TAP
+                    );
 
                 v.animate()
-                 .scaleX(.94f)
-                 .scaleY(.94f)
+                 .scaleX(.96f)
+                 .scaleY(.96f)
                  .setDuration(35)
                  .start();
             }
 
-            if(e.getAction()==
-               MotionEvent.ACTION_UP ||
-               e.getAction()==
-               MotionEvent.ACTION_CANCEL) {
+            if(
+                e.getAction()==
+                MotionEvent.ACTION_UP ||
+                e.getAction()==
+                MotionEvent.ACTION_CANCEL
+            ){
 
                 v.animate()
                  .scaleX(1f)
@@ -583,14 +668,14 @@ public class KeyKiiService extends InputMethodService {
             return false;
         });
 
-        k.setOnClickListener(
+        box.setOnClickListener(
             v -> press(action)
         );
 
         int height=
             label.equals("KeyKii")
-            ? dp(32)
-            : dp(28);
+            ? dp(keyHeight+5)
+            : dp(keyHeight);
 
         LinearLayout.LayoutParams p=
             new LinearLayout.LayoutParams(
@@ -601,12 +686,12 @@ public class KeyKiiService extends InputMethodService {
 
         p.setMargins(
             dp(3),
+            dp(4),
             dp(3),
-            dp(3),
-            dp(3)
+            dp(4)
         );
 
-        r.addView(k,p);
+        r.addView(box,p);
     }
 
     void buildEmoji() {
@@ -726,6 +811,7 @@ public class KeyKiiService extends InputMethodService {
 
         if(c==1)
             return
+            "😭 😂 🥹 🤣 ❤️ 😍 🥰 😊 😘 😭 " +
             "😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 " +
             "😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 " +
             "😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 " +
@@ -1045,6 +1131,43 @@ public class KeyKiiService extends InputMethodService {
         v.setSingleLine(true);
 
         return v;
+    }
+
+    String hintFor(String s){
+
+        switch(s){
+
+            case "q": return "1";
+            case "w": return "2";
+            case "e": return "3";
+            case "r": return "4";
+            case "t": return "5";
+            case "y": return "6";
+            case "u": return "7";
+            case "i": return "8";
+            case "o": return "9";
+            case "p": return "0";
+
+            case "a": return "@";
+            case "s": return "#";
+            case "d": return "$";
+            case "f": return "%";
+            case "g": return "&";
+            case "h": return "-";
+            case "j": return "+";
+            case "k": return "(";
+            case "l": return ")";
+
+            case "z": return "*";
+            case "x": return "\"";
+            case "c": return "'";
+            case "v": return ":";
+            case "b": return ";";
+            case "n": return "!";
+            case "m": return "?";
+
+            default: return "";
+        }
     }
 
     void press(String action) {

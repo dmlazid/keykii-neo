@@ -59,9 +59,9 @@ public class SettingsActivity extends Activity {
         addSlider(
                 "Key height",
                 "key_height",
+                46,
                 34,
-                26,
-                44
+                60
         );
 
         addHeading("Floating keyboard");
