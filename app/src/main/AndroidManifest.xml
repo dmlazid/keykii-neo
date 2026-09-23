@@ -3,8 +3,8 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher"
+        android:icon="@drawable/keykii_app_icon_final"
+        android:roundIcon="@drawable/keykii_app_icon_final"
         android:label="KeyKii Neo"
         android:theme="@style/Theme.KeyKii">
         <activity
