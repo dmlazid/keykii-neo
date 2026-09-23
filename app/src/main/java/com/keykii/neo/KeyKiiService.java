@@ -50,6 +50,9 @@ public class KeyKiiService extends InputMethodService {
     ClipboardManager clipboardManager;
     ClipboardManager.OnPrimaryClipChangedListener clipboardListener;
 
+    int clipboardScrollY=0;
+    boolean clipboardClearArmed=false;
+
     boolean shift=false;
     boolean capsLock=false;
     long lastShiftTap=0L;
@@ -4346,9 +4349,18 @@ public class KeyKiiService extends InputMethodService {
         LinearLayout row=new LinearLayout(this);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(dp(8),dp(3),dp(4),dp(3));
+        int clipboardRowColor=
+            pinned
+            ? (
+                theme==1
+                ? Color.rgb(221,226,239)
+                : Color.argb(90,120,150,220)
+            )
+            : keyColor(false);
+
         row.setBackground(
             round(
-                keyColor(false),
+                clipboardRowColor,
                 15,
                 borderColor()
             )
@@ -4526,6 +4538,31 @@ public class KeyKiiService extends InputMethodService {
         );
 
         clear.setOnClickListener(v -> {
+            if(pinned.isEmpty() && recent.isEmpty())
+                return;
+
+            if(!clipboardClearArmed) {
+                clipboardClearArmed=true;
+                clear.setText("Tap again");
+                clear.setAlpha(1f);
+
+                clear.postDelayed(() -> {
+                    if(!clipboardClearArmed)
+                        return;
+
+                    clipboardClearArmed=false;
+
+                    if(clear.getWindowToken()!=null) {
+                        clear.setText("Clear all");
+                        clear.setAlpha(.85f);
+                    }
+                },2200);
+
+                return;
+            }
+
+            clipboardClearArmed=false;
+            clipboardScrollY=0;
             clearClipboardHistory();
             showPage();
         });
@@ -4551,6 +4588,11 @@ public class KeyKiiService extends InputMethodService {
 
         scroll.setFillViewport(true);
         scroll.setVerticalScrollBarEnabled(true);
+
+        scroll.setOnScrollChangeListener(
+            (v,scrollX,scrollY,oldScrollX,oldScrollY) ->
+                clipboardScrollY=scrollY
+        );
 
         LinearLayout content=
             new LinearLayout(this);
@@ -4616,6 +4658,13 @@ public class KeyKiiService extends InputMethodService {
                 -1,
                 dp(300)
             )
+        );
+
+        final int restoreClipboardScroll=
+            Math.max(0,clipboardScrollY);
+
+        scroll.post(() ->
+            scroll.scrollTo(0,restoreClipboardScroll)
         );
     }
 
