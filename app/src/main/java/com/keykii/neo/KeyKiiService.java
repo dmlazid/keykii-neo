@@ -231,6 +231,14 @@ public class KeyKiiService extends InputMethodService {
                 MODE_PRIVATE
             );
 
+        if(!p.getBoolean("tools_panel_2192_migrated",false)) {
+            p.edit()
+             .putBoolean("toolbar_width",false)
+             .putBoolean("toolbar_hand",false)
+             .putBoolean("tools_panel_2192_migrated",true)
+             .apply();
+        }
+
         theme=resolvedTheme(p);
         keyHeight=p.getInt("key_height",46);
         floatGap=p.getInt("float_gap",96);
@@ -282,8 +290,6 @@ public class KeyKiiService extends InputMethodService {
             hand=0;
 
         root.setGravity(
-            hand==1 ? Gravity.START :
-            hand==2 ? Gravity.END :
             Gravity.CENTER_HORIZONTAL
         );
 
@@ -322,26 +328,81 @@ public class KeyKiiService extends InputMethodService {
             getResources()
                 .getDisplayMetrics();
 
-        float ratio;
+        float ratio=
+            wideMode
+            ? .985f
+            : hand!=0
+                ? .72f
+                : .86f;
 
-        if(hand!=0)
-            ratio=.66f;
-
-        else if(wideMode)
-            ratio=.985f;
-
-        else
-            ratio=.86f;
-
-        LinearLayout.LayoutParams p=
+        LinearLayout.LayoutParams panelParams=
             new LinearLayout.LayoutParams(
                 (int)(d.widthPixels*ratio),
                 LinearLayout.LayoutParams.WRAP_CONTENT
             );
 
-        p.gravity=Gravity.CENTER_HORIZONTAL;
+        if(hand==0) {
+            panelParams.gravity=
+                Gravity.CENTER_HORIZONTAL;
 
-        root.addView(panel,p);
+            root.addView(
+                panel,
+                panelParams
+            );
+
+        } else {
+            LinearLayout dock=
+                new LinearLayout(this);
+
+            dock.setOrientation(
+                LinearLayout.HORIZONTAL
+            );
+
+            dock.setGravity(
+                hand==1
+                ? Gravity.START
+                : Gravity.END
+            );
+
+            LinearLayout rail=
+                buildOneHandRail();
+
+            LinearLayout.LayoutParams railParams=
+                new LinearLayout.LayoutParams(
+                    dp(54),
+                    LinearLayout.LayoutParams.MATCH_PARENT
+                );
+
+            if(hand==1) {
+                dock.addView(
+                    panel,
+                    panelParams
+                );
+
+                dock.addView(
+                    rail,
+                    railParams
+                );
+            } else {
+                dock.addView(
+                    rail,
+                    railParams
+                );
+
+                dock.addView(
+                    panel,
+                    panelParams
+                );
+            }
+
+            root.addView(
+                dock,
+                new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            );
+        }
 
         addHandle();
         addToolbar();
@@ -360,6 +421,131 @@ public class KeyKiiService extends InputMethodService {
         );
 
         showPage();
+    }
+
+
+    LinearLayout buildOneHandRail() {
+
+        LinearLayout rail=
+            new LinearLayout(this);
+
+        rail.setOrientation(
+            LinearLayout.VERTICAL
+        );
+
+        rail.setGravity(
+            Gravity.CENTER
+        );
+
+        rail.setPadding(
+            dp(4),
+            dp(12),
+            dp(4),
+            dp(12)
+        );
+
+        TextView switchSide=
+            oneHandRailButton(
+                hand==1
+                ? "▶"
+                : "◀"
+            );
+
+        switchSide.setOnClickListener(v -> {
+            hand=
+                hand==1
+                ? 2
+                : 1;
+
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            ).edit()
+             .putInt(
+                 "one_handed_default",
+                 hand
+             )
+             .putBoolean(
+                 "wide_default",
+                 false
+             )
+             .apply();
+
+            buildShell();
+        });
+
+        TextView expand=
+            oneHandRailButton("⛶");
+
+        expand.setOnClickListener(v -> {
+            hand=0;
+
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            ).edit()
+             .putInt(
+                 "one_handed_default",
+                 0
+             )
+             .apply();
+
+            buildShell();
+        });
+
+        rail.addView(
+            switchSide,
+            new LinearLayout.LayoutParams(
+                dp(46),
+                0,
+                1f
+            )
+        );
+
+        View gap=
+            new View(this);
+
+        rail.addView(
+            gap,
+            new LinearLayout.LayoutParams(
+                1,
+                dp(10)
+            )
+        );
+
+        rail.addView(
+            expand,
+            new LinearLayout.LayoutParams(
+                dp(46),
+                0,
+                1f
+            )
+        );
+
+        return rail;
+    }
+
+
+    TextView oneHandRailButton(
+        String label
+    ) {
+        TextView v=
+            new TextView(this);
+
+        v.setText(label);
+        v.setTextSize(20);
+        v.setTextColor(textColor());
+        v.setGravity(Gravity.CENTER);
+
+        v.setBackground(
+            round(
+                keyColor(true),
+                18,
+                borderColor()
+            )
+        );
+
+        return v;
     }
 
 
@@ -416,9 +602,12 @@ public class KeyKiiService extends InputMethodService {
                 MODE_PRIVATE
             );
 
-        // Keyboard is always fixed first so there is always a way back
-        // to normal typing.
-        tool(r,"⌨",0);
+        // Gboard-style tools entry on the normal keyboard.
+        // On other panels this becomes the keyboard/back button.
+        if(page==0)
+            tool(r,"▦",7);
+        else
+            tool(r,"⌨",0);
 
         String orderText=
             toolbarPrefs.getString(
@@ -642,8 +831,7 @@ public class KeyKiiService extends InputMethodService {
 
             } else if(action==6) {
 
-                // One-handed quick toggle:
-                // center -> left -> right -> center.
+                // Optional compact toolbar one-handed control.
                 wideMode=false;
 
                 hand=
@@ -668,6 +856,11 @@ public class KeyKiiService extends InputMethodService {
                  .apply();
 
                 buildShell();
+
+            } else if(action==7) {
+
+                page=4;
+                showPage();
             }
         });
 
@@ -695,8 +888,17 @@ public class KeyKiiService extends InputMethodService {
         else if(page==2)
             buildClipboard();
 
-        else
+        else if(page==3)
             buildEditing();
+
+        else if(page==4)
+            buildToolsPanel();
+
+        else if(page==5)
+            buildResizePanel();
+
+        else
+            buildKeyboard();
     }
 
     void buildKeyboard() {
@@ -5213,6 +5415,384 @@ public class KeyKiiService extends InputMethodService {
             recent,
             20
         );
+    }
+
+
+    void buildToolsPanel() {
+
+        TextView heading=
+            title("Tools");
+
+        heading.setTextSize(12);
+        heading.setAlpha(.62f);
+
+        body.addView(
+            heading,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(26)
+            )
+        );
+
+        toolsRow(
+            new String[]{
+                "◀  One-handed",
+                "↔  Text editing"
+            },
+            new Runnable[]{
+                () -> activateOneHanded(),
+                () -> {
+                    page=3;
+                    showPage();
+                }
+            }
+        );
+
+        toolsRow(
+            new String[]{
+                "▣  Clipboard",
+                "☺  Emoji"
+            },
+            new Runnable[]{
+                () -> {
+                    page=2;
+                    showPage();
+                },
+                () -> {
+                    page=1;
+                    emojiCategory=0;
+                    emojiSearchMode=false;
+                    emojiSearchQuery="";
+                    kaomojiMode=false;
+                    showPage();
+                }
+            }
+        );
+
+        toolsRow(
+            new String[]{
+                "↕  Resize",
+                "⛶  Full / wide"
+            },
+            new Runnable[]{
+                () -> {
+                    page=5;
+                    showPage();
+                },
+                () -> toggleWideFromTools()
+            }
+        );
+
+        toolsRow(
+            new String[]{
+                "◐  Theme",
+                "⚙  Settings"
+            },
+            new Runnable[]{
+                () -> openKeyKiiSettings("theme"),
+                () -> openKeyKiiSettings("")
+            }
+        );
+    }
+
+
+    void toolsRow(
+        String[] labels,
+        Runnable[] actions
+    ) {
+        LinearLayout row=
+            new LinearLayout(this);
+
+        row.setGravity(Gravity.CENTER);
+
+        for(int i=0;i<labels.length;i++) {
+            final Runnable action=
+                actions[i];
+
+            TextView card=
+                new TextView(this);
+
+            card.setText(labels[i]);
+            card.setTextColor(textColor());
+            card.setTextSize(13);
+            card.setGravity(Gravity.CENTER_VERTICAL);
+            card.setPadding(
+                dp(15),
+                0,
+                dp(12),
+                0
+            );
+
+            card.setBackground(
+                round(
+                    keyColor(false),
+                    20,
+                    borderColor()
+                )
+            );
+
+            card.setOnClickListener(v -> {
+                if(action!=null)
+                    action.run();
+            });
+
+            LinearLayout.LayoutParams p=
+                new LinearLayout.LayoutParams(
+                    0,
+                    dp(58),
+                    1f
+                );
+
+            p.setMargins(
+                dp(3),
+                dp(4),
+                dp(3),
+                dp(4)
+            );
+
+            row.addView(card,p);
+        }
+
+        body.addView(row);
+    }
+
+
+    void activateOneHanded() {
+        wideMode=false;
+
+        if(hand==0) {
+            int preferred=
+                getSharedPreferences(
+                    "keykii_prefs",
+                    MODE_PRIVATE
+                ).getInt(
+                    "one_handed_default",
+                    1
+                );
+
+            hand=
+                preferred==2
+                ? 2
+                : 1;
+        }
+
+        getSharedPreferences(
+            "keykii_prefs",
+            MODE_PRIVATE
+        ).edit()
+         .putInt(
+             "one_handed_default",
+             hand
+         )
+         .putBoolean(
+             "wide_default",
+             false
+         )
+         .apply();
+
+        page=0;
+        buildShell();
+    }
+
+
+    void toggleWideFromTools() {
+        wideMode=!wideMode;
+
+        if(wideMode) {
+            hand=0;
+        } else {
+            int preferred=
+                getSharedPreferences(
+                    "keykii_prefs",
+                    MODE_PRIVATE
+                ).getInt(
+                    "one_handed_default",
+                    0
+                );
+
+            if(preferred<0 || preferred>2)
+                preferred=0;
+
+            hand=preferred;
+        }
+
+        getSharedPreferences(
+            "keykii_prefs",
+            MODE_PRIVATE
+        ).edit()
+         .putBoolean(
+             "wide_default",
+             wideMode
+         )
+         .apply();
+
+        page=0;
+        buildShell();
+    }
+
+
+    void buildResizePanel() {
+
+        TextView heading=
+            title("Resize keyboard");
+
+        heading.setTextSize(13);
+        heading.setAlpha(.68f);
+
+        body.addView(
+            heading,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(28)
+            )
+        );
+
+        TextView info=
+            title(
+                "Height " +
+                keyHeight +
+                "   •   Bottom gap " +
+                floatGap
+            );
+
+        info.setTextSize(11);
+        info.setAlpha(.58f);
+
+        body.addView(
+            info,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(30)
+            )
+        );
+
+        toolsRow(
+            new String[]{
+                "−  Shorter",
+                "+  Taller"
+            },
+            new Runnable[]{
+                () -> resizeKeyboardBy(-4,0),
+                () -> resizeKeyboardBy(4,0)
+            }
+        );
+
+        toolsRow(
+            new String[]{
+                "↓  Lower",
+                "↑  Higher"
+            },
+            new Runnable[]{
+                () -> resizeKeyboardBy(0,-16),
+                () -> resizeKeyboardBy(0,16)
+            }
+        );
+
+        toolsRow(
+            new String[]{
+                "↻  Reset",
+                "✓  Done"
+            },
+            new Runnable[]{
+                () -> {
+                    keyHeight=46;
+                    floatGap=96;
+
+                    getSharedPreferences(
+                        "keykii_prefs",
+                        MODE_PRIVATE
+                    ).edit()
+                     .putInt(
+                         "key_height",
+                         keyHeight
+                     )
+                     .putInt(
+                         "float_gap",
+                         floatGap
+                     )
+                     .apply();
+
+                    buildShell();
+                },
+                () -> {
+                    page=0;
+                    showPage();
+                }
+            }
+        );
+    }
+
+
+    void resizeKeyboardBy(
+        int heightDelta,
+        int gapDelta
+    ) {
+        keyHeight=
+            Math.max(
+                38,
+                Math.min(
+                    62,
+                    keyHeight+heightDelta
+                )
+            );
+
+        floatGap=
+            Math.max(
+                32,
+                Math.min(
+                    160,
+                    floatGap+gapDelta
+                )
+            );
+
+        getSharedPreferences(
+            "keykii_prefs",
+            MODE_PRIVATE
+        ).edit()
+         .putInt(
+             "key_height",
+             keyHeight
+         )
+         .putInt(
+             "float_gap",
+             floatGap
+         )
+         .apply();
+
+        buildShell();
+    }
+
+
+    void openKeyKiiSettings(
+        String target
+    ) {
+        try {
+            Intent intent=
+                new Intent();
+
+            intent.setClassName(
+                getPackageName(),
+                "com.keykii.neo.SettingsActivity"
+            );
+
+            intent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK
+            );
+
+            if(
+                target!=null &&
+                !target.isEmpty()
+            ) {
+                intent.putExtra(
+                    "open_screen",
+                    target
+                );
+            }
+
+            startActivity(intent);
+
+        } catch(Exception ignored) {
+        }
     }
 
 

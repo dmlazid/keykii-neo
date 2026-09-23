@@ -73,13 +73,25 @@ public class SettingsActivity extends Activity {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences("keykii_prefs", MODE_PRIVATE);
 
-        if ("shortcuts".equals(getIntent().getStringExtra("open_screen"))) {
+        String openScreen=
+                getIntent().getStringExtra(
+                        "open_screen"
+                );
+
+        if ("shortcuts".equals(openScreen)) {
             showShortcuts();
 
             int shortcutIndex = getIntent().getIntExtra("shortcut_index", -1);
             if (shortcutIndex >= 0 && shortcutIndex < 12) {
                 showShortcutEditor(shortcutIndex);
             }
+
+        } else if ("theme".equals(openScreen)) {
+            showTheme();
+
+        } else if ("toolbar".equals(openScreen)) {
+            showToolbar();
+
         } else {
             showHome();
         }
@@ -263,7 +275,7 @@ public class SettingsActivity extends Activity {
         addSwitchRow(
                 page,
                 "⛶  Full / wide",
-                "Show the normal/wide keyboard toggle",
+                "Optional shortcut. Full / wide is also in the Tools panel",
                 "toolbar_width",
                 true
         );
@@ -271,7 +283,7 @@ public class SettingsActivity extends Activity {
         addSwitchRow(
                 page,
                 "◀  One-handed",
-                "Show the left/right one-handed keyboard toggle",
+                "Optional shortcut. One-handed is also in the Tools panel",
                 "toolbar_hand",
                 true
         );
@@ -305,8 +317,8 @@ public class SettingsActivity extends Activity {
                             .putBoolean("toolbar_clipboard", true)
                             .putBoolean("toolbar_actions", true)
                             .putBoolean("toolbar_theme", true)
-                            .putBoolean("toolbar_width", true)
-                            .putBoolean("toolbar_hand", true)
+                            .putBoolean("toolbar_width", false)
+                            .putBoolean("toolbar_hand", false)
                             .putString(
                                     "toolbar_order",
                                     "emoji,clipboard,actions,theme,width,hand"
