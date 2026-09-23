@@ -1945,20 +1945,31 @@ public class KeyKiiService extends InputMethodService {
 
                 int count=0;
                 int candidateTone=-1;
+                boolean allSameTone=true;
 
                 for(int i=0;i<candidate.length();) {
                     int cp=candidate.codePointAt(i);
+
                     if(cp>=0x1F3FB && cp<=0x1F3FF) {
+                        if(count==0)
+                            candidateTone=cp;
+                        else if(candidateTone!=cp)
+                            allSameTone=false;
+
                         count++;
-                        candidateTone=cp;
                     }
+
                     i+=Character.charCount(cp);
                 }
 
-                // Keep the compact six-choice popup. Complex multi-person
-                // combinations stay out of this first selector.
+                // Single-person emoji normally has one tone modifier.
+                // Couple/heart/kiss sequences can contain two modifiers.
+                // For the compact popup, accept one or more modifiers when
+                // every person uses the same requested skin tone. This gives
+                // the same default + five-tone selector for multi-person emoji.
                 if(
-                    count==1 &&
+                    count>=1 &&
+                    allSameTone &&
                     candidateTone==tone &&
                     displayableEmoji(candidate)
                 ) {
