@@ -411,12 +411,30 @@ public class KeyKiiService extends InputMethodService {
 
         r.setGravity(Gravity.CENTER);
 
+        SharedPreferences toolbarPrefs=
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            );
+
+        // Keyboard is always available so the toolbar can never hide
+        // the way back to normal typing.
         tool(r,"⌨",0);
-        tool(r,"☺",1);
-        tool(r,"▣",2);
-        tool(r,"✎",3);
-        tool(r,"◐",4);
-        tool(r,"↔",5);
+
+        if(toolbarPrefs.getBoolean("toolbar_emoji",true))
+            tool(r,"☺",1);
+
+        if(toolbarPrefs.getBoolean("toolbar_clipboard",true))
+            tool(r,"▣",2);
+
+        if(toolbarPrefs.getBoolean("toolbar_actions",true))
+            tool(r,"✎",3);
+
+        if(toolbarPrefs.getBoolean("toolbar_theme",true))
+            tool(r,"◐",4);
+
+        if(toolbarPrefs.getBoolean("toolbar_width",true))
+            tool(r,"↔",5);
 
         panel.addView(
             r,

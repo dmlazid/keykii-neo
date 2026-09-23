@@ -83,6 +83,7 @@ public class SettingsActivity extends Activity {
         addRow(page, "⌨", "Languages", "Keyboard language and Android input settings", v -> showLanguages());
         addRow(page, "⚙", "Preferences", "Size, spacing, haptics and default width", v -> showPreferences());
         addRow(page, "◐", "Theme", themeName(), v -> showTheme());
+        addRow(page, "☰", "Toolbar buttons", "Choose which tools appear above the keys", v -> showToolbar());
 
         addSection(page, "Typing");
         addRow(page, "✓", "Corrections & suggestions", "Suggestion engine roadmap", v -> showComing(
@@ -127,6 +128,83 @@ public class SettingsActivity extends Activity {
 
         setContentView(wrap(page));
     }
+
+    private void showToolbar() {
+        screen = "toolbar";
+        LinearLayout page = page(
+                "Toolbar buttons",
+                "Choose which tools appear above the keys",
+                true
+        );
+
+        addInfoCard(
+                page,
+                "Keyboard button",
+                "The ⌨ keyboard button always stays visible so you can always return to normal typing."
+        );
+
+        addSwitchRow(
+                page,
+                "☺  Emoji & kaomoji",
+                "Show the emoji button",
+                "toolbar_emoji",
+                true
+        );
+
+        addSwitchRow(
+                page,
+                "▣  Clipboard",
+                "Show clipboard and text shortcuts",
+                "toolbar_clipboard",
+                true
+        );
+
+        addSwitchRow(
+                page,
+                "✎  Quick actions",
+                "Show editing and cursor tools",
+                "toolbar_actions",
+                true
+        );
+
+        addSwitchRow(
+                page,
+                "◐  Theme",
+                "Show the quick theme switch button",
+                "toolbar_theme",
+                true
+        );
+
+        addSwitchRow(
+                page,
+                "↔  Width",
+                "Show the normal/wide keyboard toggle",
+                "toolbar_width",
+                true
+        );
+
+        addActionButton(page, "Restore all toolbar buttons", v -> {
+            prefs.edit()
+                    .putBoolean("toolbar_emoji", true)
+                    .putBoolean("toolbar_clipboard", true)
+                    .putBoolean("toolbar_actions", true)
+                    .putBoolean("toolbar_theme", true)
+                    .putBoolean("toolbar_width", true)
+                    .apply();
+
+            toast("Toolbar restored");
+            showToolbar();
+        });
+
+        addInfoCard(
+                page,
+                "When changes appear",
+                "Close and reopen KeyKii, or switch to another text field, to refresh the toolbar."
+        );
+
+        setContentView(wrap(page));
+    }
+
 
     private void showPreferences() {
         screen = "preferences";
