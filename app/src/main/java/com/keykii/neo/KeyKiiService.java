@@ -30,7 +30,6 @@ public class KeyKiiService extends InputMethodService {
     int dragChoiceIndex=-1;
     boolean dragChoiceActive=false;
     String dragChoiceMode="";
-    boolean suppressNextKeyClick=false;
 
     // Spacebar cursor control: slide left/right to move the caret.
     android.os.Handler spaceGestureHandler=
@@ -915,7 +914,6 @@ public class KeyKiiService extends InputMethodService {
             }
 
             if(e.getAction()==MotionEvent.ACTION_DOWN) {
-                suppressNextKeyClick=false;
                 // Soft Gboard-like press feedback. Keep it fast so typing
                 // still feels responsive instead of rigid.
                 v.animate()
@@ -950,15 +948,6 @@ public class KeyKiiService extends InputMethodService {
                  .scaleY(1f)
                  .setDuration(45)
                  .start();
-
-                // Some Android skins can leave a custom IME key in its
-                // pressed drawable state after a tap. Force the state back
-                // to normal after the framework finishes dispatching UP.
-                v.setPressed(false);
-                v.post(() -> {
-                    v.setPressed(false);
-                    v.jumpDrawablesToCurrentState();
-                });
 
                 dismissKeyPreview();
             }
@@ -996,11 +985,6 @@ public class KeyKiiService extends InputMethodService {
         });
 
         box.setOnClickListener(v -> {
-
-            if(suppressNextKeyClick) {
-                suppressNextKeyClick=false;
-                return;
-            }
 
             if(
                 action.equals("BACK") &&
@@ -1106,7 +1090,6 @@ public class KeyKiiService extends InputMethodService {
         int a=e.getActionMasked();
 
         if(a==MotionEvent.ACTION_DOWN) {
-            suppressNextKeyClick=true;
             spaceDownX=e.getX();
             spaceCursorDragging=false;
             spacePickerShown=false;
@@ -1165,7 +1148,6 @@ public class KeyKiiService extends InputMethodService {
 
             spaceCursorDragging=false;
             spacePickerShown=false;
-            suppressNextKeyClick=true;
             return true;
         }
 
@@ -4415,13 +4397,11 @@ public class KeyKiiService extends InputMethodService {
         if(action==MotionEvent.ACTION_UP) {
             updateDragChoiceSelection(e.getRawX(),e.getRawY());
             commitDragChoice();
-            suppressNextKeyClick=true;
             return true;
         }
 
         if(action==MotionEvent.ACTION_CANCEL) {
             dismissDragChoicePopup();
-            suppressNextKeyClick=true;
             return true;
         }
 
@@ -4504,7 +4484,6 @@ public class KeyKiiService extends InputMethodService {
         dragChoiceMode=mode;
         dragChoiceIndex=Math.max(0,Math.min(initialIndex,labels.size()-1));
         dragChoiceActive=true;
-        suppressNextKeyClick=true;
 
         int xOffset=(anchor.getWidth()-popupWidth)/2;
         int yOffset=-anchor.getHeight()-popupHeight-dp(8);
