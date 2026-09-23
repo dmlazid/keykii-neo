@@ -15,6 +15,11 @@ public class KeyKiiService extends InputMethodService {
     boolean kaomojiMode=false;
     int kaomojiCategory=0;
     TextView emojiSearchField=null;
+    HorizontalScrollView emojiSearchResultsScroll=null;
+    LinearLayout emojiSearchResultsRow=null;
+
+    PopupWindow keyPreviewPopup=null;
+    TextView keyPreviewText=null;
 
 
 
@@ -24,6 +29,8 @@ public class KeyKiiService extends InputMethodService {
     ClipboardManager.OnPrimaryClipChangedListener clipboardListener;
 
     boolean shift=false;
+    boolean capsLock=false;
+    long lastShiftTap=0L;
     boolean symbols=false;
     boolean floating=true;
     boolean wideMode=false;
@@ -205,6 +212,9 @@ public class KeyKiiService extends InputMethodService {
         );
 
         loadKeyKiiSettings();
+        shift=false;
+        capsLock=false;
+        lastShiftTap=0L;
 
         if(root!=null)
             buildShell();
@@ -475,13 +485,14 @@ public class KeyKiiService extends InputMethodService {
 
         } else if(symbolPage==1) {
 
+            // Gboard-style ?123 page
             row(new String[]{
                 "1","2","3","4","5",
                 "6","7","8","9","0"
             });
 
             row(new String[]{
-                "@","#","$","%","&",
+                "@","#","$","_","&",
                 "-","+","(",")","/"
             });
 
@@ -492,19 +503,20 @@ public class KeyKiiService extends InputMethodService {
 
         } else {
 
+            // Gboard-style =\< page
             row(new String[]{
                 "~","`","|","•","√",
                 "π","÷","×","§","∆"
             });
 
             row(new String[]{
-                "£","€","¥","¢","^",
+                "€","£","¥","¢","^",
                 "°","=","{","}","\\"
             });
 
             third(new String[]{
-                "[","]","<",">",
-                "_","…","±"
+                "%","©","®","™",
+                "✓","[","]"
             });
         }
 
@@ -543,7 +555,7 @@ public class KeyKiiService extends InputMethodService {
 
             key(
                 r,
-                "⇧",
+                capsLock ? "⇪" : "⇧",
                 "SHIFT",
                 1.05f,
                 true
@@ -553,7 +565,7 @@ public class KeyKiiService extends InputMethodService {
 
             key(
                 r,
-                "#+=",
+                "=\\<",
                 "SYM2",
                 1.05f,
                 true
@@ -563,7 +575,7 @@ public class KeyKiiService extends InputMethodService {
 
             key(
                 r,
-                "123",
+                "?123",
                 "SYM1",
                 1.05f,
                 true
@@ -827,57 +839,78 @@ public class KeyKiiService extends InputMethodService {
             if(choices.isEmpty())
                 return false;
 
+            dismissKeyPreview();
             showLongPressPopup(v,choices);
             return true;
         });
 
         box.setOnTouchListener((v,e)->{
 
+            if(e.getAction()==MotionEvent.ACTION_DOWN) {
+                // Soft Gboard-like press feedback. Keep it fast so typing
+                // still feels responsive instead of rigid.
+                v.animate()
+                 .scaleX(1.035f)
+                 .scaleY(1.035f)
+                 .setDuration(30)
+                 .start();
+
+                // Never pop the KeyKii spacebar text. Preview only an
+                // actual one-character typing key.
+                if(
+                    !special &&
+                    !action.equals("SPACE") &&
+                    shown!=null &&
+                    shown.codePointCount(0,shown.length())==1
+                ) {
+                    showKeyPreview(v,shown);
+                }
+
+                if(haptic)
+                    v.performHapticFeedback(
+                        HapticFeedbackConstants.KEYBOARD_TAP
+                    );
+            }
+
+            if(
+                e.getAction()==MotionEvent.ACTION_UP ||
+                e.getAction()==MotionEvent.ACTION_CANCEL
+            ) {
+                v.animate()
+                 .scaleX(1f)
+                 .scaleY(1f)
+                 .setDuration(45)
+                 .start();
+                dismissKeyPreview();
+            }
+
             if(
                 action.equals("BACK") &&
-                e.getAction()==
-                MotionEvent.ACTION_DOWN
+                e.getAction()==MotionEvent.ACTION_DOWN
             ){
-
                 backspaceRepeating=false;
                 suppressBackspaceClick=false;
-
-                repeatBackspaceHandler
-                    .postDelayed(
-                        repeatBackspaceRunnable,
-                        330
-                    );
+                repeatBackspaceHandler.postDelayed(
+                    repeatBackspaceRunnable,
+                    330
+                );
             }
 
             if(
                 action.equals("BACK") &&
                 (
-                    e.getAction()==
-                    MotionEvent.ACTION_UP ||
-                    e.getAction()==
-                    MotionEvent.ACTION_CANCEL
+                    e.getAction()==MotionEvent.ACTION_UP ||
+                    e.getAction()==MotionEvent.ACTION_CANCEL
                 )
             ){
-
-                repeatBackspaceHandler
-                    .removeCallbacks(
-                        repeatBackspaceRunnable
-                    );
+                repeatBackspaceHandler.removeCallbacks(
+                    repeatBackspaceRunnable
+                );
 
                 if(backspaceRepeating)
                     suppressBackspaceClick=true;
 
                 backspaceRepeating=false;
-            }
-
-            if(
-                e.getAction()==
-                MotionEvent.ACTION_DOWN
-            ){
-                if(haptic)
-                    v.performHapticFeedback(
-                        HapticFeedbackConstants.KEYBOARD_TAP
-                    );
             }
 
             return false;
@@ -906,10 +939,10 @@ public class KeyKiiService extends InputMethodService {
             );
 
         p.setMargins(
+            dp(1),
             dp(2),
-            dp(3),
-            dp(2),
-            dp(3)
+            dp(1),
+            dp(2)
         );
 
         r.addView(box,p);
@@ -1266,7 +1299,7 @@ public class KeyKiiService extends InputMethodService {
                     group+" "+subgroup+" "+name
                 ).toLowerCase();
 
-                if(!haystack.contains(q))
+                if(!emojiSearchMatches(haystack,q))
                     continue;
 
                 group="Search results";
@@ -1317,6 +1350,204 @@ public class KeyKiiService extends InputMethodService {
         return rows;
     }
 
+
+
+    boolean emojiSearchMatches(String haystack, String q) {
+
+        if(haystack==null || q==null)
+            return false;
+
+        haystack=haystack.toLowerCase();
+        q=q.trim().toLowerCase();
+
+        if(q.isEmpty())
+            return true;
+
+        // "cry" used to match CRYstal ball. Give common emotion
+        // searches explicit meaning before generic substring matching.
+        if(q.equals("cry") || q.equals("crying")) {
+            return haystack.contains("crying") ||
+                   haystack.contains("tear") ||
+                   haystack.contains("sob");
+        }
+
+        if(q.equals("sick") || q.equals("ill")) {
+            return haystack.contains("nauseat") ||
+                   haystack.contains("vomit") ||
+                   haystack.contains("thermometer") ||
+                   haystack.contains("mask") ||
+                   haystack.contains("sneez") ||
+                   haystack.contains("fever") ||
+                   haystack.contains("woozy") ||
+                   haystack.contains("sick");
+        }
+
+        if(q.equals("happy") || q.equals("happiness")) {
+            return haystack.contains("smil") ||
+                   haystack.contains("grin") ||
+                   haystack.contains("joy") ||
+                   haystack.contains("laugh") ||
+                   haystack.contains("heart");
+        }
+
+        if(q.equals("love")) {
+            return haystack.contains("love") ||
+                   haystack.contains("heart") ||
+                   haystack.contains("kiss");
+        }
+
+        if(q.equals("angry") || q.equals("mad")) {
+            return haystack.contains("angry") ||
+                   haystack.contains("rage") ||
+                   haystack.contains("pouting") ||
+                   haystack.contains("steam");
+        }
+
+        if(q.equals("sleep") || q.equals("sleepy")) {
+            return haystack.contains("sleep") ||
+                   haystack.contains("tired") ||
+                   haystack.contains("drowsy") ||
+                   haystack.contains("zzz");
+        }
+
+        return haystack.contains(q);
+    }
+
+
+    void refreshEmojiSearchResults() {
+
+        if(emojiSearchResultsRow==null || emojiSearchResultsScroll==null)
+            return;
+
+        emojiSearchResultsRow.removeAllViews();
+
+        String q=emojiSearchQuery==null
+            ? ""
+            : emojiSearchQuery.trim();
+
+        if(q.isEmpty()) {
+            emojiSearchResultsScroll.setVisibility(View.GONE);
+            return;
+        }
+
+        java.util.ArrayList<Object> rows=makeFastEmojiRows(q);
+        java.util.ArrayList<String> results=new java.util.ArrayList<>();
+
+        for(Object item:rows) {
+            if(item instanceof java.util.ArrayList) {
+                @SuppressWarnings("unchecked")
+                java.util.ArrayList<String> row=(java.util.ArrayList<String>)item;
+                for(String value:row) {
+                    if(!results.contains(value))
+                        results.add(value);
+                    if(results.size()>=24)
+                        break;
+                }
+            }
+            if(results.size()>=24)
+                break;
+        }
+
+        if(results.isEmpty()) {
+            TextView empty=new TextView(this);
+            empty.setText("No emoji found");
+            empty.setTextSize(14);
+            empty.setTextColor(textColor());
+            empty.setAlpha(.65f);
+            empty.setGravity(Gravity.CENTER_VERTICAL);
+            empty.setPadding(dp(12),0,dp(12),0);
+            emojiSearchResultsRow.addView(
+                empty,
+                new LinearLayout.LayoutParams(dp(150),dp(56))
+            );
+        } else {
+            for(String value:results) {
+                TextView e=new TextView(this);
+                e.setText(value);
+                e.setTextSize(28);
+                e.setGravity(Gravity.CENTER);
+                e.setIncludeFontPadding(false);
+                e.setOnClickListener(v -> fastCommitEmoji(value));
+                e.setOnLongClickListener(v -> {
+                    java.util.ArrayList<String> variants=emojiToneVariants(value);
+                    if(variants.size()>1) {
+                        showEmojiVariantPopup(v,value);
+                        return true;
+                    }
+                    return false;
+                });
+                emojiSearchResultsRow.addView(
+                    e,
+                    new LinearLayout.LayoutParams(dp(52),dp(56))
+                );
+            }
+        }
+
+        emojiSearchResultsScroll.setVisibility(View.VISIBLE);
+    }
+
+
+    void ensureKeyPreview() {
+
+        if(keyPreviewPopup!=null && keyPreviewText!=null)
+            return;
+
+        keyPreviewText=new TextView(this);
+        keyPreviewText.setGravity(Gravity.CENTER);
+        keyPreviewText.setTextSize(28);
+        keyPreviewText.setTextColor(textColor());
+        keyPreviewText.setIncludeFontPadding(false);
+        keyPreviewText.setBackground(
+            round(keyColor(false),18,borderColor())
+        );
+
+        keyPreviewPopup=new PopupWindow(
+            keyPreviewText,
+            dp(52),
+            dp(64),
+            false
+        );
+
+        keyPreviewPopup.setTouchable(false);
+        keyPreviewPopup.setOutsideTouchable(false);
+        keyPreviewPopup.setBackgroundDrawable(
+            new android.graphics.drawable.ColorDrawable(
+                android.graphics.Color.TRANSPARENT
+            )
+        );
+
+        if(android.os.Build.VERSION.SDK_INT>=21)
+            keyPreviewPopup.setElevation(dp(8));
+    }
+
+
+    void showKeyPreview(View anchor, String text) {
+
+        if(anchor==null || text==null || text.isEmpty())
+            return;
+
+        ensureKeyPreview();
+
+        keyPreviewText.setText(text);
+        keyPreviewText.setTextColor(textColor());
+        keyPreviewText.setBackground(
+            round(keyColor(false),18,borderColor())
+        );
+
+        if(keyPreviewPopup.isShowing())
+            keyPreviewPopup.dismiss();
+
+        int x=(anchor.getWidth()-dp(52))/2;
+        int y=-anchor.getHeight()-dp(67);
+
+        keyPreviewPopup.showAsDropDown(anchor,x,y);
+    }
+
+
+    void dismissKeyPreview() {
+        if(keyPreviewPopup!=null && keyPreviewPopup.isShowing())
+            keyPreviewPopup.dismiss();
+    }
 
 
     String removeSkinTone(String emoji) {
@@ -1623,6 +1854,7 @@ public class KeyKiiService extends InputMethodService {
             symbols=false;
             symbolPage=1;
             shift=false;
+            capsLock=false;
             showPage();
         });
 
@@ -1679,8 +1911,30 @@ public class KeyKiiService extends InputMethodService {
         }
 
 
-        // Gboard-style emoji search: only search + the real KeyKii keyboard.
+        // Gboard-style emoji search: search + live results + real KeyKii keyboard.
         if(emojiSearchMode) {
+
+            emojiSearchResultsScroll=
+                new HorizontalScrollView(this);
+
+            emojiSearchResultsScroll.setHorizontalScrollBarEnabled(false);
+            emojiSearchResultsScroll.setFillViewport(false);
+            emojiSearchResultsScroll.setVisibility(View.GONE);
+
+            emojiSearchResultsRow=
+                new LinearLayout(this);
+
+            emojiSearchResultsRow.setOrientation(LinearLayout.HORIZONTAL);
+            emojiSearchResultsRow.setGravity(Gravity.CENTER_VERTICAL);
+
+            emojiSearchResultsScroll.addView(emojiSearchResultsRow);
+
+            body.addView(
+                emojiSearchResultsScroll,
+                new LinearLayout.LayoutParams(-1,dp(60))
+            );
+
+            refreshEmojiSearchResults();
             buildKeyboard();
             return;
         }
@@ -2639,19 +2893,41 @@ public class KeyKiiService extends InputMethodService {
         refreshEmojiSearchField();
     }
 
+    void toggleShiftState() {
+
+        long now=android.os.SystemClock.uptimeMillis();
+
+        if(capsLock) {
+            capsLock=false;
+            shift=false;
+            lastShiftTap=0L;
+            return;
+        }
+
+        // Gboard behavior: tap once = one uppercase letter,
+        // double-tap quickly = Caps Lock.
+        if(shift && (now-lastShiftTap)<=500L) {
+            capsLock=true;
+            shift=true;
+        } else {
+            shift=!shift;
+            capsLock=false;
+        }
+
+        lastShiftTap=now;
+    }
+
+
     boolean handleEmojiSearchKey(String action) {
         if(page!=1 || !emojiSearchMode) return false;
 
         if(action.equals("BACK")) {
             eraseEmojiSearchChar();
+            refreshEmojiSearchResults();
             return true;
         }
         if(action.equals("ENTER")) {
-            emojiSearchMode=false;
-            symbols=false;
-            symbolPage=1;
-            shift=false;
-            showPage();
+            refreshEmojiSearchResults();
             return true;
         }
         if(action.equals("EMOJI")) {
@@ -2660,7 +2936,7 @@ public class KeyKiiService extends InputMethodService {
             return true;
         }
         if(action.equals("SHIFT")) {
-            shift=!shift;
+            toggleShiftState();
             showPage();
             return true;
         }
@@ -2668,6 +2944,7 @@ public class KeyKiiService extends InputMethodService {
             symbols=true;
             symbolPage=1;
             shift=false;
+            capsLock=false;
             showPage();
             return true;
         }
@@ -2675,6 +2952,7 @@ public class KeyKiiService extends InputMethodService {
             symbols=false;
             symbolPage=1;
             shift=false;
+            capsLock=false;
             showPage();
             return true;
         }
@@ -2691,17 +2969,20 @@ public class KeyKiiService extends InputMethodService {
         if(action.equals("SPACE")) {
             emojiSearchQuery+=" ";
             refreshEmojiSearchField();
+            refreshEmojiSearchResults();
             return true;
         }
         if(action.length()==1) {
-            boolean oneShotShift=shift && !symbols;
-            String value=oneShotShift ? action.toUpperCase() : action;
+            boolean shifted=shift && !symbols;
+            String value=shifted ? action.toUpperCase() : action;
             emojiSearchQuery+=value;
-            if(oneShotShift) {
+
+            if(shifted && !capsLock) {
                 shift=false;
                 showPage();
             } else {
                 refreshEmojiSearchField();
+                refreshEmojiSearchResults();
             }
             return true;
         }
@@ -2886,7 +3167,7 @@ public class KeyKiiService extends InputMethodService {
                     .toLowerCase();
 
                 if(
-                    searchable.contains(q) &&
+                    emojiSearchMatches(searchable,q) &&
                     !result.contains(emoji)
                 ) {
                     result.add(emoji);
@@ -3659,7 +3940,7 @@ public class KeyKiiService extends InputMethodService {
                 break;
 
             case "SHIFT":
-                shift=!shift;
+                toggleShiftState();
                 showPage();
                 break;
 
@@ -3667,6 +3948,7 @@ public class KeyKiiService extends InputMethodService {
                 symbols=true;
                 symbolPage=1;
                 shift=false;
+                capsLock=false;
                 showPage();
                 break;
 
@@ -3674,6 +3956,7 @@ public class KeyKiiService extends InputMethodService {
                 symbols=false;
                 symbolPage=1;
                 shift=false;
+                capsLock=false;
                 showPage();
                 break;
 
@@ -3758,7 +4041,7 @@ public class KeyKiiService extends InputMethodService {
 
                 i.commitText(out,1);
 
-                if(shift && !symbols) {
+                if(shift && !symbols && !capsLock) {
                     shift=false;
                     showPage();
                 }
