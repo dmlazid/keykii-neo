@@ -510,7 +510,7 @@ public class KeyKiiService extends InputMethodService {
             });
 
             row(new String[]{
-                "€","£","¥","¢","^",
+                "£","¢","€","¥","^",
                 "°","=","{","}","\\"
             });
 
@@ -604,7 +604,7 @@ public class KeyKiiService extends InputMethodService {
 
             key(
                 r,
-                symbols ? "ABC" : "123",
+                symbols ? "ABC" : "?123",
                 symbols ? "ABC" : "123",
                 1f,
                 true
@@ -648,18 +648,20 @@ public class KeyKiiService extends InputMethodService {
 
         key(
             r,
-            symbols ? "ABC" : "123",
+            symbols ? "ABC" : "?123",
             symbols ? "ABC" : "123",
             1f,
             true
         );
 
+        // Gboard-style punctuation key. Emoji is still available
+        // from the toolbar, so this slot stays useful for typing.
         key(
             r,
-            "☺",
-            "EMOJI",
+            ",",
+            ",",
             .85f,
-            true
+            false
         );
 
         key(
@@ -1855,6 +1857,7 @@ public class KeyKiiService extends InputMethodService {
             symbolPage=1;
             shift=false;
             capsLock=false;
+            lastShiftTap=0L;
             showPage();
         });
 
@@ -2897,6 +2900,7 @@ public class KeyKiiService extends InputMethodService {
 
         long now=android.os.SystemClock.uptimeMillis();
 
+        // Caps Lock -> one tap turns it off.
         if(capsLock) {
             capsLock=false;
             shift=false;
@@ -2904,17 +2908,27 @@ public class KeyKiiService extends InputMethodService {
             return;
         }
 
-        // Gboard behavior: tap once = one uppercase letter,
-        // double-tap quickly = Caps Lock.
-        if(shift && (now-lastShiftTap)<=500L) {
-            capsLock=true;
+        // First tap: temporary Shift.
+        if(!shift) {
             shift=true;
-        } else {
-            shift=!shift;
             capsLock=false;
+            lastShiftTap=now;
+            return;
         }
 
-        lastShiftTap=now;
+        // Second quick tap: Caps Lock. The wider window makes this
+        // reliable even after the keyboard view redraws on slower phones.
+        if(lastShiftTap>0L && (now-lastShiftTap)<=1000L) {
+            shift=true;
+            capsLock=true;
+            lastShiftTap=0L;
+            return;
+        }
+
+        // A later tap while temporary Shift is active simply turns Shift off.
+        shift=false;
+        capsLock=false;
+        lastShiftTap=0L;
     }
 
 
@@ -2945,6 +2959,7 @@ public class KeyKiiService extends InputMethodService {
             symbolPage=1;
             shift=false;
             capsLock=false;
+            lastShiftTap=0L;
             showPage();
             return true;
         }
@@ -2953,6 +2968,7 @@ public class KeyKiiService extends InputMethodService {
             symbolPage=1;
             shift=false;
             capsLock=false;
+            lastShiftTap=0L;
             showPage();
             return true;
         }
@@ -2979,6 +2995,7 @@ public class KeyKiiService extends InputMethodService {
 
             if(shifted && !capsLock) {
                 shift=false;
+                lastShiftTap=0L;
                 showPage();
             } else {
                 refreshEmojiSearchField();
@@ -4043,6 +4060,7 @@ public class KeyKiiService extends InputMethodService {
 
                 if(shift && !symbols && !capsLock) {
                     shift=false;
+                    lastShiftTap=0L;
                     showPage();
                 }
         }
