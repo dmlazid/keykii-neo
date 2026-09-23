@@ -696,85 +696,66 @@ public class KeyKiiService extends InputMethodService {
 
     void buildEmoji() {
 
-        LinearLayout tabs=new LinearLayout(this);
-        tabs.setGravity(Gravity.CENTER);
-
-        String[] icons={
-            "🕘","😀","🧑","🐻","🍔",
-            "⚽","🚗","💡","❤️","🏳️"
-        };
-
-        for(int n=0;n<icons.length;n++){
-
-            final int c=n;
-
-            TextView tab=new TextView(this);
-            tab.setText(icons[n]);
-            tab.setTextSize(17);
-            tab.setGravity(Gravity.CENTER);
-
-            if(n==emojiCategory){
-
-                tab.setBackground(
-                    round(
-                        keyColor(false),
-                        13,
-                        borderColor()
-                    )
-                );
-            }
-
-            tab.setOnClickListener(v->{
-                emojiCategory=c;
-                showPage();
-            });
-
-            LinearLayout.LayoutParams tp=
-                new LinearLayout.LayoutParams(
-                    0,
-                    dp(31),
-                    1
-                );
-
-            tp.setMargins(
-                dp(1),0,dp(1),dp(5)
-            );
-
-            tabs.addView(tab,tp);
-        }
-
-        body.addView(tabs);
-
         ScrollView scroll=new ScrollView(this);
+        scroll.setFillViewport(true);
 
         LinearLayout wrap=new LinearLayout(this);
         wrap.setOrientation(LinearLayout.VERTICAL);
+        wrap.setPadding(
+            dp(4),
+            dp(3),
+            dp(4),
+            dp(8)
+        );
 
-        String[] emojis=
-            emojiData(emojiCategory)
-                .trim()
-                .split(" ");
+        // RECENT EMOJI
+        String recent=
+            getSharedPreferences(
+                "keykii_emoji",
+                MODE_PRIVATE
+            ).getString(
+                "recent",
+                ""
+            );
 
-        for(int i=0;i<emojis.length;i+=7){
+        if(!recent.trim().isEmpty()) {
 
-            LinearLayout r=newRow();
+            java.util.ArrayList<String> recentList=
+                new java.util.ArrayList<>();
 
-            for(
-                int j=i;
-                j<Math.min(i+7,emojis.length);
-                j++
-            ){
-
-                key(
-                    r,
-                    emojis[j],
-                    emojis[j],
-                    1,
-                    false
-                );
+            for(String e:recent.trim().split(" ")) {
+                if(!e.isEmpty())
+                    recentList.add(e);
             }
 
-            wrap.addView(r);
+            addEmojiSection(
+                wrap,
+                "Recent emoji",
+                recentList
+            );
+        }
+
+        // LOAD COMPLETE UNICODE EMOJI DATABASE
+        java.util.LinkedHashMap<
+            String,
+            java.util.ArrayList<String>
+        > groups=
+            loadEmojiDatabase();
+
+        for(
+            java.util.Map.Entry<
+                String,
+                java.util.ArrayList<String>
+            > entry : groups.entrySet()
+        ) {
+
+            addEmojiSection(
+                wrap,
+                prettyEmojiGroup(
+                    entry.getKey()
+                ),
+                entry.getValue()
+            );
         }
 
         scroll.addView(wrap);
@@ -783,129 +764,357 @@ public class KeyKiiService extends InputMethodService {
             scroll,
             new LinearLayout.LayoutParams(
                 -1,
-                dp(220)
+                dp(285)
             )
         );
     }
 
-    String emojiData(int c){
 
-        if(c==0){
+    java.util.LinkedHashMap<
+        String,
+        java.util.ArrayList<String>
+    > loadEmojiDatabase() {
 
-            String recent=
-                getSharedPreferences(
-                    "keykii_emoji",
-                    MODE_PRIVATE
-                ).getString(
-                    "recent",
-                    ""
+        java.util.LinkedHashMap<
+            String,
+            java.util.ArrayList<String>
+        > result=
+            new java.util.LinkedHashMap<>();
+
+        try {
+
+            java.io.BufferedReader reader=
+                new java.io.BufferedReader(
+                    new java.io.InputStreamReader(
+                        getAssets().open(
+                            "keykii-emojis.txt"
+                        ),
+                        "UTF-8"
+                    )
                 );
 
-            if(!recent.trim().isEmpty())
-                return recent;
+            String line;
 
-            return
-                "😂 ❤️ 😭 😊 😍 🥹 🤣 😎 " +
-                "🥰 😘 🔥 ✨ 👍 🙏 😡 🎉";
+            while(
+                (line=reader.readLine())!=null
+            ) {
+
+                String[] parts=
+                    line.split("\\t");
+
+                if(parts.length<3)
+                    continue;
+
+                String group=
+                    parts[0].trim();
+
+                String emoji=
+                    parts[2].trim();
+
+                if(
+                    group.isEmpty() ||
+                    emoji.isEmpty()
+                )
+                    continue;
+
+                // Unicode components aren't useful
+                // as their own visible emoji section.
+                if(
+                    group.equalsIgnoreCase(
+                        "Component"
+                    )
+                )
+                    continue;
+
+                if(!result.containsKey(group)) {
+
+                    result.put(
+                        group,
+                        new java.util.ArrayList<String>()
+                    );
+                }
+
+                result.get(group)
+                      .add(emoji);
+            }
+
+            reader.close();
+
+        } catch(Exception e) {
+
+            java.util.ArrayList<String> fallback=
+                new java.util.ArrayList<>();
+
+            String basic=
+                "😭 😂 🥹 🤣 ❤️ 😊 😍 🥰 😘 " +
+                "😀 😃 😄 😁 😆 😅 🙂 🙃 😉 " +
+                "😎 🤩 🥳 😡 🤬 😱 😴 🤔 🙄 " +
+                "👍 👎 👏 🙌 🙏 💪 🔥 ✨ 🎉";
+
+            for(String emoji:basic.split(" "))
+                fallback.add(emoji);
+
+            result.put(
+                "Smileys & Emotion",
+                fallback
+            );
         }
 
-        if(c==1)
-            return
-            "😭 😂 🥹 🤣 ❤️ 😍 🥰 😊 😘 😭 " +
-            "😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 " +
-            "😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 " +
-            "😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 " +
-            "😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 " +
-            "🙁 ☹️ 😣 😖 😫 😩 🥺 😢 😭 😤 " +
-            "😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 " +
-            "😥 😓 🤗 🤔 🫣 🤭 🫢 🤫 🤥 😶 " +
-            "🫥 😐 😑 😬 🙄 😯 😦 😧 😮 😲 " +
-            "🥱 😴 🤤 😪 😵 🤐 🥴 🤢 🤮 🤧 " +
-            "😷 🤒 🤕 🤑 🤠 😈 👿 👻 💀 ☠️ " +
-            "👽 🤖 💩 😺 😸 😹 😻 😼 😽 🙀 😿 😾";
-
-        if(c==2)
-            return
-            "👋 🤚 🖐️ ✋ 🖖 👌 🤌 🤏 ✌️ 🤞 " +
-            "🫰 🤟 🤘 🤙 👈 👉 👆 👇 ☝️ 🫵 " +
-            "👍 👎 ✊ 👊 🤛 🤜 👏 🙌 🫶 👐 " +
-            "🤲 🤝 🙏 ✍️ 💅 🤳 💪 🦾 🦿 🦵 " +
-            "🦶 👂 👃 🧠 🫀 🫁 🦷 🦴 👀 👁️ " +
-            "👅 👄 👶 🧒 👦 👧 🧑 👨 👩 🧓 " +
-            "👴 👵 👮 👷 💂 🕵️ 👩‍⚕️ 👨‍⚕️ 👩‍🎓 👨‍🎓 " +
-            "👩‍🏫 👨‍🏫 👩‍💻 👨‍💻 👩‍🍳 👨‍🍳 👩‍🎨 👨‍🎨 👩‍🚀 👨‍🚀";
-
-        if(c==3)
-            return
-            "🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 " +
-            "🦁 🐮 🐷 🐸 🐵 🙈 🙉 🙊 🐒 🐔 " +
-            "🐧 🐦 🐤 🐣 🐥 🦆 🦅 🦉 🦇 🐺 " +
-            "🐗 🐴 🦄 🐝 🪱 🐛 🦋 🐌 🐞 🐜 " +
-            "🪰 🪲 🪳 🦟 🦗 🕷️ 🦂 🐢 🐍 🦎 " +
-            "🐙 🦑 🦐 🦞 🦀 🐠 🐟 🐡 🐬 🐳 " +
-            "🐋 🦈 🐊 🐅 🐆 🦓 🦍 🦧 🐘 🦛 " +
-            "🦏 🐪 🐫 🦒 🦬 🐃 🐂 🐄 🐎 🐖";
-
-        if(c==4)
-            return
-            "🍏 🍎 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🫐 " +
-            "🍈 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🍆 🥑 " +
-            "🥦 🥬 🥒 🌶️ 🫑 🌽 🥕 🧄 🧅 🥔 " +
-            "🍠 🥐 🥯 🍞 🥖 🥨 🧀 🥚 🍳 🧈 " +
-            "🥞 🧇 🥓 🥩 🍗 🍖 🌭 🍔 🍟 🍕 " +
-            "🥪 🌮 🌯 🥗 🍝 🍜 🍲 🍛 🍣 🍱 " +
-            "🥟 🍤 🍙 🍚 🍘 🍥 🍢 🍡 🍧 🍨 " +
-            "🍦 🥧 🧁 🍰 🎂 🍮 🍭 🍬 🍫 🍿 " +
-            "🍩 🍪 ☕ 🧋 🥤";
-
-        if(c==5)
-            return
-            "⚽ 🏀 🏈 ⚾ 🥎 🎾 🏐 🏉 🥏 🎱 " +
-            "🏓 🏸 🏒 🏑 🥍 🏏 🥅 ⛳ 🏹 🎣 " +
-            "🥊 🥋 🎽 🛹 🛼 🛷 ⛸️ 🥌 🎿 ⛷️ " +
-            "🏂 🪂 🏋️ 🤼 🤸 ⛹️ 🤺 🤾 🏌️ 🏇 " +
-            "🧘 🏄 🏊 🤽 🚣 🧗 🚵 🚴 🏆 🥇 " +
-            "🥈 🥉 🏅 🎖️ 🎗️ 🎟️ 🎫 🎪 🤹 🎭 " +
-            "🩰 🎨 🎬 🎤 🎧 🎼 🎹 🥁 🎷 🎺 🎸";
-
-        if(c==6)
-            return
-            "🚗 🚕 🚙 🚌 🚎 🏎️ 🚓 🚑 🚒 🚐 " +
-            "🛻 🚚 🚛 🚜 🏍️ 🛵 🚲 🛴 🚨 🚔 " +
-            "🚍 🚘 🚖 ✈️ 🛫 🛬 🛩️ 💺 🚁 🚟 " +
-            "🚠 🚡 🛰️ 🚀 🛸 🚆 🚇 🚊 🚉 🚂 " +
-            "🚤 ⛵ 🛶 🚢 ⚓ ⛽ 🚧 🚦 🚥 🗺️ " +
-            "🗿 🗽 🗼 🏰 🏯 🏟️ 🎡 🎢 🎠 ⛲ " +
-            "⛱️ 🏖️ 🏝️ 🏜️ 🌋 ⛰️ 🏕️ 🏠 🏡 🏢";
-
-        if(c==7)
-            return
-            "⌚ 📱 📲 💻 ⌨️ 🖥️ 🖨️ 🖱️ 💽 💾 " +
-            "💿 📀 🧮 🎥 🎞️ 📽️ 🎬 📺 📷 📸 " +
-            "📹 🔍 🔎 🕯️ 💡 🔦 🏮 📔 📕 📖 " +
-            "📗 📘 📙 📚 📓 📒 📃 📜 📄 📰 " +
-            "🗞️ 📑 🔖 🏷️ 💰 🪙 💴 💵 💶 💷 " +
-            "💸 💳 🧾 ✉️ 📧 📨 📩 📤 📥 📦 " +
-            "📫 📪 📬 📭 📮 📝 ✏️ 🖊️ 🖋️ 🖌️ " +
-            "🖍️ 📌 📍 📎 🖇️ 📏 📐 ✂️ 🗃️ 🗑️";
-
-        if(c==8)
-            return
-            "❤️ 🩷 🧡 💛 💚 💙 🩵 💜 🤎 🖤 " +
-            "🩶 🤍 💔 ❤️‍🔥 ❤️‍🩹 ❣️ 💕 💞 💓 💗 " +
-            "💖 💘 💝 💟 ☮️ ✝️ ☪️ 🕉️ ☸️ ✡️ " +
-            "☯️ ☦️ 🛐 ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ " +
-            "♐ ♑ ♒ ♓ ⚛️ ☢️ ☣️ 📴 📳 ✴️ 🆚 " +
-            "❌ ⭕ 🛑 ⛔ 📛 🚫 💯 💢 ♨️ 🚷 🚯 " +
-            "✅ ☑️ ✔️ ❗ ❓ ❕ ❔ ‼️ ⁉️ ➕ ➖ ➗";
-
-        return
-            "🏳️ 🏴 🏁 🚩 🏳️‍🌈 🏳️‍⚧️ 🇵🇭 🇺🇸 🇬🇧 🇨🇦 " +
-            "🇦🇺 🇯🇵 🇰🇷 🇨🇳 🇹🇼 🇸🇬 🇲🇾 🇮🇩 🇹🇭 🇻🇳 " +
-            "🇮🇳 🇫🇷 🇩🇪 🇮🇹 🇪🇸 🇧🇷 🇲🇽 🇦🇷 🇳🇿 🇿🇦 " +
-            "🇸🇦 🇦🇪 🇶🇦 🇮🇱 🇹🇷 🇬🇷 🇳🇱 🇧🇪 🇨🇭 🇸🇪 " +
-            "🇳🇴 🇩🇰 🇫🇮 🇵🇱 🇺🇦 🇮🇪 🇵🇹 🇨🇿 🇦🇹 🇭🇺";
+        return result;
     }
+
+
+    void addEmojiSection(
+        LinearLayout wrap,
+        String section,
+        java.util.ArrayList<String> emojis
+    ) {
+
+        if(
+            emojis==null ||
+            emojis.isEmpty()
+        )
+            return;
+
+        TextView heading=
+            new TextView(this);
+
+        heading.setText(section);
+        heading.setTextColor(
+            textColor()
+        );
+        heading.setTextSize(13);
+        heading.setGravity(
+            Gravity.CENTER_VERTICAL
+        );
+
+        heading.setPadding(
+            dp(7),
+            dp(8),
+            dp(4),
+            dp(5)
+        );
+
+        wrap.addView(
+            heading,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(36)
+            )
+        );
+
+        for(
+            int i=0;
+            i<emojis.size();
+            i+=7
+        ) {
+
+            LinearLayout row=
+                new LinearLayout(this);
+
+            row.setOrientation(
+                LinearLayout.HORIZONTAL
+            );
+
+            row.setGravity(
+                Gravity.CENTER
+            );
+
+            for(
+                int j=i;
+                j<Math.min(
+                    i+7,
+                    emojis.size()
+                );
+                j++
+            ) {
+
+                final String emoji=
+                    emojis.get(j);
+
+                TextView button=
+                    new TextView(this);
+
+                button.setText(emoji);
+                button.setTextSize(24);
+                button.setGravity(
+                    Gravity.CENTER
+                );
+
+                button.setOnClickListener(v -> {
+
+                    InputConnection ic=
+                        getCurrentInputConnection();
+
+                    if(ic!=null) {
+
+                        ic.commitText(
+                            emoji,
+                            1
+                        );
+
+                        rememberEmoji(
+                            emoji
+                        );
+                    }
+                });
+
+                LinearLayout.LayoutParams ep=
+                    new LinearLayout.LayoutParams(
+                        0,
+                        dp(47),
+                        1
+                    );
+
+                ep.setMargins(
+                    dp(1),
+                    dp(1),
+                    dp(1),
+                    dp(1)
+                );
+
+                row.addView(
+                    button,
+                    ep
+                );
+            }
+
+            // Fill empty spaces in last row.
+            int missing=
+                7-
+                Math.min(
+                    7,
+                    emojis.size()-i
+                );
+
+            for(
+                int x=0;
+                x<missing;
+                x++
+            ) {
+
+                Space blank=
+                    new Space(this);
+
+                row.addView(
+                    blank,
+                    new LinearLayout.LayoutParams(
+                        0,
+                        dp(47),
+                        1
+                    )
+                );
+            }
+
+            wrap.addView(row);
+        }
+    }
+
+
+    String prettyEmojiGroup(
+        String group
+    ) {
+
+        if(
+            group.equals(
+                "Smileys & Emotion"
+            )
+        )
+            return "Smileys and emotions";
+
+        if(
+            group.equals(
+                "People & Body"
+            )
+        )
+            return "People and body";
+
+        if(
+            group.equals(
+                "Animals & Nature"
+            )
+        )
+            return "Animals and nature";
+
+        if(
+            group.equals(
+                "Food & Drink"
+            )
+        )
+            return "Food and drink";
+
+        if(
+            group.equals(
+                "Travel & Places"
+            )
+        )
+            return "Travel and places";
+
+        return group;
+    }
+
+
+    void rememberEmoji(String emoji) {
+
+        if(
+            emoji==null ||
+            emoji.trim().isEmpty()
+        ) return;
+
+        SharedPreferences prefs=
+            getSharedPreferences(
+                "keykii_emoji",
+                MODE_PRIVATE
+            );
+
+        String old=
+            prefs.getString(
+                "recent",
+                ""
+            );
+
+        java.util.ArrayList<String> list=
+            new java.util.ArrayList<>();
+
+        // Put newest emoji first
+        list.add(emoji);
+
+        if(old!=null && !old.trim().isEmpty()) {
+
+            for(String e:old.trim().split(" ")) {
+
+                if(
+                    !e.isEmpty() &&
+                    !e.equals(emoji) &&
+                    !list.contains(e)
+                ) {
+                    list.add(e);
+                }
+
+                if(list.size()>=28)
+                    break;
+            }
+        }
+
+        StringBuilder result=
+            new StringBuilder();
+
+        for(String e:list) {
+
+            if(result.length()>0)
+                result.append(" ");
+
+            result.append(e);
+        }
+
+        prefs.edit()
+            .putString(
+                "recent",
+                result.toString()
+            )
+            .apply();
+    }
+
 
     void buildClipboard() {
 
