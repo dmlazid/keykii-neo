@@ -300,8 +300,8 @@ public class KeyKiiService extends InputMethodService {
             wideMode
             ? 34
             : hand!=0
-                ? Math.min(floatGap,58)
-                : Math.min(floatGap,68);
+                ? Math.min(floatGap,54)
+                : Math.min(floatGap,60);
 
         root.setPadding(
             dp(sidePadding),
@@ -348,8 +348,8 @@ public class KeyKiiService extends InputMethodService {
             wideMode
             ? .985f
             : hand!=0
-                ? .83f
-                : .955f;
+                ? .74f
+                : .88f;
 
         LinearLayout.LayoutParams panelParams=
             new LinearLayout.LayoutParams(
@@ -388,7 +388,7 @@ public class KeyKiiService extends InputMethodService {
 
             LinearLayout.LayoutParams railParams=
                 new LinearLayout.LayoutParams(
-                    dp(58),
+                    dp(54),
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 );
 
@@ -534,8 +534,8 @@ public class KeyKiiService extends InputMethodService {
         rail.addView(
             switchSide,
             new LinearLayout.LayoutParams(
-                dp(50),
-                dp(66)
+                dp(47),
+                dp(70)
             )
         );
 
@@ -553,8 +553,8 @@ public class KeyKiiService extends InputMethodService {
         rail.addView(
             expand,
             new LinearLayout.LayoutParams(
-                dp(50),
-                dp(66)
+                dp(47),
+                dp(70)
             )
         );
 
@@ -753,8 +753,8 @@ public class KeyKiiService extends InputMethodService {
             wideMode
             ? 44
             : hand!=0
-                ? 38
-                : 40;
+                ? 42
+                : 42;
 
         panel.addView(
             r,
@@ -1510,17 +1510,21 @@ public class KeyKiiService extends InputMethodService {
         int effectiveKeyHeight;
 
         if(hand!=0) {
+            // Keep the same vertical proportions as the approved mockup:
+            // reduced width, but normal-looking key height.
             effectiveKeyHeight=
                 Math.min(
                     keyHeight,
-                    39
+                    45
                 );
+
         } else if(!wideMode) {
             effectiveKeyHeight=
                 Math.min(
                     keyHeight,
-                    43
+                    45
                 );
+
         } else {
             effectiveKeyHeight=keyHeight;
         }
