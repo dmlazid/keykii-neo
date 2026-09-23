@@ -4995,21 +4995,44 @@ public class KeyKiiService extends InputMethodService {
 
     void buildEditing() {
 
+        TextView smartTitle=
+            title("Quick actions");
+
+        smartTitle.setTextSize(12);
+        smartTitle.setAlpha(.65f);
+
+        body.addView(
+            smartTitle,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(24)
+            )
+        );
+
+        editRow(
+            new String[]{
+                "Undo","Redo","Select all","Paste"
+            },
+            new String[]{
+                "UNDO","REDO","SELECT","PASTE"
+            }
+        );
+
+        editRow(
+            new String[]{
+                "Cut","Copy","Clipboard","Shortcuts"
+            },
+            new String[]{
+                "CUT","COPY","CLIPBOARD","SHORTCUTS"
+            }
+        );
+
         editRow(
             new String[]{
                 "←","↑","↓","→"
             },
             new String[]{
                 "LEFT","UP","DOWN","RIGHT"
-            }
-        );
-
-        editRow(
-            new String[]{
-                "Select","Copy","Paste","Cut"
-            },
-            new String[]{
-                "SELECT","COPY","PASTE","CUT"
             }
         );
 
@@ -5687,6 +5710,42 @@ public class KeyKiiService extends InputMethodService {
                 );
                 break;
 
+            case "UNDO":
+                if(!i.performContextMenuAction(
+                    android.R.id.undo
+                )) {
+                    sendCtrlKey(
+                        i,
+                        KeyEvent.KEYCODE_Z,
+                        false
+                    );
+                }
+                break;
+
+            case "REDO":
+                if(!i.performContextMenuAction(
+                    android.R.id.redo
+                )) {
+                    sendCtrlKey(
+                        i,
+                        KeyEvent.KEYCODE_Z,
+                        true
+                    );
+                }
+                break;
+
+            case "CLIPBOARD":
+                page=2;
+                clipboardShortcutMode=false;
+                showPage();
+                break;
+
+            case "SHORTCUTS":
+                page=2;
+                clipboardShortcutMode=true;
+                showPage();
+                break;
+
             default:
 
                 String out=
@@ -5763,6 +5822,46 @@ public class KeyKiiService extends InputMethodService {
                 return "↵";
         }
     }
+
+    void sendCtrlKey(
+        InputConnection i,
+        int code,
+        boolean shiftToo
+    ) {
+        if(i==null) return;
+
+        long now=
+            android.os.SystemClock.uptimeMillis();
+
+        int meta=
+            KeyEvent.META_CTRL_ON |
+            (shiftToo
+                ? KeyEvent.META_SHIFT_ON
+                : 0);
+
+        i.sendKeyEvent(
+            new KeyEvent(
+                now,
+                now,
+                KeyEvent.ACTION_DOWN,
+                code,
+                0,
+                meta
+            )
+        );
+
+        i.sendKeyEvent(
+            new KeyEvent(
+                now,
+                now,
+                KeyEvent.ACTION_UP,
+                code,
+                0,
+                meta
+            )
+        );
+    }
+
 
     void sendKey(
         InputConnection i,
