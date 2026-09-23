@@ -25,6 +25,8 @@ import android.widget.Toast;
 
 public class SettingsActivity extends Activity {
 
+    private static final int REQUEST_THEME_IMAGE = 2160;
+
     private static final int BG = Color.rgb(248, 246, 242);
     private static final int CARD = Color.WHITE;
     private static final int TEXT = Color.rgb(45, 43, 40);
@@ -52,6 +54,43 @@ public class SettingsActivity extends Activity {
             showHome();
         }
     }
+
+    @Override
+    protected void onActivityResult(
+            int requestCode,
+            int resultCode,
+            Intent data
+    ) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (
+                requestCode == REQUEST_THEME_IMAGE &&
+                resultCode == RESULT_OK &&
+                data != null &&
+                data.getData() != null
+        ) {
+            Uri uri = data.getData();
+
+            try {
+                final int flags =
+                        data.getFlags() &
+                                (Intent.FLAG_GRANT_READ_URI_PERMISSION |
+                                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+                getContentResolver()
+                        .takePersistableUriPermission(uri, flags);
+            } catch (Exception ignored) {
+            }
+
+            prefs.edit()
+                    .putString("theme_image_uri", uri.toString())
+                    .apply();
+
+            toast("Theme image selected");
+            showTheme();
+        }
+    }
+
 
     @Override
     public void onBackPressed() {
@@ -270,15 +309,57 @@ public class SettingsActivity extends Activity {
 
     private void showTheme() {
         screen = "theme";
-        LinearLayout page = page("Theme", "Choose the keyboard appearance", true);
+        LinearLayout page = page(
+                "Theme",
+                "Choose colors or add your own keyboard background image",
+                true
+        );
 
         addThemeChoice(page, "Glass Dark", "Dark translucent KeyKii panel", 0);
         addThemeChoice(page, "Morning Cream", "Warm cream floating keyboard", 1);
         addThemeChoice(page, "Clear Glass", "Darker transparent glass look", 2);
 
+        addSection(page, "Background image");
+
+        String imageUri = prefs.getString("theme_image_uri", "");
+
+        addInfoCard(
+                page,
+                "Custom image",
+                imageUri == null || imageUri.isEmpty()
+                        ? "No image selected. Your normal KeyKii theme background is being used."
+                        : "A custom image is active behind the keyboard. Theme colors add a light overlay so the keys stay readable."
+        );
+
+        addActionButton(page, "Choose background image", v -> {
+            try {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("image/*");
+                intent.addFlags(
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION |
+                        Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+                );
+                startActivityForResult(intent, REQUEST_THEME_IMAGE);
+            } catch (Exception e) {
+                toast("Image picker is unavailable on this device.");
+            }
+        });
+
+        if (imageUri != null && !imageUri.isEmpty()) {
+            addActionButton(page, "Remove background image", v -> {
+                prefs.edit()
+                        .remove("theme_image_uri")
+                        .apply();
+
+                toast("Theme image removed");
+                showTheme();
+            });
+        }
+
         addInfoCard(page,
                 "Current theme",
-                themeName() + ". Theme changes apply the next time the keyboard view refreshes.");
+                themeName() + ". Theme and image changes apply the next time the keyboard view refreshes.");
 
         setContentView(wrap(page));
     }

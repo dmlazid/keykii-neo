@@ -311,13 +311,7 @@ public class KeyKiiService extends InputMethodService {
 
         panel.setElevation(dp(10));
 
-        panel.setBackground(
-            round(
-                panelColor(),
-                24,
-                borderColor()
-            )
-        );
+        applyPanelThemeBackground();
 
         DisplayMetrics d=
             getResources()
@@ -5914,6 +5908,114 @@ public class KeyKiiService extends InputMethodService {
             )
         );
     }
+
+    void applyPanelThemeBackground() {
+        if(panel==null) return;
+
+        SharedPreferences p=
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            );
+
+        String uriText=
+            p.getString(
+                "theme_image_uri",
+                ""
+            );
+
+        if(uriText==null || uriText.isEmpty()) {
+            panel.setBackground(
+                round(
+                    panelColor(),
+                    24,
+                    borderColor()
+                )
+            );
+            return;
+        }
+
+        try {
+            java.io.InputStream in=
+                getContentResolver()
+                    .openInputStream(
+                        android.net.Uri.parse(uriText)
+                    );
+
+            android.graphics.Bitmap bitmap=
+                android.graphics.BitmapFactory
+                    .decodeStream(in);
+
+            if(in!=null)
+                in.close();
+
+            if(bitmap==null)
+                throw new Exception("Image unavailable");
+
+            android.graphics.drawable.BitmapDrawable image=
+                new android.graphics.drawable.BitmapDrawable(
+                    getResources(),
+                    bitmap
+                );
+
+            image.setGravity(Gravity.FILL);
+
+            int overlayColor=
+                theme==1
+                ? Color.argb(115,255,255,255)
+                : theme==2
+                    ? Color.argb(70,0,0,0)
+                    : Color.argb(95,0,0,0);
+
+            GradientDrawable overlay=
+                round(
+                    overlayColor,
+                    24,
+                    borderColor()
+                );
+
+            android.graphics.drawable.LayerDrawable layers=
+                new android.graphics.drawable.LayerDrawable(
+                    new Drawable[]{
+                        image,
+                        overlay
+                    }
+                );
+
+            panel.setBackground(layers);
+
+            if(android.os.Build.VERSION.SDK_INT>=21) {
+                panel.setClipToOutline(true);
+                panel.setOutlineProvider(
+                    new android.view.ViewOutlineProvider() {
+                        @Override
+                        public void getOutline(
+                            View view,
+                            android.graphics.Outline outline
+                        ) {
+                            outline.setRoundRect(
+                                0,
+                                0,
+                                view.getWidth(),
+                                view.getHeight(),
+                                dp(24)
+                            );
+                        }
+                    }
+                );
+            }
+
+        } catch(Exception ignored) {
+            panel.setBackground(
+                round(
+                    panelColor(),
+                    24,
+                    borderColor()
+                )
+            );
+        }
+    }
+
 
     int panelColor() {
 
