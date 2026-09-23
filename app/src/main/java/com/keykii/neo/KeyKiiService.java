@@ -1006,6 +1006,138 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+
+    java.util.HashMap<String,Boolean> emojiGlyphCache=
+        new java.util.HashMap<>();
+
+    boolean hasSkinToneModifier(String emoji) {
+
+        if(emoji==null) return false;
+
+        for(int i=0;i<emoji.length();) {
+
+            int cp=emoji.codePointAt(i);
+
+            if(cp>=0x1F3FB && cp<=0x1F3FF)
+                return true;
+
+            i+=Character.charCount(cp);
+        }
+
+        return false;
+    }
+
+
+    boolean displayableEmoji(String emoji) {
+
+        if(emoji==null || emoji.trim().isEmpty())
+            return false;
+
+        if(
+            emoji.equals("□") ||
+            emoji.equals("�")
+        )
+            return false;
+
+        Boolean cached=emojiGlyphCache.get(emoji);
+
+        if(cached!=null)
+            return cached;
+
+        boolean ok=canRenderEmoji(emoji);
+
+        emojiGlyphCache.put(emoji,ok);
+
+        return ok;
+    }
+
+
+    void rememberFastRecent(String emoji) {
+
+        if(emoji==null || emoji.isEmpty())
+            return;
+
+        android.content.SharedPreferences prefs=
+            getSharedPreferences(
+                "keykii_prefs",
+                android.content.Context.MODE_PRIVATE
+            );
+
+        String raw=prefs.getString(
+            "fast_recent_v2",
+            ""
+        );
+
+        java.util.ArrayList<String> list=
+            new java.util.ArrayList<>();
+
+        list.add(emoji);
+
+        if(!raw.isEmpty()) {
+
+            for(String old:raw.split("~~K~~")) {
+
+                if(
+                    !old.isEmpty() &&
+                    !old.equals(emoji) &&
+                    list.size()<24
+                )
+                    list.add(old);
+            }
+        }
+
+        StringBuilder joined=
+            new StringBuilder();
+
+        for(String value:list) {
+
+            if(joined.length()>0)
+                joined.append("~~K~~");
+
+            joined.append(value);
+        }
+
+        prefs.edit()
+            .putString(
+                "fast_recent_v2",
+                joined.toString()
+            )
+            .apply();
+    }
+
+
+    java.util.ArrayList<String> loadFastRecent() {
+
+        java.util.ArrayList<String> out=
+            new java.util.ArrayList<>();
+
+        android.content.SharedPreferences prefs=
+            getSharedPreferences(
+                "keykii_prefs",
+                android.content.Context.MODE_PRIVATE
+            );
+
+        String raw=prefs.getString(
+            "fast_recent_v2",
+            ""
+        );
+
+        if(raw.isEmpty())
+            return out;
+
+        for(String emoji:raw.split("~~K~~")) {
+
+            if(
+                displayableEmoji(emoji) &&
+                !out.contains(emoji)
+            )
+                out.add(emoji);
+        }
+
+        return out;
+    }
+
+
     java.util.ArrayList<Object>
     makeFastEmojiRows(String query) {
 
@@ -1021,6 +1153,40 @@ public class KeyKiiService extends InputMethodService {
             ? ""
             : query.trim().toLowerCase();
 
+
+        // RECENT EMOJI
+        if(q.isEmpty()) {
+
+            java.util.ArrayList<String> recent=
+                loadFastRecent();
+
+            if(!recent.isEmpty()) {
+
+                fastEmojiJump.put(
+                    "Recent emoji",
+                    rows.size()
+                );
+
+                rows.add("Recent emoji");
+
+                for(int i=0;i<recent.size();i+=8) {
+
+                    java.util.ArrayList<String> row=
+                        new java.util.ArrayList<>();
+
+                    for(
+                        int j=i;
+                        j<Math.min(i+8,recent.size());
+                        j++
+                    )
+                        row.add(recent.get(j));
+
+                    rows.add(row);
+                }
+            }
+        }
+
+
         java.util.LinkedHashMap<
             String,
             java.util.ArrayList<String>
@@ -1030,7 +1196,11 @@ public class KeyKiiService extends InputMethodService {
         java.util.HashSet<String> seen=
             new java.util.HashSet<>();
 
+
         for(String[] x:fastEmojiDb) {
+
+            if(x.length<3)
+                continue;
 
             String group=x[0];
             String subgroup=
@@ -1041,26 +1211,45 @@ public class KeyKiiService extends InputMethodService {
             String name=
                 x.length>3 ? x[3] : "";
 
+
+            if(group.equalsIgnoreCase("Component"))
+                continue;
+
+
+            // Skin tones belong in long-press popup,
+            // not as separate main-grid emojis.
+            if(hasSkinToneModifier(emoji))
+                continue;
+
+
+            // Remove unsupported emoji BEFORE
+            // building rows. No blank cells.
+            if(!displayableEmoji(emoji))
+                continue;
+
+
             if(!q.isEmpty()) {
 
-                String search=
+                String haystack=
                     (
                         group+" "+
                         subgroup+" "+
                         name
                     ).toLowerCase();
 
-                if(!search.contains(q))
+                if(!haystack.contains(q))
                     continue;
 
                 group="Search results";
             }
+
 
             String unique=
                 group+"\n"+emoji;
 
             if(!seen.add(unique))
                 continue;
+
 
             java.util.ArrayList<String> list=
                 groups.get(group);
@@ -1084,8 +1273,7 @@ public class KeyKiiService extends InputMethodService {
             > entry:groups.entrySet()
         ) {
 
-            String rawGroup=
-                entry.getKey();
+            String rawGroup=entry.getKey();
 
             fastEmojiJump.put(
                 rawGroup,
@@ -1093,8 +1281,11 @@ public class KeyKiiService extends InputMethodService {
             );
 
             rows.add(
-                fastGroupLabel(rawGroup)
+                rawGroup.equals("Search results")
+                ? "Search results"
+                : fastGroupLabel(rawGroup)
             );
+
 
             java.util.ArrayList<String> list=
                 entry.getValue();
@@ -1108,11 +1299,11 @@ public class KeyKiiService extends InputMethodService {
                     int j=i;
                     j<Math.min(i+8,list.size());
                     j++
-                ) {
+                )
                     row.add(list.get(j));
-                }
 
-                rows.add(row);
+                if(!row.isEmpty())
+                    rows.add(row);
             }
         }
 
@@ -1148,9 +1339,15 @@ public class KeyKiiService extends InputMethodService {
         java.util.ArrayList<String> out=
             new java.util.ArrayList<>();
 
-        String base=removeSkinTone(emoji);
+        String base=
+            removeSkinTone(emoji);
 
-        // Put the neutral/default version first.
+
+        // Default emoji first.
+        if(displayableEmoji(base))
+            out.add(base);
+
+
         for(String[] x:fastEmojiDb) {
 
             if(x.length<3)
@@ -1158,37 +1355,21 @@ public class KeyKiiService extends InputMethodService {
 
             String candidate=x[2];
 
+            if(!hasSkinToneModifier(candidate))
+                continue;
+
             if(
                 removeSkinTone(candidate).equals(base) &&
+                displayableEmoji(candidate) &&
                 !out.contains(candidate)
             ) {
                 out.add(candidate);
             }
         }
 
-        // Only treat it as a variant emoji
-        // when at least one skin-tone version exists.
-        boolean hasTone=false;
 
-        for(String v:out) {
-
-            for(int i=0;i<v.length();) {
-
-                int cp=v.codePointAt(i);
-
-                if(cp>=0x1F3FB && cp<=0x1F3FF) {
-                    hasTone=true;
-                    break;
-                }
-
-                i+=Character.charCount(cp);
-            }
-
-            if(hasTone)
-                break;
-        }
-
-        if(!hasTone)
+        // No real variants = no popup.
+        if(out.size()<2)
             out.clear();
 
         return out;
@@ -1206,20 +1387,25 @@ public class KeyKiiService extends InputMethodService {
         if(variants.size()<2)
             return;
 
-        LinearLayout strip=
-            new LinearLayout(this);
 
-        strip.setOrientation(
-            LinearLayout.HORIZONTAL
+        final int columns=
+            Math.min(6,variants.size());
+
+        final int rows=
+            (variants.size()+columns-1)
+            /columns;
+
+
+        android.widget.GridLayout grid=
+            new android.widget.GridLayout(this);
+
+        grid.setColumnCount(columns);
+
+        grid.setPadding(
+            dp(6),dp(6),dp(6),dp(6)
         );
 
-        strip.setGravity(Gravity.CENTER);
-
-        strip.setPadding(
-            dp(5),dp(5),dp(5),dp(5)
-        );
-
-        strip.setBackground(
+        grid.setBackground(
             round(
                 keyColor(false),
                 22,
@@ -1228,33 +1414,34 @@ public class KeyKiiService extends InputMethodService {
         );
 
 
-        HorizontalScrollView scroller=
-            new HorizontalScrollView(this);
+        final int popupWidth=
+            dp(12)+columns*dp(52);
 
-        scroller.setHorizontalScrollBarEnabled(
+        final int fullHeight=
+            dp(12)+rows*dp(54);
+
+        final int popupHeight=
+            Math.min(
+                fullHeight,
+                dp(220)
+            );
+
+
+        android.widget.ScrollView scroll=
+            new android.widget.ScrollView(this);
+
+        scroll.setVerticalScrollBarEnabled(
             false
         );
 
-        scroller.addView(strip);
-
-
-        int maxWidth=
-            getResources()
-            .getDisplayMetrics()
-            .widthPixels-dp(24);
-
-        int wanted=
-            dp(10)+variants.size()*dp(52);
-
-        int popupWidth=
-            Math.min(maxWidth,wanted);
+        scroll.addView(grid);
 
 
         final PopupWindow popup=
             new PopupWindow(
-                scroller,
+                scroll,
                 popupWidth,
-                dp(66),
+                popupHeight,
                 true
             );
 
@@ -1279,51 +1466,62 @@ public class KeyKiiService extends InputMethodService {
                 new TextView(this);
 
             choice.setText(value);
-            choice.setTextSize(29);
+            choice.setTextSize(28);
 
             choice.setGravity(
                 Gravity.CENTER
             );
 
-            strip.addView(
-                choice,
-                new LinearLayout.LayoutParams(
-                    dp(52),
-                    dp(56)
-                )
-            );
+            android.widget.GridLayout.LayoutParams lp=
+                new android.widget.GridLayout.LayoutParams();
+
+            lp.width=dp(52);
+            lp.height=dp(54);
+
+            grid.addView(choice,lp);
+
 
             choice.setOnClickListener(v -> {
 
                 fastCommitEmoji(value);
-
                 popup.dismiss();
             });
         }
 
 
-        int[] pos=new int[2];
-        anchor.getLocationOnScreen(pos);
+        int[] location=new int[2];
 
-        int x=
-            pos[0]+
-            anchor.getWidth()/2-
-            popupWidth/2;
+        anchor.getLocationOnScreen(
+            location
+        );
 
-        if(x<dp(8))
-            x=dp(8);
 
         int screenWidth=
             getResources()
             .getDisplayMetrics()
             .widthPixels;
 
-        if(x+popupWidth>screenWidth-dp(8))
-            x=screenWidth-popupWidth-dp(8);
+
+        int x=
+            location[0]+
+            anchor.getWidth()/2-
+            popupWidth/2;
+
+        x=Math.max(dp(8),x);
+
+        x=Math.min(
+            x,
+            screenWidth-popupWidth-dp(8)
+        );
 
 
         int y=
-            pos[1]-dp(72);
+            location[1]-
+            popupHeight-
+            dp(8);
+
+        y=Math.max(dp(8),y);
+
 
         popup.showAtLocation(
             anchor,
@@ -1343,6 +1541,7 @@ public class KeyKiiService extends InputMethodService {
             ic.commitText(emoji,1);
 
         rememberEmoji(emoji);
+        rememberFastRecent(emoji);
     }
 
 
@@ -1564,6 +1763,7 @@ public class KeyKiiService extends InputMethodService {
 
         // CATEGORY ICONS
         final String[] groups={
+            "Recent emoji",
             "Smileys & Emotion",
             "People & Body",
             "Animals & Nature",
@@ -1576,7 +1776,7 @@ public class KeyKiiService extends InputMethodService {
         };
 
         String[] icons={
-            "😀","🧑","🐻","🍔",
+            "🕘","😀","🧑","🐻","🍔",
             "⚽","🚗","💡","❤️","🏳️"
         };
 
@@ -1605,7 +1805,22 @@ public class KeyKiiService extends InputMethodService {
 
             b.setOnClickListener(v -> {
 
-                emojiCategory=index+1;
+                emojiCategory=index;
+
+                // Category tap exits Search first.
+                if(
+                    emojiSearchMode ||
+                    (
+                        emojiSearchQuery!=null &&
+                        !emojiSearchQuery.isEmpty()
+                    )
+                ) {
+
+                    emojiSearchMode=false;
+                    emojiSearchQuery="";
+                    showPage();
+                    return;
+                }
 
                 if(fastEmojiList!=null) {
 
@@ -1816,6 +2031,29 @@ public class KeyKiiService extends InputMethodService {
                 listHeight
             )
         );
+
+        // KEYKII_INITIAL_EMOJI_JUMP
+        if(
+            emojiCategory>=0 &&
+            emojiCategory<groups.length
+        ) {
+
+            Integer first=
+                fastEmojiJump.get(
+                    groups[emojiCategory]
+                );
+
+            if(first!=null) {
+
+                final int jumpPosition=first;
+
+                fastEmojiList.post(() ->
+                    fastEmojiList.setSelection(
+                        jumpPosition
+                    )
+                );
+            }
+        }
 
         addFastEmojiModeBar();
     }
