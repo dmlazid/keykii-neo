@@ -15,6 +15,19 @@ public class KeyKiiService extends InputMethodService {
     boolean kaomojiMode=false;
     int kaomojiCategory=0;
     TextView emojiSearchField=null;
+    android.os.Handler emojiCursorHandler=
+        new android.os.Handler(android.os.Looper.getMainLooper());
+    boolean emojiCursorVisible=true;
+    Runnable emojiCursorRunnable=new Runnable() {
+        @Override
+        public void run() {
+            if(page==1 && emojiSearchMode && emojiSearchField!=null) {
+                emojiCursorVisible=!emojiCursorVisible;
+                renderEmojiSearchField();
+                emojiCursorHandler.postDelayed(this,500);
+            }
+        }
+    };
     HorizontalScrollView emojiSearchResultsScroll=null;
     LinearLayout emojiSearchResultsRow=null;
 
@@ -2147,16 +2160,7 @@ public class KeyKiiService extends InputMethodService {
 
         emojiSearchField=search;
 
-        search.setText(
-            kaomojiMode
-            ? "Kaomoji"
-            : (
-                emojiSearchQuery==null ||
-                emojiSearchQuery.isEmpty()
-                ? "🔍  Search emoji"
-                : "🔍  "+emojiSearchQuery
-            )
-        );
+        renderEmojiSearchField();
 
         search.setTextSize(15);
         search.setTextColor(textColor());
@@ -2290,6 +2294,11 @@ public class KeyKiiService extends InputMethodService {
             )
         );
 
+        if(emojiSearchMode)
+            startEmojiSearchCursor();
+        else
+            stopEmojiSearchCursor();
+
 
         // KAOMOJI
         if(kaomojiMode) {
@@ -2385,6 +2394,12 @@ public class KeyKiiService extends InputMethodService {
             b.setOnClickListener(v -> {
                 emojiCategory=index;
                 highlightEmojiCategory(categoryButtons,index);
+
+                hsv.smoothScrollTo(
+                    Math.max(0,index*dp(48)-dp(96)),
+                    0
+                );
+
                 Integer position=sectionStarts.get(groups[index]);
                 if(position!=null && fastEmojiList!=null)
                     fastEmojiList.setSelectionFromTop(position,0);
@@ -2428,26 +2443,51 @@ public class KeyKiiService extends InputMethodService {
             true
         );
 
+        final Runnable syncEmojiCategory=() -> {
+            if(fastEmojiList==null) return;
+
+            int first=fastEmojiList.getFirstVisiblePosition();
+            int active=0;
+            int latest=-1;
+
+            for(int i=0;i<groups.length;i++) {
+                Integer start=sectionStarts.get(groups[i]);
+
+                if(start!=null && start<=first && start>latest) {
+                    latest=start;
+                    active=i;
+                }
+            }
+
+            if(emojiCategory!=active) {
+                emojiCategory=active;
+                highlightEmojiCategory(categoryButtons,active);
+
+                final int categoryToShow=active;
+                hsv.post(() -> hsv.smoothScrollTo(
+                    Math.max(0,categoryToShow*dp(48)-dp(96)),
+                    0
+                ));
+            }
+        };
+
         fastEmojiList.setOnScrollListener(new android.widget.AbsListView.OnScrollListener() {
-            public void onScrollStateChanged(android.widget.AbsListView view,int state) {}
+            public void onScrollStateChanged(android.widget.AbsListView view,int state) {
+                syncEmojiCategory.run();
+            }
 
             public void onScroll(android.widget.AbsListView view,
                                  int first,int visible,int total) {
-                int active=0;
-                int latest=-1;
-                for(int i=0;i<groups.length;i++) {
-                    Integer start=sectionStarts.get(groups[i]);
-                    if(start!=null && start<=first && start>latest) {
-                        latest=start;
-                        active=i;
-                    }
-                }
-                if(emojiCategory!=active) {
-                    emojiCategory=active;
-                    highlightEmojiCategory(categoryButtons,active);
-                }
+                syncEmojiCategory.run();
             }
         });
+
+        if(android.os.Build.VERSION.SDK_INT>=23) {
+            fastEmojiList.setOnScrollChangeListener(
+                (v,scrollX,scrollY,oldScrollX,oldScrollY) ->
+                    syncEmojiCategory.run()
+            );
+        }
 
         fastEmojiList.setAdapter(
             new android.widget.BaseAdapter() {
@@ -3263,13 +3303,43 @@ public class KeyKiiService extends InputMethodService {
 
 
 
-    void refreshEmojiSearchField() {
+    void renderEmojiSearchField() {
         if(emojiSearchField==null) return;
-        emojiSearchField.setText(
-            emojiSearchQuery==null || emojiSearchQuery.isEmpty()
-            ? "🔍  Search emoji"
-            : "🔍  "+emojiSearchQuery
-        );
+
+        if(kaomojiMode) {
+            emojiSearchField.setText("Kaomoji");
+            return;
+        }
+
+        if(emojiSearchMode) {
+            String q=emojiSearchQuery==null ? "" : emojiSearchQuery;
+            String caret=emojiCursorVisible ? "│" : " ";
+            emojiSearchField.setText("🔍  "+q+caret);
+            return;
+        }
+
+        emojiSearchField.setText("🔍  Search emoji");
+    }
+
+
+    void startEmojiSearchCursor() {
+        emojiCursorHandler.removeCallbacks(emojiCursorRunnable);
+        emojiCursorVisible=true;
+        renderEmojiSearchField();
+
+        if(page==1 && emojiSearchMode)
+            emojiCursorHandler.postDelayed(emojiCursorRunnable,500);
+    }
+
+
+    void stopEmojiSearchCursor() {
+        emojiCursorHandler.removeCallbacks(emojiCursorRunnable);
+        emojiCursorVisible=false;
+    }
+
+
+    void refreshEmojiSearchField() {
+        renderEmojiSearchField();
     }
 
     void eraseEmojiSearchChar() {
