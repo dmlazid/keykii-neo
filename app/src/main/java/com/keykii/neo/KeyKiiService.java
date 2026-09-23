@@ -4210,15 +4210,254 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
-    void buildClipboard() {
+    java.util.ArrayList<String> loadClipboardItems(
+        SharedPreferences sp,
+        String prefix,
+        int max
+    ) {
+        java.util.ArrayList<String> out=
+            new java.util.ArrayList<>();
 
-        body.addView(
-            title("Clipboard"),
-            new LinearLayout.LayoutParams(
-                -1,
-                dp(28)
+        for(int i=0;i<max;i++) {
+            String value=sp.getString(prefix+i,"");
+
+            if(
+                value!=null &&
+                !value.isEmpty() &&
+                !out.contains(value)
+            ) {
+                out.add(value);
+            }
+        }
+
+        return out;
+    }
+
+
+    void saveClipboardItems(
+        SharedPreferences sp,
+        String prefix,
+        java.util.ArrayList<String> items,
+        int max
+    ) {
+        SharedPreferences.Editor e=sp.edit();
+
+        for(int i=0;i<max;i++)
+            e.remove(prefix+i);
+
+        for(int i=0;i<Math.min(items.size(),max);i++)
+            e.putString(prefix+i,items.get(i));
+
+        e.apply();
+    }
+
+
+    void pinClipboardText(String text, boolean currentlyPinned) {
+        if(text==null || text.isEmpty())
+            return;
+
+        SharedPreferences sp=
+            getSharedPreferences(
+                "keykii_clipboard",
+                MODE_PRIVATE
+            );
+
+        java.util.ArrayList<String> pinned=
+            loadClipboardItems(sp,"pin",10);
+
+        java.util.ArrayList<String> recent=
+            loadClipboardItems(sp,"clip",20);
+
+        pinned.remove(text);
+        recent.remove(text);
+
+        if(currentlyPinned) {
+            recent.add(0,text);
+        } else {
+            pinned.add(0,text);
+        }
+
+        saveClipboardItems(sp,"pin",pinned,10);
+        saveClipboardItems(sp,"clip",recent,20);
+    }
+
+
+    void deleteClipboardText(String text) {
+        if(text==null || text.isEmpty())
+            return;
+
+        SharedPreferences sp=
+            getSharedPreferences(
+                "keykii_clipboard",
+                MODE_PRIVATE
+            );
+
+        java.util.ArrayList<String> pinned=
+            loadClipboardItems(sp,"pin",10);
+
+        java.util.ArrayList<String> recent=
+            loadClipboardItems(sp,"clip",20);
+
+        pinned.remove(text);
+        recent.remove(text);
+
+        saveClipboardItems(sp,"pin",pinned,10);
+        saveClipboardItems(sp,"clip",recent,20);
+    }
+
+
+    void clearClipboardHistory() {
+        SharedPreferences sp=
+            getSharedPreferences(
+                "keykii_clipboard",
+                MODE_PRIVATE
+            );
+
+        SharedPreferences.Editor e=sp.edit();
+
+        for(int i=0;i<10;i++)
+            e.remove("pin"+i);
+
+        for(int i=0;i<20;i++)
+            e.remove("clip"+i);
+
+        e.apply();
+    }
+
+
+    TextView clipboardSectionLabel(String text) {
+        TextView v=new TextView(this);
+
+        v.setText(text);
+        v.setTextColor(textColor());
+        v.setTextSize(12);
+        v.setAlpha(.65f);
+        v.setGravity(Gravity.CENTER_VERTICAL);
+        v.setPadding(dp(8),dp(4),dp(4),dp(2));
+
+        return v;
+    }
+
+
+    View clipboardItemView(
+        String text,
+        boolean pinned
+    ) {
+        LinearLayout row=new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(8),dp(3),dp(4),dp(3));
+        row.setBackground(
+            round(
+                keyColor(false),
+                15,
+                borderColor()
             )
         );
+
+        TextView paste=new TextView(this);
+
+        String preview=text
+            .replace("\n"," ")
+            .replace("\r"," ");
+
+        paste.setText(preview);
+        paste.setTextColor(textColor());
+        paste.setTextSize(13);
+        paste.setGravity(Gravity.CENTER_VERTICAL);
+        paste.setMaxLines(2);
+        paste.setEllipsize(
+            android.text.TextUtils.TruncateAt.END
+        );
+        paste.setPadding(dp(3),0,dp(6),0);
+
+        final String pasteText=text;
+
+        paste.setOnClickListener(v -> {
+            InputConnection ic=
+                getCurrentInputConnection();
+
+            if(ic!=null)
+                ic.commitText(pasteText,1);
+        });
+
+        row.addView(
+            paste,
+            new LinearLayout.LayoutParams(
+                0,
+                dp(50),
+                1
+            )
+        );
+
+        TextView pin=new TextView(this);
+        pin.setText("📌");
+        pin.setTextSize(17);
+        pin.setGravity(Gravity.CENTER);
+        pin.setTextColor(textColor());
+        pin.setAlpha(pinned ? 1f : .35f);
+        pin.setContentDescription(
+            pinned ? "Unpin clipboard item" : "Pin clipboard item"
+        );
+
+        pin.setOnClickListener(v -> {
+            pinClipboardText(pasteText,pinned);
+            showPage();
+        });
+
+        row.addView(
+            pin,
+            new LinearLayout.LayoutParams(
+                dp(42),
+                dp(46)
+            )
+        );
+
+        TextView remove=new TextView(this);
+        remove.setText("×");
+        remove.setTextSize(20);
+        remove.setGravity(Gravity.CENTER);
+        remove.setTextColor(textColor());
+        remove.setAlpha(.70f);
+        remove.setContentDescription("Delete clipboard item");
+
+        remove.setOnClickListener(v -> {
+            deleteClipboardText(pasteText);
+            showPage();
+        });
+
+        row.addView(
+            remove,
+            new LinearLayout.LayoutParams(
+                dp(38),
+                dp(46)
+            )
+        );
+
+        LinearLayout wrapper=
+            new LinearLayout(this);
+
+        wrapper.setOrientation(LinearLayout.VERTICAL);
+
+        LinearLayout.LayoutParams rp=
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(56)
+            );
+
+        rp.setMargins(
+            dp(5),
+            dp(3),
+            dp(5),
+            dp(3)
+        );
+
+        wrapper.addView(row,rp);
+
+        return wrapper;
+    }
+
+
+    void buildClipboard() {
 
         ClipboardManager cm=
             (ClipboardManager)
@@ -4229,24 +4468,19 @@ public class KeyKiiService extends InputMethodService {
         if(
             cm!=null &&
             cm.hasPrimaryClip()
-        ){
-
-            ClipData clip=
-                cm.getPrimaryClip();
+        ) {
+            ClipData clip=cm.getPrimaryClip();
 
             if(
                 clip!=null &&
                 clip.getItemCount()>0
-            ){
-
+            ) {
                 CharSequence cs=
                     clip.getItemAt(0)
                         .coerceToText(this);
 
                 if(cs!=null)
-                    rememberClip(
-                        cs.toString()
-                    );
+                    rememberClip(cs.toString());
             }
         }
 
@@ -4256,80 +4490,137 @@ public class KeyKiiService extends InputMethodService {
                 MODE_PRIVATE
             );
 
-        boolean found=false;
+        java.util.ArrayList<String> pinned=
+            loadClipboardItems(sp,"pin",10);
 
-        for(int n=0;n<6;n++){
+        java.util.ArrayList<String> recent=
+            loadClipboardItems(sp,"clip",20);
 
-            String text=
-                sp.getString(
-                    "clip"+n,
-                    ""
-                );
+        LinearLayout header=new LinearLayout(this);
+        header.setGravity(Gravity.CENTER_VERTICAL);
 
-            if(text.isEmpty())
-                continue;
+        TextView heading=title("Clipboard");
+        heading.setTextSize(14);
+        heading.setGravity(Gravity.CENTER_VERTICAL);
+        heading.setPadding(dp(8),0,0,0);
 
-            found=true;
+        header.addView(
+            heading,
+            new LinearLayout.LayoutParams(
+                0,
+                dp(32),
+                1
+            )
+        );
 
-            String preview=
-                text.length()>42
-                ? text.substring(0,42)+"…"
-                : text;
+        TextView clear=title("Clear all");
+        clear.setTextSize(12);
+        clear.setGravity(Gravity.CENTER);
+        clear.setAlpha(
+            pinned.isEmpty() && recent.isEmpty()
+            ? .35f
+            : .85f
+        );
+        clear.setClickable(
+            !(pinned.isEmpty() && recent.isEmpty())
+        );
 
-            TextView item=
-                title(preview);
+        clear.setOnClickListener(v -> {
+            clearClipboardHistory();
+            showPage();
+        });
 
-            item.setBackground(
-                round(
-                    keyColor(false),
-                    14,
-                    borderColor()
+        header.addView(
+            clear,
+            new LinearLayout.LayoutParams(
+                dp(72),
+                dp(32)
+            )
+        );
+
+        body.addView(
+            header,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(34)
+            )
+        );
+
+        android.widget.ScrollView scroll=
+            new android.widget.ScrollView(this);
+
+        scroll.setFillViewport(true);
+        scroll.setVerticalScrollBarEnabled(true);
+
+        LinearLayout content=
+            new LinearLayout(this);
+
+        content.setOrientation(
+            LinearLayout.VERTICAL
+        );
+
+        if(!pinned.isEmpty()) {
+            content.addView(
+                clipboardSectionLabel("📌  Pinned"),
+                new LinearLayout.LayoutParams(
+                    -1,
+                    dp(26)
                 )
             );
 
-            final String pasteText=text;
-
-            item.setOnClickListener(v -> {
-
-                InputConnection ic=
-                    getCurrentInputConnection();
-
-                if(ic!=null)
-                    ic.commitText(
-                        pasteText,
-                        1
-                    );
-            });
-
-            LinearLayout.LayoutParams p=
-                new LinearLayout.LayoutParams(
-                    -1,
-                    dp(36)
+            for(String text:pinned)
+                content.addView(
+                    clipboardItemView(text,true)
                 );
-
-            p.setMargins(
-                dp(5),
-                dp(3),
-                dp(5),
-                dp(3)
-            );
-
-            body.addView(item,p);
         }
 
-        if(!found){
-
-            body.addView(
-                title("Nothing copied yet"),
+        if(!recent.isEmpty()) {
+            content.addView(
+                clipboardSectionLabel("Recent"),
                 new LinearLayout.LayoutParams(
                     -1,
-                    dp(38)
+                    dp(26)
+                )
+            );
+
+            for(String text:recent)
+                content.addView(
+                    clipboardItemView(text,false)
+                );
+        }
+
+        if(pinned.isEmpty() && recent.isEmpty()) {
+            TextView empty=title("Nothing copied yet");
+            empty.setAlpha(.60f);
+
+            content.addView(
+                empty,
+                new LinearLayout.LayoutParams(
+                    -1,
+                    dp(90)
                 )
             );
         }
+
+        scroll.addView(
+            content,
+            new android.widget.ScrollView.LayoutParams(
+                -1,
+                -2
+            )
+        );
+
+        body.addView(
+            scroll,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(300)
+            )
+        );
     }
 
-    void rememberClip(String text){
+
+    void rememberClip(String text) {
 
         if(
             text==null ||
@@ -4342,36 +4633,27 @@ public class KeyKiiService extends InputMethodService {
                 MODE_PRIVATE
             );
 
-        if(
-            text.equals(
-                sp.getString(
-                    "clip0",
-                    ""
-                )
-            )
-        ) return;
+        java.util.ArrayList<String> pinned=
+            loadClipboardItems(sp,"pin",10);
 
-        SharedPreferences.Editor e=
-            sp.edit();
+        // Pinned clips stay pinned even if the same text is copied again.
+        if(pinned.contains(text))
+            return;
 
-        for(int n=5;n>0;n--){
+        java.util.ArrayList<String> recent=
+            loadClipboardItems(sp,"clip",20);
 
-            e.putString(
-                "clip"+n,
-                sp.getString(
-                    "clip"+(n-1),
-                    ""
-                )
-            );
-        }
+        recent.remove(text);
+        recent.add(0,text);
 
-        e.putString(
-            "clip0",
-            text
+        saveClipboardItems(
+            sp,
+            "clip",
+            recent,
+            20
         );
-
-        e.apply();
     }
+
 
     void buildEditing() {
 
