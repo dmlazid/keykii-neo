@@ -45,6 +45,21 @@ public class SettingsActivity extends Activity {
     private int themeScrollY = 0;
     private String pendingThemeImageUri = "";
 
+    // Gboard-style theme picker draft state. Theme tiles only update this
+    // preview; nothing is saved until Apply is pressed.
+    private LinearLayout themePreviewSheet;
+    private FrameLayout themePreviewFrame;
+    private Switch themePreviewBorderSwitch;
+    private final java.util.ArrayList<LinearLayout> themeSelectableTiles =
+            new java.util.ArrayList<>();
+
+    private int themeDraftSurfaceMode = 0;
+    private int themeDraftTheme = 1;
+    private int themeDraftStart = Color.rgb(93,118,171);
+    private int themeDraftEnd = Color.rgb(93,118,171);
+    private String themeDraftImageUri = "";
+    private boolean themeDraftKeyBorders = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,7 +105,18 @@ public class SettingsActivity extends Activity {
             }
 
             pendingThemeImageUri = uri.toString();
-            showPhotoThemeSetup(pendingThemeImageUri);
+
+            themeDraftSurfaceMode = 3;
+            themeDraftTheme = 0;
+            themeDraftImageUri = pendingThemeImageUri;
+            themeDraftKeyBorders = false;
+
+            if ("theme".equals(screen) && themePreviewFrame != null) {
+                showThemePreviewSheet();
+                refreshThemeTileSelection();
+            } else {
+                showTheme();
+            }
         }
     }
 
@@ -317,38 +343,42 @@ public class SettingsActivity extends Activity {
     }
 
     private void showTheme() {
-        boolean restoreThemeScroll =
-                "theme".equals(screen) ||
-                "photo_theme".equals(screen);
-
-        int restoreY = 0;
-
-        if (restoreThemeScroll) {
-            if (
-                    "theme".equals(screen) &&
-                    themeScrollView != null
-            ) {
-                restoreY = themeScrollView.getScrollY();
-            } else {
-                restoreY = themeScrollY;
-            }
-        }
-
         screen = "theme";
+        initThemeDraftFromPrefs();
+        themeSelectableTiles.clear();
+
+        boolean previewPending =
+                pendingThemeImageUri != null &&
+                !pendingThemeImageUri.isEmpty();
+
+        if(previewPending) {
+            themeDraftSurfaceMode = 3;
+            themeDraftTheme = 0;
+            themeDraftImageUri = pendingThemeImageUri;
+            themeDraftKeyBorders = false;
+        }
 
         LinearLayout page = page(
                 "Theme",
-                "Pick a style, color, gradient or your own image",
+                "",
                 true
         );
 
-        addSection(page, "My themes");
+        // Leave room for the fixed preview sheet, like Gboard.
+        page.setPadding(
+                dp(18),
+                dp(18),
+                dp(18),
+                dp(285)
+        );
+
+        addThemeSection(page, "My themes");
         addMyThemeTiles(page);
 
-        addSection(page, "Default");
+        addThemeSection(page, "Default");
         addDefaultThemeGallery(page);
 
-        addSection(page, "Colours");
+        addThemeSection(page, "Colours");
 
         String[] colorNames = new String[]{
                 "Snow","Silver","Stone",
@@ -387,7 +417,7 @@ public class SettingsActivity extends Activity {
 
         addColorThemeGrid(page,colorNames,colors);
 
-        addSection(page, "Light gradients");
+        addThemeSection(page, "Light gradient");
 
         addGradientThemeGrid(
                 page,
@@ -416,7 +446,7 @@ public class SettingsActivity extends Activity {
                 }
         );
 
-        addSection(page, "Dark gradients");
+        addThemeSection(page, "Dark gradient");
 
         addGradientThemeGrid(
                 page,
@@ -445,23 +475,7 @@ public class SettingsActivity extends Activity {
                 }
         );
 
-        String imageUri =
-                prefs.getString(
-                        "theme_image_uri",
-                        ""
-                );
-
-        if(imageUri!=null && !imageUri.isEmpty()) {
-            addSection(page, "Photo theme");
-
-            addInfoCard(
-                    page,
-                    "Your saved photo",
-                    "Tap the photo tile in My themes to preview it, change Key borders, or apply it again."
-            );
-        }
-
-        addSection(page, "Fine tuning");
+        addThemeSection(page, "More options");
 
         addChoiceRow(
                 page,
@@ -488,7 +502,7 @@ public class SettingsActivity extends Activity {
                 },
                 "accent_color",
                 Color.rgb(93,118,171),
-                this::showTheme
+                this::updateThemePreview
         );
 
         addChoiceRow(
@@ -499,7 +513,7 @@ public class SettingsActivity extends Activity {
                 new int[]{55,70,85,100},
                 "theme_transparency",
                 100,
-                this::showTheme
+                this::updateThemePreview
         );
 
         addChoiceRow(
@@ -510,34 +524,57 @@ public class SettingsActivity extends Activity {
                 new int[]{6,11,15,22},
                 "key_corner_radius",
                 15,
-                this::showTheme
+                this::updateThemePreview
         );
 
-        addActionButton(page, "Reset theme customization", v -> {
-            prefs.edit()
-                    .remove("accent_color")
-                    .remove("theme_transparency")
-                    .remove("key_corner_radius")
-                    .remove("theme_custom_start")
-                    .remove("theme_custom_end")
-                    .putInt("theme_surface_mode", 0)
-                    .apply();
+        FrameLayout root =
+                new FrameLayout(this);
 
-            toast("Theme customization reset");
-            showTheme();
-        });
+        root.setBackgroundColor(BG);
 
         ScrollView scroll = wrap(page);
         themeScrollView = scroll;
-        themeScrollY = restoreY;
 
-        setContentView(scroll);
-
-        final int targetY = restoreY;
-
-        scroll.post(() ->
-                scroll.scrollTo(0,targetY)
+        root.addView(
+                scroll,
+                new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                )
         );
+
+        themePreviewSheet =
+                buildThemePreviewSheet();
+
+        themePreviewSheet.setVisibility(
+                previewPending
+                        ? View.VISIBLE
+                        : View.GONE
+        );
+
+        FrameLayout.LayoutParams sheetParams =
+                new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        Gravity.BOTTOM
+                );
+
+        sheetParams.setMargins(
+                dp(10),
+                dp(10),
+                dp(10),
+                dp(18)
+        );
+
+        root.addView(
+                themePreviewSheet,
+                sheetParams
+        );
+
+        setContentView(root);
+
+        updateThemePreview();
+        refreshThemeTileSelection();
     }
 
 
@@ -1110,64 +1147,151 @@ public class SettingsActivity extends Activity {
         });
     }
 
-    private void addMyThemeTiles(LinearLayout page) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
+    private void addThemeSection(
+            LinearLayout page,
+            String text
+    ) {
+        TextView t = new TextView(this);
+        t.setText(text);
+        t.setTextColor(MUTED);
+        t.setTextSize(14);
+        t.setPadding(
+                dp(5),
+                dp(18),
+                dp(5),
+                dp(8)
+        );
+        page.addView(t);
+    }
 
-        LinearLayout create = createThemeTile(
-                "＋",
-                "Add photo"
+
+    private void initThemeDraftFromPrefs() {
+        themeDraftSurfaceMode =
+                prefs.getInt(
+                        "theme_surface_mode",
+                        0
+                );
+
+        themeDraftTheme =
+                prefs.getInt(
+                        "theme",
+                        1
+                );
+
+        themeDraftStart =
+                prefs.getInt(
+                        "theme_custom_start",
+                        Color.rgb(93,118,171)
+                );
+
+        themeDraftEnd =
+                prefs.getInt(
+                        "theme_custom_end",
+                        themeDraftStart
+                );
+
+        themeDraftImageUri =
+                prefs.getString(
+                        "theme_image_uri",
+                        ""
+                );
+
+        if(
+                themeDraftSurfaceMode==3 &&
+                (
+                    themeDraftImageUri==null ||
+                    themeDraftImageUri.isEmpty()
+                )
+        ) {
+            themeDraftSurfaceMode=0;
+        }
+
+        if(prefs.contains("theme_key_borders")) {
+            themeDraftKeyBorders =
+                    prefs.getBoolean(
+                            "theme_key_borders",
+                            true
+                    );
+        } else if(themeDraftSurfaceMode==3) {
+            themeDraftKeyBorders =
+                    prefs.getBoolean(
+                            "photo_key_borders",
+                            false
+                    );
+        } else {
+            themeDraftKeyBorders=true;
+        }
+    }
+
+
+    private void addMyThemeTiles(
+            LinearLayout page
+    ) {
+        LinearLayout row =
+                new LinearLayout(this);
+
+        row.setOrientation(
+                LinearLayout.HORIZONTAL
         );
 
-        create.setOnClickListener(v ->
+        LinearLayout addPhoto =
+                createThemeTile(
+                        "＋",
+                        "Add photo"
+                );
+
+        addPhoto.setOnClickListener(v ->
                 chooseThemeImage());
 
-        addThemeTileToRow(row,create);
-
-        int saved = prefs.getInt(
-                "theme_custom_start",
-                Color.rgb(93,118,171)
+        addThemeTileToRow(
+                row,
+                addPhoto
         );
 
-        LinearLayout custom = themeTile(
-                "Custom",
-                new int[]{saved}
-        );
+        LinearLayout custom =
+                createThemeTile(
+                        "🎨",
+                        "Any color"
+                );
 
         custom.setOnClickListener(v ->
-                applySolidTheme("Custom",saved));
+                showCustomColorDialog());
 
-        addThemeTileToRow(row,custom);
-
-        String imageUri = prefs.getString(
-                "theme_image_uri",
-                ""
+        addThemeTileToRow(
+                row,
+                custom
         );
 
-        if(imageUri!=null && !imageUri.isEmpty()) {
+        String imageUri =
+                prefs.getString(
+                        "theme_image_uri",
+                        ""
+                );
+
+        if(
+                imageUri!=null &&
+                !imageUri.isEmpty()
+        ) {
             LinearLayout photo =
                     photoThemeThumbnail(
                             imageUri,
                             "Photo"
                     );
 
-            boolean active =
-                    prefs.getInt(
-                            "theme_surface_mode",
-                            0
-                    )==3;
-
-            markThemeTileSelected(
+            registerThemeTile(
                     photo,
-                    active
+                    "3"
             );
 
-            photo.setOnClickListener(v -> {
-                pendingThemeImageUri = imageUri;
-                showPhotoThemeSetup(imageUri);
-            });
+            photo.setOnClickListener(v ->
+                    selectPhotoThemeDraft(
+                            imageUri
+                    ));
 
-            addThemeTileToRow(row,photo);
+            addThemeTileToRow(
+                    row,
+                    photo
+            );
 
         } else {
             addThemeTileSpacer(row);
@@ -1192,7 +1316,7 @@ public class SettingsActivity extends Activity {
                 dp(3),
                 dp(3),
                 dp(3),
-                dp(6)
+                dp(5)
         );
 
         ImageView preview =
@@ -1208,26 +1332,26 @@ public class SettingsActivity extends Activity {
             );
         } catch(Exception ignored) {
             preview.setBackgroundColor(
-                    Color.rgb(70,70,74)
+                    Color.rgb(60,60,64)
             );
         }
 
-        GradientDrawable fallback =
+        GradientDrawable frame =
                 new GradientDrawable();
 
-        fallback.setColor(
-                Color.rgb(70,70,74)
+        frame.setColor(
+                Color.TRANSPARENT
         );
 
-        fallback.setCornerRadius(dp(16));
-        preview.setBackground(fallback);
+        frame.setCornerRadius(dp(15));
+        preview.setBackground(frame);
         preview.setClipToOutline(true);
 
         tile.addView(
                 preview,
                 new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
-                        dp(68)
+                        dp(72)
                 )
         );
 
@@ -1238,18 +1362,12 @@ public class SettingsActivity extends Activity {
         label.setTextColor(TEXT);
         label.setTextSize(10);
         label.setGravity(Gravity.CENTER);
-        label.setPadding(
-                0,
-                dp(4),
-                0,
-                0
-        );
 
         tile.addView(
                 label,
                 new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
-                        dp(25)
+                        dp(22)
                 )
         );
 
@@ -1257,13 +1375,36 @@ public class SettingsActivity extends Activity {
     }
 
 
-    private void addDefaultThemeGallery(LinearLayout page) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
+    private void addDefaultThemeGallery(
+            LinearLayout page
+    ) {
+        LinearLayout row =
+                new LinearLayout(this);
 
-        addDefaultThemeTile(row,"Cream",Color.rgb(247,245,242),1);
-        addDefaultThemeTile(row,"Glass",Color.rgb(45,48,54),0);
-        addDefaultThemeTile(row,"Clear",Color.rgb(30,32,37),2);
+        row.setOrientation(
+                LinearLayout.HORIZONTAL
+        );
+
+        addDefaultThemeTile(
+                row,
+                "Dynamic",
+                Color.rgb(247,245,242),
+                1
+        );
+
+        addDefaultThemeTile(
+                row,
+                "Dark",
+                Color.rgb(36,38,43),
+                0
+        );
+
+        addDefaultThemeTile(
+                row,
+                "Clear",
+                Color.rgb(58,61,67),
+                2
+        );
 
         page.addView(row);
     }
@@ -1275,29 +1416,28 @@ public class SettingsActivity extends Activity {
             int previewColor,
             int themeValue
     ) {
-        LinearLayout tile = themeTile(
-                name,
-                new int[]{previewColor}
+        LinearLayout tile =
+                themeTile(
+                        name,
+                        new int[]{
+                            previewColor
+                        }
+                );
+
+        registerThemeTile(
+                tile,
+                "0:" + themeValue
         );
 
-        boolean selected =
-                prefs.getInt("theme_surface_mode",0)==0 &&
-                prefs.getInt("theme",1)==themeValue;
+        tile.setOnClickListener(v ->
+                selectBuiltInThemeDraft(
+                        themeValue
+                ));
 
-        markThemeTileSelected(tile,selected);
-
-        tile.setOnClickListener(v -> {
-            prefs.edit()
-                    .putInt("theme",themeValue)
-                    .putInt("theme_surface_mode",0)
-                    .putBoolean("theme_auto_day_night",false)
-                    .apply();
-
-            toast(name+" selected");
-            showTheme();
-        });
-
-        addThemeTileToRow(row,tile);
+        addThemeTileToRow(
+                row,
+                tile
+        );
     }
 
 
@@ -1307,31 +1447,50 @@ public class SettingsActivity extends Activity {
             int[] colors
     ) {
         for(int i=0;i<colors.length;i+=3) {
-            LinearLayout row = new LinearLayout(this);
-            row.setOrientation(LinearLayout.HORIZONTAL);
+            LinearLayout row =
+                    new LinearLayout(this);
+
+            row.setOrientation(
+                    LinearLayout.HORIZONTAL
+            );
 
             for(int col=0;col<3;col++) {
                 int index=i+col;
 
                 if(index<colors.length) {
-                    final int color=colors[index];
-                    final String name=names[index];
+                    final int color =
+                            colors[index];
 
-                    LinearLayout tile = themeTile(
-                            name,
-                            new int[]{color}
+                    final String name =
+                            names[index];
+
+                    LinearLayout tile =
+                            themeTile(
+                                    "",
+                                    new int[]{
+                                        color
+                                    }
+                            );
+
+                    tile.setContentDescription(
+                            name
                     );
 
-                    boolean selected =
-                            prefs.getInt("theme_surface_mode",0)==1 &&
-                            prefs.getInt("theme_custom_start",0)==color;
-
-                    markThemeTileSelected(tile,selected);
+                    registerThemeTile(
+                            tile,
+                            "1:" + color
+                    );
 
                     tile.setOnClickListener(v ->
-                            applySolidTheme(name,color));
+                            selectSolidThemeDraft(
+                                    color
+                            ));
 
-                    addThemeTileToRow(row,tile);
+                    addThemeTileToRow(
+                            row,
+                            tile
+                    );
+
                 } else {
                     addThemeTileSpacer(row);
                 }
@@ -1347,36 +1506,62 @@ public class SettingsActivity extends Activity {
             String[] names,
             int[] pairs
     ) {
-        int count=Math.min(names.length,pairs.length/2);
+        int count =
+                Math.min(
+                        names.length,
+                        pairs.length/2
+                );
 
         for(int i=0;i<count;i+=3) {
-            LinearLayout row = new LinearLayout(this);
-            row.setOrientation(LinearLayout.HORIZONTAL);
+            LinearLayout row =
+                    new LinearLayout(this);
+
+            row.setOrientation(
+                    LinearLayout.HORIZONTAL
+            );
 
             for(int col=0;col<3;col++) {
                 int index=i+col;
 
                 if(index<count) {
-                    final int start=pairs[index*2];
-                    final int end=pairs[index*2+1];
-                    final String name=names[index];
+                    final int start =
+                            pairs[index*2];
 
-                    LinearLayout tile = themeTile(
-                            name,
-                            new int[]{start,end}
+                    final int end =
+                            pairs[index*2+1];
+
+                    final String name =
+                            names[index];
+
+                    LinearLayout tile =
+                            themeTile(
+                                    "",
+                                    new int[]{
+                                        start,
+                                        end
+                                    }
+                            );
+
+                    tile.setContentDescription(
+                            name
                     );
 
-                    boolean selected =
-                            prefs.getInt("theme_surface_mode",0)==2 &&
-                            prefs.getInt("theme_custom_start",0)==start &&
-                            prefs.getInt("theme_custom_end",0)==end;
-
-                    markThemeTileSelected(tile,selected);
+                    registerThemeTile(
+                            tile,
+                            "2:" + start + ":" + end
+                    );
 
                     tile.setOnClickListener(v ->
-                            applyGradientTheme(name,start,end));
+                            selectGradientThemeDraft(
+                                    start,
+                                    end
+                            ));
 
-                    addThemeTileToRow(row,tile);
+                    addThemeTileToRow(
+                            row,
+                            tile
+                    );
+
                 } else {
                     addThemeTileSpacer(row);
                 }
@@ -1391,24 +1576,53 @@ public class SettingsActivity extends Activity {
             String name,
             int[] colors
     ) {
-        LinearLayout tile = new LinearLayout(this);
-        tile.setOrientation(LinearLayout.VERTICAL);
-        tile.setPadding(dp(3),dp(3),dp(3),dp(6));
+        LinearLayout tile =
+                new LinearLayout(this);
 
-        TextView preview = new TextView(this);
-        preview.setText("━━━━  ●");
-        preview.setTextSize(15);
-        preview.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-        preview.setPadding(dp(5),dp(6),dp(5),dp(8));
+        tile.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        tile.setPadding(
+                dp(3),
+                dp(3),
+                dp(3),
+                dp(4)
+        );
+
+        TextView preview =
+                new TextView(this);
+
+        preview.setText("━━━━   ●");
+        preview.setTextSize(14);
+        preview.setGravity(
+                Gravity.BOTTOM |
+                Gravity.CENTER_HORIZONTAL
+        );
+
+        preview.setPadding(
+                dp(5),
+                dp(5),
+                dp(5),
+                dp(8)
+        );
 
         int middle=colors[0];
+
         if(colors.length>1)
-            middle=averageColor(colors[0],colors[colors.length-1]);
+            middle=averageColor(
+                    colors[0],
+                    colors[colors.length-1]
+            );
 
         preview.setTextColor(
                 isLightThemeColor(middle)
-                        ? Color.argb(155,55,60,65)
-                        : Color.argb(205,245,245,247)
+                        ? Color.argb(
+                            130,55,60,65
+                        )
+                        : Color.argb(
+                            205,245,245,247
+                        )
         );
 
         GradientDrawable bg;
@@ -1423,31 +1637,35 @@ public class SettingsActivity extends Activity {
             bg.setColor(colors[0]);
         }
 
-        bg.setCornerRadius(dp(16));
+        bg.setCornerRadius(dp(15));
         bg.setStroke(dp(1),BORDER);
+
         preview.setBackground(bg);
 
         tile.addView(
                 preview,
                 new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
-                        dp(68)
+                        dp(72)
                 )
         );
 
-        TextView label = new TextView(this);
+        TextView label =
+                new TextView(this);
+
         label.setText(name);
         label.setTextColor(TEXT);
         label.setTextSize(10);
         label.setGravity(Gravity.CENTER);
         label.setSingleLine(true);
-        label.setPadding(0,dp(4),0,0);
 
         tile.addView(
                 label,
                 new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
-                        dp(25)
+                        name.isEmpty()
+                                ? dp(8)
+                                : dp(22)
                 )
         );
 
@@ -1459,42 +1677,63 @@ public class SettingsActivity extends Activity {
             String symbol,
             String labelText
     ) {
-        LinearLayout tile = new LinearLayout(this);
-        tile.setOrientation(LinearLayout.VERTICAL);
-        tile.setPadding(dp(3),dp(3),dp(3),dp(6));
+        LinearLayout tile =
+                new LinearLayout(this);
 
-        TextView preview = new TextView(this);
+        tile.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        tile.setPadding(
+                dp(3),
+                dp(3),
+                dp(3),
+                dp(5)
+        );
+
+        TextView preview =
+                new TextView(this);
+
         preview.setText(symbol);
-        preview.setTextSize(34);
+        preview.setTextSize(31);
         preview.setGravity(Gravity.CENTER);
-        preview.setTextColor(Color.rgb(77,99,148));
+        preview.setTextColor(
+                Color.rgb(77,99,148)
+        );
 
-        GradientDrawable bg = new GradientDrawable();
+        GradientDrawable bg =
+                new GradientDrawable();
+
         bg.setColor(Color.WHITE);
-        bg.setCornerRadius(dp(16));
-        bg.setStroke(dp(2),Color.rgb(101,124,173));
+        bg.setCornerRadius(dp(15));
+        bg.setStroke(
+                dp(2),
+                Color.rgb(101,124,173)
+        );
+
         preview.setBackground(bg);
 
         tile.addView(
                 preview,
                 new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
-                        dp(68)
+                        dp(72)
                 )
         );
 
-        TextView label = new TextView(this);
+        TextView label =
+                new TextView(this);
+
         label.setText(labelText);
         label.setTextColor(TEXT);
         label.setTextSize(10);
         label.setGravity(Gravity.CENTER);
-        label.setPadding(0,dp(4),0,0);
 
         tile.addView(
                 label,
                 new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
-                        dp(25)
+                        dp(22)
                 )
         );
 
@@ -1513,13 +1752,22 @@ public class SettingsActivity extends Activity {
                         1f
                 );
 
-        p.setMargins(dp(3),dp(3),dp(3),dp(5));
+        p.setMargins(
+                dp(3),
+                dp(3),
+                dp(3),
+                dp(4)
+        );
+
         row.addView(tile,p);
     }
 
 
-    private void addThemeTileSpacer(LinearLayout row) {
-        View spacer=new View(this);
+    private void addThemeTileSpacer(
+            LinearLayout row
+    ) {
+        View spacer =
+                new View(this);
 
         LinearLayout.LayoutParams p =
                 new LinearLayout.LayoutParams(
@@ -1528,116 +1776,876 @@ public class SettingsActivity extends Activity {
                         1f
                 );
 
-        p.setMargins(dp(3),0,dp(3),0);
+        p.setMargins(
+                dp(3),
+                0,
+                dp(3),
+                0
+        );
+
         row.addView(spacer,p);
     }
 
 
-    private void markThemeTileSelected(
+    private void registerThemeTile(
             LinearLayout tile,
-            boolean selected
+            String tag
     ) {
-        if(!selected) return;
-
-        GradientDrawable frame = new GradientDrawable();
-        frame.setColor(Color.TRANSPARENT);
-        frame.setCornerRadius(dp(18));
-        frame.setStroke(dp(3),Color.rgb(82,107,161));
-        tile.setBackground(frame);
+        tile.setTag(tag);
+        themeSelectableTiles.add(tile);
     }
 
 
-    private void applySolidTheme(
-            String name,
+    private String currentThemeDraftTag() {
+        if(themeDraftSurfaceMode==0)
+            return "0:" + themeDraftTheme;
+
+        if(themeDraftSurfaceMode==1)
+            return "1:" + themeDraftStart;
+
+        if(themeDraftSurfaceMode==2)
+            return "2:" +
+                    themeDraftStart +
+                    ":" +
+                    themeDraftEnd;
+
+        if(themeDraftSurfaceMode==3)
+            return "3";
+
+        return "";
+    }
+
+
+    private void refreshThemeTileSelection() {
+        String selected =
+                currentThemeDraftTag();
+
+        for(LinearLayout tile:
+                themeSelectableTiles) {
+            String tag =
+                    tile.getTag()==null
+                            ? ""
+                            : tile.getTag().toString();
+
+            GradientDrawable frame =
+                    new GradientDrawable();
+
+            frame.setColor(
+                    Color.TRANSPARENT
+            );
+
+            frame.setCornerRadius(
+                    dp(17)
+            );
+
+            if(tag.equals(selected)) {
+                frame.setStroke(
+                        dp(3),
+                        Color.rgb(
+                            82,107,161
+                        )
+                );
+            }
+
+            tile.setBackground(frame);
+        }
+    }
+
+
+    private void selectBuiltInThemeDraft(
+            int themeValue
+    ) {
+        themeDraftSurfaceMode=0;
+        themeDraftTheme=themeValue;
+
+        showThemePreviewSheet();
+        refreshThemeTileSelection();
+    }
+
+
+    private void selectSolidThemeDraft(
             int color
     ) {
-        prefs.edit()
-                .putInt("theme_custom_start",color)
-                .putInt("theme_custom_end",color)
-                .putInt("theme_surface_mode",1)
-                .putInt("theme",isLightThemeColor(color) ? 1 : 0)
-                .putBoolean("theme_auto_day_night",false)
-                .apply();
+        themeDraftSurfaceMode=1;
+        themeDraftStart=color;
+        themeDraftEnd=color;
+        themeDraftTheme =
+                isLightThemeColor(color)
+                        ? 1
+                        : 0;
 
-        toast(name+" selected");
-        showTheme();
+        showThemePreviewSheet();
+        refreshThemeTileSelection();
     }
 
 
-    private void applyGradientTheme(
-            String name,
+    private void selectGradientThemeDraft(
             int start,
             int end
     ) {
-        int average=averageColor(start,end);
+        themeDraftSurfaceMode=2;
+        themeDraftStart=start;
+        themeDraftEnd=end;
 
-        prefs.edit()
-                .putInt("theme_custom_start",start)
-                .putInt("theme_custom_end",end)
-                .putInt("theme_surface_mode",2)
-                .putInt("theme",isLightThemeColor(average) ? 1 : 0)
-                .putBoolean("theme_auto_day_night",false)
-                .apply();
+        themeDraftTheme =
+                isLightThemeColor(
+                        averageColor(
+                                start,
+                                end
+                        )
+                )
+                        ? 1
+                        : 0;
 
-        toast(name+" selected");
-        showTheme();
+        showThemePreviewSheet();
+        refreshThemeTileSelection();
     }
 
 
-    private void addPhotoThemeTile(
-            LinearLayout page,
-            String imageUri,
-            boolean active
+    private void selectPhotoThemeDraft(
+            String uriText
     ) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-
-        LinearLayout choose = createThemeTile(
-                "▧",
-                imageUri==null || imageUri.isEmpty()
-                        ? "Choose photo"
-                        : "Change photo"
-        );
-
-        choose.setOnClickListener(v -> chooseThemeImage());
-        addThemeTileToRow(row,choose);
-
-        if(imageUri!=null && !imageUri.isEmpty()) {
-            LinearLayout use=createThemeTile(
-                    active ? "✓" : "▣",
-                    active ? "Photo active" : "Use photo"
-            );
-
-            use.setOnClickListener(v -> {
-                prefs.edit()
-                        .putInt("theme_surface_mode",3)
-                        .apply();
-
-                toast("Photo theme selected");
-                showTheme();
-            });
-
-            addThemeTileToRow(row,use);
-
-            LinearLayout remove=createThemeTile("×","Remove");
-
-            remove.setOnClickListener(v -> {
-                prefs.edit()
-                        .remove("theme_image_uri")
-                        .putInt("theme_surface_mode",0)
-                        .apply();
-
-                toast("Theme image removed");
-                showTheme();
-            });
-
-            addThemeTileToRow(row,remove);
-        } else {
-            addThemeTileSpacer(row);
-            addThemeTileSpacer(row);
+        if(
+                uriText==null ||
+                uriText.isEmpty()
+        ) {
+            chooseThemeImage();
+            return;
         }
 
-        page.addView(row);
+        themeDraftSurfaceMode=3;
+        themeDraftTheme=0;
+        themeDraftImageUri=uriText;
+
+        showThemePreviewSheet();
+        refreshThemeTileSelection();
+    }
+
+
+    private LinearLayout buildThemePreviewSheet() {
+        LinearLayout sheet =
+                new LinearLayout(this);
+
+        sheet.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        sheet.setPadding(
+                dp(16),
+                dp(14),
+                dp(16),
+                dp(12)
+        );
+
+        GradientDrawable bg =
+                round(
+                    Color.rgb(
+                        252,250,246
+                    ),
+                    28
+                );
+
+        bg.setStroke(
+                dp(1),
+                BORDER
+        );
+
+        sheet.setBackground(bg);
+        sheet.setElevation(dp(14));
+
+        themePreviewFrame =
+                new FrameLayout(this);
+
+        GradientDrawable previewFrameBg =
+                new GradientDrawable();
+
+        previewFrameBg.setColor(
+                Color.rgb(
+                    35,37,42
+                )
+        );
+
+        previewFrameBg.setCornerRadius(
+                dp(20)
+        );
+
+        themePreviewFrame.setBackground(
+                previewFrameBg
+        );
+
+        themePreviewFrame.setClipToOutline(
+                true
+        );
+
+        sheet.addView(
+                themePreviewFrame,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(165)
+                )
+        );
+
+        LinearLayout borderRow =
+                new LinearLayout(this);
+
+        borderRow.setGravity(
+                Gravity.CENTER_VERTICAL
+        );
+
+        borderRow.setPadding(
+                dp(4),
+                dp(9),
+                dp(4),
+                dp(5)
+        );
+
+        TextView borderLabel =
+                new TextView(this);
+
+        borderLabel.setText(
+                "Key borders"
+        );
+
+        borderLabel.setTextColor(TEXT);
+        borderLabel.setTextSize(15);
+
+        borderRow.addView(
+                borderLabel,
+                new LinearLayout.LayoutParams(
+                        0,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        1f
+                )
+        );
+
+        themePreviewBorderSwitch =
+                new Switch(this);
+
+        themePreviewBorderSwitch.setChecked(
+                themeDraftKeyBorders
+        );
+
+        themePreviewBorderSwitch
+                .setOnCheckedChangeListener(
+                    (buttonView,isChecked) -> {
+                        themeDraftKeyBorders =
+                                isChecked;
+
+                        updateThemePreview();
+                    }
+                );
+
+        borderRow.addView(
+                themePreviewBorderSwitch
+        );
+
+        sheet.addView(borderRow);
+
+        LinearLayout actions =
+                new LinearLayout(this);
+
+        actions.setGravity(
+                Gravity.CENTER
+        );
+
+        TextView cancel =
+                textButton("Cancel");
+
+        cancel.setTextSize(14);
+        cancel.setOnClickListener(v -> {
+            pendingThemeImageUri="";
+            initThemeDraftFromPrefs();
+
+            if(themePreviewBorderSwitch!=null)
+                themePreviewBorderSwitch
+                        .setChecked(
+                            themeDraftKeyBorders
+                        );
+
+            updateThemePreview();
+            refreshThemeTileSelection();
+
+            if(themePreviewSheet!=null)
+                themePreviewSheet.setVisibility(
+                        View.GONE
+                );
+        });
+
+        TextView apply =
+                textButton("Apply");
+
+        apply.setTextSize(14);
+        apply.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        apply.setBackground(
+                round(
+                    ACCENT,
+                    18
+                )
+        );
+
+        apply.setOnClickListener(v ->
+                applyThemeDraft());
+
+        LinearLayout.LayoutParams actionParams =
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(46),
+                        1f
+                );
+
+        actionParams.setMargins(
+                dp(4),
+                dp(3),
+                dp(4),
+                0
+        );
+
+        actions.addView(
+                cancel,
+                actionParams
+        );
+
+        actions.addView(
+                apply,
+                actionParams
+        );
+
+        sheet.addView(actions);
+
+        return sheet;
+    }
+
+
+    private void showThemePreviewSheet() {
+        if(themePreviewSheet!=null)
+            themePreviewSheet.setVisibility(
+                    View.VISIBLE
+            );
+
+        if(themePreviewBorderSwitch!=null) {
+            themePreviewBorderSwitch
+                    .setOnCheckedChangeListener(
+                        null
+                    );
+
+            themePreviewBorderSwitch.setChecked(
+                    themeDraftKeyBorders
+            );
+
+            themePreviewBorderSwitch
+                    .setOnCheckedChangeListener(
+                        (buttonView,isChecked) -> {
+                            themeDraftKeyBorders =
+                                    isChecked;
+
+                            updateThemePreview();
+                        }
+                    );
+        }
+
+        updateThemePreview();
+    }
+
+
+    private void updateThemePreview() {
+        if(themePreviewFrame==null)
+            return;
+
+        themePreviewFrame.removeAllViews();
+
+        int previewBaseColor;
+
+        if(themeDraftSurfaceMode==3) {
+            previewBaseColor =
+                    Color.rgb(
+                        42,42,46
+                    );
+
+            if(
+                    themeDraftImageUri!=null &&
+                    !themeDraftImageUri.isEmpty()
+            ) {
+                ImageView image =
+                        new ImageView(this);
+
+                image.setScaleType(
+                        ImageView.ScaleType.CENTER_CROP
+                );
+
+                try {
+                    image.setImageURI(
+                            Uri.parse(
+                                themeDraftImageUri
+                            )
+                    );
+                } catch(Exception ignored) {
+                    image.setBackgroundColor(
+                            previewBaseColor
+                    );
+                }
+
+                themePreviewFrame.addView(
+                        image,
+                        new FrameLayout.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                );
+            }
+
+            View shade =
+                    new View(this);
+
+            shade.setBackgroundColor(
+                    Color.argb(
+                        34,
+                        0,0,0
+                    )
+            );
+
+            themePreviewFrame.addView(
+                    shade,
+                    new FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+            );
+
+        } else {
+            GradientDrawable previewBg =
+                    new GradientDrawable();
+
+            if(themeDraftSurfaceMode==2) {
+                previewBg =
+                        new GradientDrawable(
+                            GradientDrawable.Orientation.TL_BR,
+                            new int[]{
+                                themeDraftStart,
+                                themeDraftEnd
+                            }
+                        );
+
+                previewBaseColor =
+                        averageColor(
+                                themeDraftStart,
+                                themeDraftEnd
+                        );
+
+            } else if(themeDraftSurfaceMode==1) {
+                previewBg.setColor(
+                        themeDraftStart
+                );
+
+                previewBaseColor =
+                        themeDraftStart;
+
+            } else {
+                previewBaseColor =
+                        themeDraftTheme==1
+                                ? Color.rgb(
+                                    239,243,244
+                                )
+                                : themeDraftTheme==2
+                                    ? Color.rgb(
+                                        44,49,55
+                                    )
+                                    : Color.rgb(
+                                        31,38,48
+                                    );
+
+                previewBg.setColor(
+                        previewBaseColor
+                );
+            }
+
+            previewBg.setCornerRadius(
+                    dp(20)
+            );
+
+            themePreviewFrame.setBackground(
+                    previewBg
+            );
+        }
+
+        boolean light =
+                themeDraftSurfaceMode!=3 &&
+                isLightThemeColor(
+                    previewBaseColor
+                );
+
+        int keyTextColor =
+                light
+                        ? Color.rgb(
+                            42,45,48
+                        )
+                        : Color.WHITE;
+
+        LinearLayout keyboard =
+                new LinearLayout(this);
+
+        keyboard.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        keyboard.setPadding(
+                dp(8),
+                dp(6),
+                dp(8),
+                dp(7)
+        );
+
+        themePreviewFrame.addView(
+                keyboard,
+                new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                )
+        );
+
+        TextView toolbar =
+                new TextView(this);
+
+        toolbar.setText(
+                "▦        ☺        ▣        ✎        ◐        ↔"
+        );
+
+        toolbar.setTextColor(
+                keyTextColor
+        );
+
+        toolbar.setTextSize(13);
+        toolbar.setGravity(
+                Gravity.CENTER
+        );
+
+        keyboard.addView(
+                toolbar,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        0,
+                        .8f
+                )
+        );
+
+        addThemePreviewRow(
+                keyboard,
+                new String[]{
+                    "q","w","e","r","t",
+                    "y","u","i","o","p"
+                },
+                null,
+                keyTextColor
+        );
+
+        addThemePreviewRow(
+                keyboard,
+                new String[]{
+                    "a","s","d","f","g",
+                    "h","j","k","l"
+                },
+                null,
+                keyTextColor
+        );
+
+        addThemePreviewRow(
+                keyboard,
+                new String[]{
+                    "⇧","z","x","c","v",
+                    "b","n","m","⌫"
+                },
+                new boolean[]{
+                    true,false,false,false,false,
+                    false,false,false,true
+                },
+                keyTextColor
+        );
+
+        LinearLayout bottom =
+                new LinearLayout(this);
+
+        bottom.setGravity(
+                Gravity.CENTER
+        );
+
+        bottom.addView(
+                themePreviewKey(
+                    "?123",
+                    1.15f,
+                    true,
+                    keyTextColor,
+                    light
+                )
+        );
+
+        bottom.addView(
+                themePreviewKey(
+                    ",",
+                    .65f,
+                    false,
+                    keyTextColor,
+                    light
+                )
+        );
+
+        bottom.addView(
+                themePreviewKey(
+                    "KeyKii",
+                    2.55f,
+                    true,
+                    keyTextColor,
+                    light
+                )
+        );
+
+        bottom.addView(
+                themePreviewKey(
+                    ".",
+                    .65f,
+                    false,
+                    keyTextColor,
+                    light
+                )
+        );
+
+        bottom.addView(
+                themePreviewKey(
+                    "↵",
+                    1f,
+                    true,
+                    keyTextColor,
+                    light
+                )
+        );
+
+        keyboard.addView(
+                bottom,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        0,
+                        1f
+                )
+        );
+    }
+
+
+    private void addThemePreviewRow(
+            LinearLayout parent,
+            String[] labels,
+            boolean[] special,
+            int textColor
+    ) {
+        boolean light =
+                textColor != Color.WHITE;
+
+        LinearLayout row =
+                new LinearLayout(this);
+
+        row.setGravity(
+                Gravity.CENTER
+        );
+
+        for(int i=0;i<labels.length;i++) {
+            boolean isSpecial =
+                    special!=null &&
+                    i<special.length &&
+                    special[i];
+
+            row.addView(
+                    themePreviewKey(
+                        labels[i],
+                        1f,
+                        isSpecial,
+                        textColor,
+                        light
+                    )
+            );
+        }
+
+        parent.addView(
+                row,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        0,
+                        1f
+                )
+        );
+    }
+
+
+    private TextView themePreviewKey(
+            String label,
+            float weight,
+            boolean special,
+            int textColor,
+            boolean light
+    ) {
+        TextView key =
+                new TextView(this);
+
+        key.setText(label);
+        key.setTextColor(textColor);
+        key.setTextSize(
+                label.length()>2
+                        ? 10
+                        : 14
+        );
+
+        key.setGravity(
+                Gravity.CENTER
+        );
+
+        if(
+                themeDraftKeyBorders ||
+                special
+        ) {
+            GradientDrawable bg =
+                    new GradientDrawable();
+
+            int alpha =
+                    themeDraftKeyBorders
+                            ? 95
+                            : 56;
+
+            if(light) {
+                bg.setColor(
+                        Color.argb(
+                            alpha,
+                            255,255,255
+                        )
+                );
+            } else {
+                bg.setColor(
+                        Color.argb(
+                            alpha,
+                            235,238,242
+                        )
+                );
+            }
+
+            bg.setCornerRadius(
+                    dp(
+                        prefs.getInt(
+                            "key_corner_radius",
+                            15
+                        )
+                    )
+            );
+
+            if(themeDraftKeyBorders) {
+                bg.setStroke(
+                        dp(1),
+                        light
+                                ? Color.argb(
+                                    80,50,55,60
+                                )
+                                : Color.argb(
+                                    80,255,255,255
+                                )
+                );
+            }
+
+            key.setBackground(bg);
+        }
+
+        LinearLayout.LayoutParams p =
+                new LinearLayout.LayoutParams(
+                        0,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        weight
+                );
+
+        p.setMargins(
+                dp(2),
+                dp(2),
+                dp(2),
+                dp(2)
+        );
+
+        key.setLayoutParams(p);
+
+        return key;
+    }
+
+
+    private void applyThemeDraft() {
+        if(
+                themeDraftSurfaceMode==3 &&
+                (
+                    themeDraftImageUri==null ||
+                    themeDraftImageUri.isEmpty()
+                )
+        ) {
+            toast("Choose a photo first");
+            return;
+        }
+
+        SharedPreferences.Editor e =
+                prefs.edit();
+
+        e.putInt(
+                "theme_surface_mode",
+                themeDraftSurfaceMode
+        );
+
+        e.putInt(
+                "theme",
+                themeDraftTheme
+        );
+
+        e.putBoolean(
+                "theme_key_borders",
+                themeDraftKeyBorders
+        );
+
+        // Keep backward compatibility with the 2.17.1 photo setting.
+        e.putBoolean(
+                "photo_key_borders",
+                themeDraftKeyBorders
+        );
+
+        e.putBoolean(
+                "theme_auto_day_night",
+                false
+        );
+
+        if(
+                themeDraftSurfaceMode==1 ||
+                themeDraftSurfaceMode==2
+        ) {
+            e.putInt(
+                    "theme_custom_start",
+                    themeDraftStart
+            );
+
+            e.putInt(
+                    "theme_custom_end",
+                    themeDraftEnd
+            );
+        }
+
+        if(themeDraftSurfaceMode==3) {
+            e.putString(
+                    "theme_image_uri",
+                    themeDraftImageUri
+            );
+        }
+
+        e.apply();
+
+        pendingThemeImageUri="";
+
+        toast("Theme applied");
+
+        refreshThemeTileSelection();
+
+        if(themePreviewSheet!=null)
+            themePreviewSheet.setVisibility(
+                    View.GONE
+            );
     }
 
 
@@ -1646,22 +2654,39 @@ public class SettingsActivity extends Activity {
             themeScrollY=themeScrollView.getScrollY();
 
         try {
-            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            Intent intent =
+                    new Intent(
+                        Intent.ACTION_OPEN_DOCUMENT
+                    );
+
+            intent.addCategory(
+                    Intent.CATEGORY_OPENABLE
+            );
+
             intent.setType("image/*");
+
             intent.addFlags(
                     Intent.FLAG_GRANT_READ_URI_PERMISSION |
                     Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
             );
 
-            startActivityForResult(intent,REQUEST_THEME_IMAGE);
+            startActivityForResult(
+                    intent,
+                    REQUEST_THEME_IMAGE
+            );
+
         } catch(Exception e) {
-            toast("Image picker is unavailable on this device.");
+            toast(
+                    "Image picker is unavailable on this device."
+            );
         }
     }
 
 
-    private int averageColor(int a,int b) {
+    private int averageColor(
+            int a,
+            int b
+    ) {
         return Color.rgb(
                 (Color.red(a)+Color.red(b))/2,
                 (Color.green(a)+Color.green(b))/2,
@@ -1670,410 +2695,63 @@ public class SettingsActivity extends Activity {
     }
 
 
-    private boolean isLightThemeColor(int color) {
+    private boolean isLightThemeColor(
+            int color
+    ) {
         int brightness =
-                (Color.red(color)*299 +
-                 Color.green(color)*587 +
-                 Color.blue(color)*114) / 1000;
+                (
+                    Color.red(color)*299 +
+                    Color.green(color)*587 +
+                    Color.blue(color)*114
+                ) / 1000;
 
         return brightness>=155;
     }
 
 
-    private void showPhotoThemeSetup(
-            String uriText
-    ) {
-        if(uriText==null || uriText.isEmpty()) {
-            showTheme();
-            return;
-        }
+    private void showCustomColorDialog() {
+        int current =
+                themeDraftSurfaceMode==1
+                        ? themeDraftStart
+                        : prefs.getInt(
+                            "theme_custom_start",
+                            Color.rgb(
+                                93,118,171
+                            )
+                        );
 
-        screen = "photo_theme";
+        final int[] chosen =
+                new int[]{
+                    current
+                };
 
-        LinearLayout page = page(
-                "Photo theme",
-                "Preview first, then tap Apply",
-                true
-        );
+        final int[] initial =
+                new int[]{
+                    Color.red(current),
+                    Color.green(current),
+                    Color.blue(current)
+                };
 
-        addSection(page,"Preview");
+        final SeekBar[] bars =
+                new SeekBar[3];
 
-        FrameLayout previewFrame =
-                new FrameLayout(this);
-
-        ImageView image =
-                new ImageView(this);
-
-        image.setScaleType(
-                ImageView.ScaleType.CENTER_CROP
-        );
-
-        try {
-            image.setImageURI(
-                    Uri.parse(uriText)
-            );
-        } catch(Exception ignored) {
-            image.setBackgroundColor(
-                    Color.rgb(42,42,45)
-            );
-        }
-
-        previewFrame.addView(
-                image,
-                new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                )
-        );
-
-        View shade = new View(this);
-        shade.setBackgroundColor(
-                Color.argb(48,0,0,0)
-        );
-
-        previewFrame.addView(
-                shade,
-                new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                )
-        );
-
-        TextView keyboard =
-                new TextView(this);
-
-        keyboard.setText(
-                "⌨     ☺     ▣     ✎     ◐     ↔\n\n" +
-                "Q  W  E  R  T  Y  U  I  O  P\n" +
-                " A  S  D  F  G  H  J  K  L\n" +
-                "⇧   Z  X  C  V  B  N  M   ⌫\n" +
-                "?123        KeyKii          ↵"
-        );
-
-        keyboard.setTextColor(Color.WHITE);
-        keyboard.setTextSize(15);
-        keyboard.setTypeface(
-                Typeface.MONOSPACE
-        );
-
-        keyboard.setGravity(
-                Gravity.CENTER
-        );
-
-        keyboard.setPadding(
-                dp(12),
-                dp(12),
-                dp(12),
-                dp(12)
-        );
-
-        previewFrame.addView(
-                keyboard,
-                new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                )
-        );
-
-        GradientDrawable previewBorder =
-                new GradientDrawable();
-
-        previewBorder.setColor(
-                Color.TRANSPARENT
-        );
-
-        previewBorder.setCornerRadius(
-                dp(22)
-        );
-
-        previewBorder.setStroke(
-                dp(1),
-                BORDER
-        );
-
-        previewFrame.setBackground(
-                previewBorder
-        );
-
-        previewFrame.setClipToOutline(
-                true
-        );
-
-        LinearLayout.LayoutParams previewParams =
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        dp(235)
-                );
-
-        previewParams.setMargins(
-                0,
-                dp(5),
-                0,
-                dp(12)
-        );
-
-        page.addView(
-                previewFrame,
-                previewParams
-        );
-
-        addInfoCard(
-                page,
-                "Photo style",
-                "Key borders OFF gives the cleaner look with the letters directly over your photo. Turn it ON only if you want rounded boxes behind every key."
-        );
-
-        LinearLayout borderRow = card();
-        borderRow.setGravity(
-                Gravity.CENTER_VERTICAL
-        );
-
-        borderRow.setPadding(
-                dp(16),
-                dp(14),
-                dp(12),
-                dp(14)
-        );
-
-        LinearLayout borderWords =
+        LinearLayout box =
                 new LinearLayout(this);
 
-        borderWords.setOrientation(
+        box.setOrientation(
                 LinearLayout.VERTICAL
         );
 
-        TextView borderTitle =
-                new TextView(this);
-
-        borderTitle.setText(
-                "Key borders"
-        );
-
-        borderTitle.setTextColor(TEXT);
-        borderTitle.setTextSize(17);
-
-        TextView borderSub =
-                new TextView(this);
-
-        borderSub.setText(
-                "Show rounded backgrounds behind letter keys"
-        );
-
-        borderSub.setTextColor(MUTED);
-        borderSub.setTextSize(12);
-
-        borderWords.addView(borderTitle);
-        borderWords.addView(borderSub);
-
-        borderRow.addView(
-                borderWords,
-                new LinearLayout.LayoutParams(
-                        0,
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        1f
-                )
-        );
-
-        final boolean[] borders =
-                new boolean[]{
-                    prefs.getBoolean(
-                        "photo_key_borders",
-                        false
-                    )
-                };
-
-        Switch borderSwitch =
-                new Switch(this);
-
-        borderSwitch.setChecked(
-                borders[0]
-        );
-
-        borderSwitch.setOnCheckedChangeListener(
-                (buttonView,isChecked) -> {
-                    borders[0]=isChecked;
-
-                    GradientDrawable keyPreview =
-                            new GradientDrawable();
-
-                    keyPreview.setCornerRadius(
-                            dp(18)
-                    );
-
-                    if(isChecked) {
-                        keyPreview.setColor(
-                                Color.argb(
-                                    72,
-                                    255,255,255
-                                )
-                        );
-
-                        keyPreview.setStroke(
-                                dp(1),
-                                Color.argb(
-                                    100,
-                                    255,255,255
-                                )
-                        );
-
-                    } else {
-                        keyPreview.setColor(
-                                Color.TRANSPARENT
-                        );
-                    }
-
-                    keyboard.setBackground(
-                            keyPreview
-                    );
-                }
-        );
-
-        borderRow.addView(
-                borderSwitch
-        );
-
-        page.addView(
-                borderRow,
-                cardParams()
-        );
-
-        LinearLayout buttons =
-                new LinearLayout(this);
-
-        buttons.setGravity(
-                Gravity.CENTER
-        );
-
-        TextView cancel =
-                textButton("Cancel");
-
-        cancel.setTextSize(15);
-        cancel.setOnClickListener(
-                v -> showTheme()
-        );
-
-        TextView apply =
-                textButton("Apply");
-
-        apply.setTextSize(15);
-        apply.setBackground(
-                round(
-                    ACCENT,
-                    18
-                )
-        );
-
-        apply.setOnClickListener(v -> {
-            prefs.edit()
-                    .putString(
-                            "theme_image_uri",
-                            uriText
-                    )
-                    .putInt(
-                            "theme_surface_mode",
-                            3
-                    )
-                    .putBoolean(
-                            "photo_key_borders",
-                            borders[0]
-                    )
-                    .putInt(
-                            "theme",
-                            0
-                    )
-                    .putBoolean(
-                            "theme_auto_day_night",
-                            false
-                    )
-                    .apply();
-
-            pendingThemeImageUri="";
-            toast("Photo theme applied");
-            showTheme();
-        });
-
-        LinearLayout.LayoutParams buttonParams =
-                new LinearLayout.LayoutParams(
-                        0,
-                        dp(52),
-                        1f
-                );
-
-        buttonParams.setMargins(
-                dp(4),
-                dp(10),
-                dp(4),
+        box.setPadding(
+                dp(22),
+                dp(8),
+                dp(22),
                 0
         );
 
-        buttons.addView(
-                cancel,
-                buttonParams
-        );
+        TextView preview =
+                new TextView(this);
 
-        buttons.addView(
-                apply,
-                buttonParams
-        );
-
-        page.addView(buttons);
-
-        String savedImage =
-                prefs.getString(
-                        "theme_image_uri",
-                        ""
-                );
-
-        if(
-            savedImage!=null &&
-            savedImage.equals(uriText)
-        ) {
-            addActionButton(
-                    page,
-                    "Remove saved photo",
-                    v -> {
-                        prefs.edit()
-                                .remove(
-                                    "theme_image_uri"
-                                )
-                                .putInt(
-                                    "theme_surface_mode",
-                                    0
-                                )
-                                .apply();
-
-                        pendingThemeImageUri="";
-                        toast("Photo removed");
-                        showTheme();
-                    }
-            );
-        }
-
-        setContentView(
-                wrap(page)
-        );
-    }
-
-
-    private void showCustomColorDialog() {
-        int current = prefs.getInt(
-                "theme_custom_start",
-                Color.rgb(93,118,171)
-        );
-
-        final int[] chosen=new int[]{current};
-        final int[] initial=new int[]{
-                Color.red(current),
-                Color.green(current),
-                Color.blue(current)
-        };
-        final SeekBar[] bars=new SeekBar[3];
-
-        LinearLayout box=new LinearLayout(this);
-        box.setOrientation(LinearLayout.VERTICAL);
-        box.setPadding(dp(22),dp(8),dp(22),0);
-
-        TextView preview=new TextView(this);
         preview.setTextSize(16);
         preview.setGravity(Gravity.CENTER);
 
@@ -2085,44 +2763,94 @@ public class SettingsActivity extends Activity {
                 )
         );
 
-        final String[] labels=new String[]{"Red","Green","Blue"};
+        final String[] labels =
+                new String[]{
+                    "Red",
+                    "Green",
+                    "Blue"
+                };
 
         Runnable refreshPreview=() -> {
-            int red=bars[0]==null ? initial[0] : bars[0].getProgress();
-            int green=bars[1]==null ? initial[1] : bars[1].getProgress();
-            int blue=bars[2]==null ? initial[2] : bars[2].getProgress();
+            int red =
+                    bars[0]==null
+                            ? initial[0]
+                            : bars[0].getProgress();
 
-            chosen[0]=Color.rgb(red,green,blue);
+            int green =
+                    bars[1]==null
+                            ? initial[1]
+                            : bars[1].getProgress();
 
-            GradientDrawable d=new GradientDrawable();
+            int blue =
+                    bars[2]==null
+                            ? initial[2]
+                            : bars[2].getProgress();
+
+            chosen[0]=Color.rgb(
+                    red,
+                    green,
+                    blue
+            );
+
+            GradientDrawable d =
+                    new GradientDrawable();
+
             d.setColor(chosen[0]);
             d.setCornerRadius(dp(18));
             preview.setBackground(d);
 
             preview.setTextColor(
-                    isLightThemeColor(chosen[0])
-                            ? Color.rgb(40,40,42)
+                    isLightThemeColor(
+                        chosen[0]
+                    )
+                            ? Color.rgb(
+                                40,40,42
+                            )
                             : Color.WHITE
             );
 
             preview.setText(
-                    String.format("#%02X%02X%02X",red,green,blue)
+                    String.format(
+                            "#%02X%02X%02X",
+                            red,
+                            green,
+                            blue
+                    )
             );
         };
 
         for(int i=0;i<3;i++) {
             final int channel=i;
 
-            TextView label=new TextView(this);
-            label.setText(labels[channel]+"  "+initial[channel]);
+            TextView label =
+                    new TextView(this);
+
+            label.setText(
+                    labels[channel] +
+                    "  " +
+                    initial[channel]
+            );
+
             label.setTextColor(TEXT);
             label.setTextSize(13);
-            label.setPadding(0,dp(10),0,0);
+
+            label.setPadding(
+                    0,
+                    dp(10),
+                    0,
+                    0
+            );
+
             box.addView(label);
 
-            SeekBar bar=new SeekBar(this);
+            SeekBar bar =
+                    new SeekBar(this);
+
             bar.setMax(255);
-            bar.setProgress(initial[channel]);
+            bar.setProgress(
+                    initial[channel]
+            );
+
             bars[channel]=bar;
 
             bar.setOnSeekBarChangeListener(
@@ -2134,16 +2862,25 @@ public class SettingsActivity extends Activity {
                                 boolean fromUser
                         ) {
                             label.setText(
-                                    labels[channel]+"  "+progress
+                                    labels[channel] +
+                                    "  " +
+                                    progress
                             );
+
                             refreshPreview.run();
                         }
 
                         @Override
-                        public void onStartTrackingTouch(SeekBar seekBar) {}
+                        public void onStartTrackingTouch(
+                                SeekBar seekBar
+                        ) {
+                        }
 
                         @Override
-                        public void onStopTrackingTouch(SeekBar seekBar) {}
+                        public void onStopTrackingTouch(
+                                SeekBar seekBar
+                        ) {
+                        }
                     }
             );
 
@@ -2155,11 +2892,16 @@ public class SettingsActivity extends Activity {
         new AlertDialog.Builder(this)
                 .setTitle("Create any color")
                 .setView(box)
-                .setNegativeButton("Cancel",null)
+                .setNegativeButton(
+                        "Cancel",
+                        null
+                )
                 .setPositiveButton(
-                        "Use color",
+                        "Preview",
                         (dialog,which) ->
-                                applySolidTheme("Custom",chosen[0])
+                                selectSolidThemeDraft(
+                                        chosen[0]
+                                )
                 )
                 .show();
     }

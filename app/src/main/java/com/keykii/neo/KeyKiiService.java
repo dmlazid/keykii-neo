@@ -6377,11 +6377,36 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    boolean themeKeyBorders() {
+        SharedPreferences p=
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            );
+
+        // Existing installs keep their normal boxed keys until the user
+        // explicitly changes Key borders in the new Theme preview.
+        return p.getBoolean(
+            "theme_key_borders",
+            true
+        );
+    }
+
+
     boolean photoKeyBorders() {
-        return getSharedPreferences(
-            "keykii_prefs",
-            MODE_PRIVATE
-        ).getBoolean(
+        SharedPreferences p=
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            );
+
+        if(p.contains("theme_key_borders"))
+            return p.getBoolean(
+                "theme_key_borders",
+                false
+            );
+
+        return p.getBoolean(
             "photo_key_borders",
             false
         );
@@ -6493,30 +6518,53 @@ public class KeyKiiService extends InputMethodService {
             return state;
         }
 
-        int normalColor=
-            space
-            ? spaceColor()
-            : keyColor(special);
+        boolean borders=
+            themeKeyBorders();
+
+        int normalColor;
+
+        if(
+            !borders &&
+            !special &&
+            !space
+        ) {
+            normalColor=
+                Color.TRANSPARENT;
+        } else {
+            normalColor=
+                space
+                ? spaceColor()
+                : keyColor(special);
+        }
 
         int pressedColor=
             theme==1
-            ? Color.rgb(236,231,226)
+            ? Color.argb(
+                borders ? 255 : 88,
+                236,231,226
+            )
             : Color.argb(
-                175,245,245,247
+                borders ? 175 : 82,
+                245,245,247
             );
+
+        int stroke=
+            borders
+            ? borderColor()
+            : Color.TRANSPARENT;
 
         GradientDrawable normal=
             round(
                 normalColor,
                 keyCornerRadius(),
-                borderColor()
+                stroke
             );
 
         GradientDrawable pressed=
             round(
                 pressedColor,
                 keyCornerRadius(),
-                borderColor()
+                stroke
             );
 
         StateListDrawable state=
