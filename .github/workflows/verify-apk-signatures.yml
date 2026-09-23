@@ -1,0 +1,31 @@
+name: Verify KeyKii APK Signatures
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-apk-signatures.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: android-actions/setup-android@v3
+      - name: Install apksigner
+        run: sdkmanager 'build-tools;35.0.0'
+      - name: Download repository APKs
+        run: |
+          curl -L --fail -o keykii-2.10.5.apk https://raw.githubusercontent.com/dmlazid/keykii-neo/main/KeyKii-Neo-2.10.5.apk
+          curl -L --fail -o keykii-2.10.6.apk https://raw.githubusercontent.com/dmlazid/keykii-neo/main/KeyKii-Neo-2.10.6.apk
+      - name: Print signing certificates
+        run: |
+          APKSIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          echo "=== 2.10.5 ==="
+          "$APKSIGNER" verify --print-certs keykii-2.10.5.apk
+          echo "=== 2.10.6 ==="
+          "$APKSIGNER" verify --print-certs keykii-2.10.6.apk
