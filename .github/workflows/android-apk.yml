@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -22,27 +22,56 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
+
       - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
+
       - name: Keep one debug signing key for update installs
         uses: actions/cache@v4
         with:
           path: ~/.android/debug.keystore
           key: keykii-neo-debug-keystore-v1
+
       - name: Install Android SDK
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
-      - name: Build debug APK
+
+      - name: Build APK
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon :app:assembleDebug
+
+      - name: Rename APK with KeyKii version
+        id: package
+        shell: bash
+        run: |
+          VERSION=$(sed -n "s/.*versionName '\([^']*\)'.*/\1/p" app/build.gradle | head -n 1)
+          APK_NAME="KeyKii-Neo-${VERSION}.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "${APK_NAME}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "apk_name=${APK_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Save versioned APK in repository
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${{ steps.package.outputs.apk_name }}"
+          if git diff --cached --quiet; then
+            echo "APK already exists with the same contents."
+          else
+            git commit -m "Build KeyKii Neo ${{ steps.package.outputs.version }} APK"
+            git push
+          fi
+
       - uses: actions/upload-artifact@v4
         with:
-          name: KeyKii-Neo-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: KeyKii-Neo-${{ steps.package.outputs.version }}
+          path: ${{ steps.package.outputs.apk_name }}
           if-no-files-found: error
