@@ -12,6 +12,8 @@ import android.widget.*;
 public class KeyKiiService extends InputMethodService {
     String emojiSearchQuery="";
     boolean emojiSearchMode=false;
+    boolean kaomojiMode=false;
+    int kaomojiCategory=0;
 
 
 
@@ -885,6 +887,37 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    boolean canRenderEmoji(String value) {
+
+        if(value==null || value.trim().isEmpty())
+            return false;
+
+        if(
+            value.equals("□") ||
+            value.equals("�")
+        )
+            return false;
+
+        if(android.os.Build.VERSION.SDK_INT >= 23) {
+
+            try {
+
+                android.graphics.Paint paint=
+                    new android.graphics.Paint();
+
+                paint.setTypeface(
+                    android.graphics.Typeface.DEFAULT
+                );
+
+                return paint.hasGlyph(value);
+
+            } catch(Exception ignored) {}
+        }
+
+        return true;
+    }
+
+
     void buildEmoji() {
 
         // KEYKII_SEARCH_BAR
@@ -893,9 +926,13 @@ public class KeyKiiService extends InputMethodService {
 
         TextView search=new TextView(this);
         search.setText(
-            emojiSearchQuery.isEmpty()
-            ? "🔍  Search emoji"
-            : "🔍  "+emojiSearchQuery
+            kaomojiMode
+            ? "Kaomoji"
+            : (
+                emojiSearchQuery.isEmpty()
+                ? "🔍  Search emoji"
+                : "🔍  "+emojiSearchQuery
+            )
         );
         search.setTextSize(14);
         search.setTextColor(textColor());
@@ -914,6 +951,42 @@ public class KeyKiiService extends InputMethodService {
             search,
             new LinearLayout.LayoutParams(
                 0,dp(40),1
+            )
+        );
+
+        TextView kaomoji=
+            new TextView(this);
+
+        kaomoji.setText(
+            kaomojiMode ? "😀" : ":-)"
+        );
+
+        kaomoji.setTextSize(16);
+        kaomoji.setTextColor(textColor());
+        kaomoji.setGravity(Gravity.CENTER);
+
+        kaomoji.setBackground(
+            round(
+                keyColor(false),
+                14,
+                borderColor()
+            )
+        );
+
+        kaomoji.setOnClickListener(v -> {
+
+            kaomojiMode=!kaomojiMode;
+            emojiSearchMode=false;
+            emojiSearchQuery="";
+
+            showPage();
+        });
+
+        searchRow.addView(
+            kaomoji,
+            new LinearLayout.LayoutParams(
+                dp(54),
+                dp(40)
             )
         );
 
@@ -942,6 +1015,11 @@ public class KeyKiiService extends InputMethodService {
                 -1,dp(44)
             )
         );
+
+        if(kaomojiMode) {
+            buildKaomojiPanel();
+            return;
+        }
 
         String[] groupNames={
             "Recent",
@@ -1117,6 +1195,30 @@ public class KeyKiiService extends InputMethodService {
             emojis.clear();
             emojis.addAll(
                 searchEmojiDatabase(emojiSearchQuery)
+            );
+        }
+
+        // Hide emoji that this phone cannot display.
+        // This prevents the blank square boxes.
+        for(int i=emojis.size()-1;i>=0;i--) {
+
+            if(!canRenderEmoji(emojis.get(i))) {
+                emojis.remove(i);
+            }
+        }
+
+        // First category = continuous ALL emoji view
+        if(
+            emojiCategory==0 &&
+            (
+                emojiSearchQuery==null ||
+                emojiSearchQuery.trim().isEmpty()
+            )
+        ) {
+
+            emojis.clear();
+            emojis.addAll(
+                loadAllDisplayableEmoji()
             );
         }
 
@@ -1570,6 +1672,49 @@ public class KeyKiiService extends InputMethodService {
 
 
 
+
+    java.util.ArrayList<String> loadAllDisplayableEmoji() {
+
+        java.util.ArrayList<String> out=
+            new java.util.ArrayList<>();
+
+        try {
+
+            java.io.BufferedReader r=
+                new java.io.BufferedReader(
+                    new java.io.InputStreamReader(
+                        getAssets().open("keykii-emojis.txt"),
+                        "UTF-8"
+                    )
+                );
+
+            String line;
+
+            while((line=r.readLine())!=null) {
+
+                String[] x=line.split("\\t",-1);
+
+                if(x.length<3)
+                    continue;
+
+                String emoji=x[2].trim();
+
+                if(
+                    canRenderEmoji(emoji) &&
+                    !out.contains(emoji)
+                ) {
+                    out.add(emoji);
+                }
+            }
+
+            r.close();
+
+        } catch(Exception ignored) {}
+
+        return out;
+    }
+
+
     java.util.ArrayList<String> searchEmojiDatabase(String query) {
 
         java.util.ArrayList<String> result=
@@ -1623,6 +1768,286 @@ public class KeyKiiService extends InputMethodService {
         } catch(Exception ignored) {}
 
         return result;
+    }
+
+
+
+    void buildKaomojiPanel() {
+
+        String[] categoryNames={
+            "Classic",
+            "Smiling",
+            "Love",
+            "Hugging",
+            "Flexing"
+        };
+
+        String[][] faces={
+
+            {
+                "(^_^)",
+                "(^-^)",
+                "(•‿•)",
+                "(•ᴗ•)",
+                "(^o^)",
+                "(>_<)",
+                "(T_T)",
+                "(._.)",
+                "(¬_¬)",
+                "(^.^)",
+                "(o_o)",
+                "(^▽^)"
+            },
+
+            {
+                "(*^▽^*)",
+                "(⌒▽⌒)",
+                "(≧▽≦)",
+                "(´▽`)",
+                "(＾▽＾)",
+                "(◕‿◕)",
+                "(｡◕‿◕｡)",
+                "(✿◠‿◠)",
+                "(￣▽￣)",
+                "(๑˃ᴗ˂)ﻭ",
+                "(ﾉ◕ヮ◕)ﾉ",
+                "(´• ω •`)"
+            },
+
+            {
+                "(♡‿♡)",
+                "(♥ω♥*)",
+                "(´♡‿♡`)",
+                "(♡°▽°♡)",
+                "(❤ω❤)",
+                "(♡˙︶˙♡)",
+                "(｡♥‿♥｡)",
+                "(´｡• ᵕ •｡`) ♡",
+                "(♥‿♥)",
+                "(っ˘з(˘⌣˘ )",
+                "(´ ε ` )♡",
+                "♡( ◡‿◡ )"
+            },
+
+            {
+                "(づ｡◕‿‿◕｡)づ",
+                "⊂(・▽・⊂)",
+                "(つ≧▽≦)つ",
+                "(づ￣ ³￣)づ",
+                "ლ(・ヮ・ლ)",
+                "⊂(◉‿◉)つ",
+                "(っ´▽`)っ",
+                "(づ ◕‿◕ )づ",
+                "⊂(´• ω •`⊂)",
+                "(つ✧ω✧)つ",
+                "(づ｡◕‿◕｡)づ",
+                "(っ˘̩╭╮˘̩)っ"
+            },
+
+            {
+                "ᕙ(⇀‸↼‶)ᕗ",
+                "ᕙ( •̀ ᗜ •́ )ᕗ",
+                "ᕦ(ò_óˇ)ᕤ",
+                "ᕙ(`▿´)ᕗ",
+                "ᕦ(ò_óˇ)ᕤ",
+                "💪(•̀ᴗ•́)و",
+                "ᕙ(＠°▽°＠)ᕗ",
+                "ᕦ(ಠ_ಠ)ᕤ",
+                "ᕙ(⇀‸↼)ᕗ",
+                "ᕦ(ò_ó)ᕤ",
+                "ᕙ(  •̀ ᗜ •́  )ᕗ",
+                "ᕦ(ò_óˇ)ᕤ"
+            }
+        };
+
+
+        HorizontalScrollView tabsScroll=
+            new HorizontalScrollView(this);
+
+        tabsScroll.setHorizontalScrollBarEnabled(
+            false
+        );
+
+        LinearLayout tabs=
+            new LinearLayout(this);
+
+        tabs.setOrientation(
+            LinearLayout.HORIZONTAL
+        );
+
+        for(
+            int i=0;
+            i<categoryNames.length;
+            i++
+        ) {
+
+            final int index=i;
+
+            TextView tab=
+                new TextView(this);
+
+            tab.setText(
+                categoryNames[i]
+            );
+
+            tab.setTextSize(14);
+            tab.setTextColor(textColor());
+            tab.setGravity(Gravity.CENTER);
+
+            if(i==kaomojiCategory) {
+
+                tab.setBackground(
+                    round(
+                        keyColor(false),
+                        16,
+                        borderColor()
+                    )
+                );
+            }
+
+            tab.setOnClickListener(v -> {
+
+                kaomojiCategory=index;
+                showPage();
+            });
+
+            LinearLayout.LayoutParams tp=
+                new LinearLayout.LayoutParams(
+                    dp(95),
+                    dp(42)
+                );
+
+            tp.setMargins(
+                dp(3),
+                dp(2),
+                dp(3),
+                dp(2)
+            );
+
+            tabs.addView(
+                tab,
+                tp
+            );
+        }
+
+        tabsScroll.addView(tabs);
+
+        body.addView(
+            tabsScroll,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(46)
+            )
+        );
+
+
+        ScrollView scroll=
+            new ScrollView(this);
+
+        scroll.setVerticalScrollBarEnabled(
+            true
+        );
+
+        LinearLayout list=
+            new LinearLayout(this);
+
+        list.setOrientation(
+            LinearLayout.VERTICAL
+        );
+
+        String[] selected=
+            faces[kaomojiCategory];
+
+        int columns=3;
+
+        for(
+            int i=0;
+            i<selected.length;
+            i+=columns
+        ) {
+
+            LinearLayout row=
+                new LinearLayout(this);
+
+            row.setGravity(Gravity.CENTER);
+
+            for(
+                int j=i;
+                j<Math.min(
+                    i+columns,
+                    selected.length
+                );
+                j++
+            ) {
+
+                final String value=
+                    selected[j];
+
+                TextView face=
+                    new TextView(this);
+
+                face.setText(value);
+                face.setTextSize(16);
+                face.setTextColor(
+                    textColor()
+                );
+
+                face.setGravity(
+                    Gravity.CENTER
+                );
+
+                face.setBackground(
+                    round(
+                        keyColor(false),
+                        14,
+                        borderColor()
+                    )
+                );
+
+                face.setOnClickListener(v -> {
+
+                    InputConnection input=
+                        getCurrentInputConnection();
+
+                    if(input!=null)
+                        input.commitText(
+                            value,
+                            1
+                        );
+                });
+
+                LinearLayout.LayoutParams fp=
+                    new LinearLayout.LayoutParams(
+                        0,
+                        dp(72),
+                        1
+                    );
+
+                fp.setMargins(
+                    dp(4),
+                    dp(4),
+                    dp(4),
+                    dp(4)
+                );
+
+                row.addView(
+                    face,
+                    fp
+                );
+            }
+
+            list.addView(row);
+        }
+
+        scroll.addView(list);
+
+        body.addView(
+            scroll,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(300)
+            )
+        );
     }
 
 
