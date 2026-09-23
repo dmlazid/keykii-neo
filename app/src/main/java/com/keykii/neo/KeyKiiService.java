@@ -92,7 +92,7 @@ public class KeyKiiService extends InputMethodService {
                     InputConnection ic=
                         getCurrentInputConnection();
                     if(ic!=null)
-                        ic.deleteSurroundingText(1,0);
+                        deleteOneBeforeCursor(ic);
                 }
 
                 backspaceRepeating=true;
@@ -902,6 +902,11 @@ public class KeyKiiService extends InputMethodService {
                          .scaleY(1f)
                          .setDuration(45)
                          .start();
+                        v.setPressed(false);
+                        v.post(() -> {
+                            v.setPressed(false);
+                            v.jumpDrawablesToCurrentState();
+                        });
                         dismissKeyPreview();
                     }
 
@@ -945,6 +950,16 @@ public class KeyKiiService extends InputMethodService {
                  .scaleY(1f)
                  .setDuration(45)
                  .start();
+
+                // Some Android skins can leave a custom IME key in its
+                // pressed drawable state after a tap. Force the state back
+                // to normal after the framework finishes dispatching UP.
+                v.setPressed(false);
+                v.post(() -> {
+                    v.setPressed(false);
+                    v.jumpDrawablesToCurrentState();
+                });
+
                 dismissKeyPreview();
             }
 
@@ -996,6 +1011,12 @@ public class KeyKiiService extends InputMethodService {
             }
 
             press(action);
+
+            v.setPressed(false);
+            v.post(() -> {
+                v.setPressed(false);
+                v.jumpDrawablesToCurrentState();
+            });
         });
 
         int height=dp(keyHeight);
@@ -2060,7 +2081,7 @@ public class KeyKiiService extends InputMethodService {
 
             InputConnection ic=getCurrentInputConnection();
             if(ic!=null)
-                ic.deleteSurroundingText(1,0);
+                deleteOneBeforeCursor(ic);
         });
 
         TextView[] buttons={abc,emoji,gif,sticker,kao,del};
@@ -4562,6 +4583,114 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    boolean isGraphemeExtend(int cp) {
+        int type=Character.getType(cp);
+
+        return
+            cp==0xFE0E ||
+            cp==0xFE0F ||
+            cp==0x20E3 ||
+            (cp>=0x1F3FB && cp<=0x1F3FF) ||
+            (cp>=0xE0020 && cp<=0xE007F) ||
+            type==Character.NON_SPACING_MARK ||
+            type==Character.COMBINING_SPACING_MARK ||
+            type==Character.ENCLOSING_MARK;
+    }
+
+
+    boolean isRegionalIndicator(int cp) {
+        return cp>=0x1F1E6 && cp<=0x1F1FF;
+    }
+
+
+    int lastGraphemeUtf16Length(CharSequence text) {
+        if(text==null || text.length()==0)
+            return 0;
+
+        int end=text.length();
+        int pos=end;
+
+        int cp=Character.codePointBefore(text,pos);
+        pos-=Character.charCount(cp);
+
+        // Country flags are pairs of regional-indicator code points.
+        if(isRegionalIndicator(cp)) {
+            if(pos>0) {
+                int prev=Character.codePointBefore(text,pos);
+                if(isRegionalIndicator(prev))
+                    pos-=Character.charCount(prev);
+            }
+            return end-pos;
+        }
+
+        // Pull variation selectors, skin tones, combining marks, keycap
+        // marks and emoji tag characters into the same deletion.
+        while(isGraphemeExtend(cp) && pos>0) {
+            cp=Character.codePointBefore(text,pos);
+            pos-=Character.charCount(cp);
+        }
+
+        // Pull complete ZWJ emoji sequences (family, profession, etc.)
+        // into one deletion as well.
+        while(pos>0) {
+            int prev=Character.codePointBefore(text,pos);
+
+            if(prev!=0x200D)
+                break;
+
+            pos-=Character.charCount(prev);
+
+            if(pos<=0)
+                break;
+
+            cp=Character.codePointBefore(text,pos);
+            pos-=Character.charCount(cp);
+
+            while(isGraphemeExtend(cp) && pos>0) {
+                cp=Character.codePointBefore(text,pos);
+                pos-=Character.charCount(cp);
+            }
+        }
+
+        return end-pos;
+    }
+
+
+    void deleteOneBeforeCursor(InputConnection ic) {
+        if(ic==null)
+            return;
+
+        try {
+            CharSequence selected=ic.getSelectedText(0);
+
+            if(selected!=null && selected.length()>0) {
+                ic.commitText("",1);
+                return;
+            }
+        } catch(Exception ignored) {}
+
+        try {
+            CharSequence before=ic.getTextBeforeCursor(64,0);
+            int units=lastGraphemeUtf16Length(before);
+
+            if(units>0) {
+                ic.deleteSurroundingText(units,0);
+                return;
+            }
+        } catch(Exception ignored) {}
+
+        // Fallback for editors that do not expose surrounding text.
+        try {
+            if(android.os.Build.VERSION.SDK_INT>=24)
+                ic.deleteSurroundingTextInCodePoints(1,0);
+            else
+                ic.deleteSurroundingText(1,0);
+        } catch(Exception ignored) {
+            ic.deleteSurroundingText(1,0);
+        }
+    }
+
+
     void press(String action) {
 
         if(handleEmojiSearchKey(action))
@@ -4575,7 +4704,7 @@ public class KeyKiiService extends InputMethodService {
         switch(action) {
 
             case "BACK":
-                i.deleteSurroundingText(1,0);
+                deleteOneBeforeCursor(i);
                 break;
 
             case "SPACE":
