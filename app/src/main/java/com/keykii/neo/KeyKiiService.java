@@ -57,6 +57,7 @@ public class KeyKiiService extends InputMethodService {
     boolean symbols=false;
     boolean floating=true;
     boolean wideMode=false;
+    boolean numberRow=false;
 
     int symbolPage=1;
     int page=0;
@@ -188,6 +189,11 @@ public class KeyKiiService extends InputMethodService {
             false
         );
 
+        numberRow=keykiiPrefs.getBoolean(
+            "number_row",
+            false
+        );
+
         theme=getSharedPreferences(
             "keykii_prefs",
             MODE_PRIVATE
@@ -232,6 +238,7 @@ public class KeyKiiService extends InputMethodService {
         keyHeight=p.getInt("key_height",46);
         floatGap=p.getInt("float_gap",96);
         haptic=p.getBoolean("haptic",false);
+        numberRow=p.getBoolean("number_row",false);
 
         wideMode=p.getBoolean(
             "wide_default",
@@ -509,6 +516,13 @@ public class KeyKiiService extends InputMethodService {
     void buildKeyboard() {
 
         if(!symbols) {
+
+            if(numberRow) {
+                row(new String[]{
+                    "1","2","3","4","5",
+                    "6","7","8","9","0"
+                });
+            }
 
             row(new String[]{
                 "q","w","e","r","t",

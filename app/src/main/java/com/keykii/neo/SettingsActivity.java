@@ -144,6 +144,12 @@ public class SettingsActivity extends Activity {
                 "wide_default",
                 false);
 
+        addSwitchRow(page,
+                "Number row",
+                "Show 1–0 above the letter keys",
+                "number_row",
+                false);
+
         addChoiceRow(page,
                 "Key height",
                 keyHeightName(),
@@ -165,7 +171,7 @@ public class SettingsActivity extends Activity {
         addActionButton(page, "Reset keyboard preferences", v -> {
             new AlertDialog.Builder(this)
                     .setTitle("Reset preferences?")
-                    .setMessage("Theme is kept. Key size, gap, haptics and wide mode will return to defaults.")
+                    .setMessage("Theme is kept. Key size, gap, haptics, number row and wide mode will return to defaults.")
                     .setNegativeButton("Cancel", null)
                     .setPositiveButton("Reset", (d, which) -> {
                         prefs.edit()
@@ -173,6 +179,7 @@ public class SettingsActivity extends Activity {
                                 .putInt("float_gap", 96)
                                 .putBoolean("haptic", false)
                                 .putBoolean("wide_default", false)
+                                .putBoolean("number_row", false)
                                 .apply();
                         toast("Preferences reset");
                         showPreferences();
