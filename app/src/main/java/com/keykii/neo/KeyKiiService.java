@@ -10,6 +10,10 @@ import android.view.inputmethod.*;
 import android.widget.*;
 
 public class KeyKiiService extends InputMethodService {
+    String emojiSearchQuery="";
+    boolean emojiSearchMode=false;
+
+
 
     LinearLayout root, panel, body;
 
@@ -1077,6 +1081,9 @@ public class KeyKiiService extends InputMethodService {
             )
         );
 
+        if(emojiSearchMode)
+            buildEmojiSearchPad();
+
         ScrollView scroll=
             new ScrollView(this);
 
@@ -1098,12 +1105,26 @@ public class KeyKiiService extends InputMethodService {
 
         scroll.addView(wrap);
 
-        body.addView(
-            scroll,
+        scroll.setFillViewport(false);
+        scroll.setVerticalScrollBarEnabled(true);
+        scroll.setNestedScrollingEnabled(true);
+
+        LinearLayout.LayoutParams scrollParams=
             new LinearLayout.LayoutParams(
                 -1,
-                dp(260)
-            )
+                dp(290)
+            );
+
+        scrollParams.setMargins(
+            0,
+            0,
+            0,
+            dp(2)
+        );
+
+        body.addView(
+            scroll,
+            scrollParams
         );
     }
 
@@ -1384,6 +1405,156 @@ public class KeyKiiService extends InputMethodService {
                 result.toString()
             )
             .apply();
+    }
+
+
+
+    void buildEmojiSearchPad() {
+
+        String[] rows={
+            "qwertyuiop",
+            "asdfghjkl",
+            "zxcvbnm"
+        };
+
+        for(String letters:rows) {
+
+            LinearLayout r=newRow();
+
+            for(char c:letters.toCharArray()) {
+
+                String x=String.valueOf(c);
+
+                TextView k=new TextView(this);
+                k.setText(x);
+                k.setTextSize(13);
+                k.setTextColor(textColor());
+                k.setGravity(Gravity.CENTER);
+
+                k.setBackground(
+                    round(keyColor(false),10,borderColor())
+                );
+
+                k.setOnClickListener(v -> {
+                    emojiSearchQuery+=x;
+                    showPage();
+                });
+
+                LinearLayout.LayoutParams lp=
+                    new LinearLayout.LayoutParams(
+                        0,dp(32),1
+                    );
+
+                lp.setMargins(dp(2),dp(2),dp(2),dp(2));
+                r.addView(k,lp);
+            }
+
+            body.addView(r);
+        }
+
+        LinearLayout bottom=newRow();
+
+        TextView erase=new TextView(this);
+        erase.setText("⌫");
+        erase.setTextSize(17);
+        erase.setGravity(Gravity.CENTER);
+        erase.setTextColor(textColor());
+
+        erase.setOnClickListener(v -> {
+
+            if(!emojiSearchQuery.isEmpty()) {
+                emojiSearchQuery=
+                    emojiSearchQuery.substring(
+                        0,
+                        emojiSearchQuery.length()-1
+                    );
+            }
+
+            showPage();
+        });
+
+        bottom.addView(
+            erase,
+            new LinearLayout.LayoutParams(
+                0,dp(34),1
+            )
+        );
+
+        TextView close=new TextView(this);
+        close.setText("Done");
+        close.setGravity(Gravity.CENTER);
+        close.setTextColor(textColor());
+
+        close.setOnClickListener(v -> {
+            emojiSearchMode=false;
+            showPage();
+        });
+
+        bottom.addView(
+            close,
+            new LinearLayout.LayoutParams(
+                0,dp(34),2
+            )
+        );
+
+        body.addView(bottom);
+    }
+
+
+
+    java.util.ArrayList<String> searchEmojiDatabase(String query) {
+
+        java.util.ArrayList<String> result=
+            new java.util.ArrayList<>();
+
+        String q=query.trim().toLowerCase();
+
+        if(q.isEmpty())
+            return result;
+
+        try {
+
+            java.io.BufferedReader r=
+                new java.io.BufferedReader(
+                    new java.io.InputStreamReader(
+                        getAssets().open("keykii-emojis.txt"),
+                        "UTF-8"
+                    )
+                );
+
+            String line;
+
+            while((line=r.readLine())!=null) {
+
+                String[] x=line.split("\\t",-1);
+
+                if(x.length<3)
+                    continue;
+
+                String group=x[0];
+                String subgroup=x[1];
+                String emoji=x[2];
+
+                String name=
+                    x.length>3 ? x[3] : "";
+
+                String searchable=
+                    (group+" "+subgroup+" "+name)
+                    .toLowerCase();
+
+                if(
+                    searchable.contains(q) &&
+                    !result.contains(emoji)
+                ) {
+                    result.add(emoji);
+                }
+            }
+
+            r.close();
+
+        } catch(Exception ignored) {}
+
+        return result;
     }
 
 
@@ -1702,27 +1873,20 @@ public class KeyKiiService extends InputMethodService {
         String choices
     ) {
 
-        String[] items=
-            choices.split("\\|");
+        String[] items=choices.split("\\|");
 
-        GridLayout grid=
-            new GridLayout(this);
+        LinearLayout row=new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER);
 
-        grid.setColumnCount(
-            Math.min(
-                6,
-                items.length
-            )
+        row.setPadding(
+            dp(5),
+            dp(5),
+            dp(5),
+            dp(5)
         );
 
-        grid.setPadding(
-            dp(6),
-            dp(6),
-            dp(6),
-            dp(6)
-        );
-
-        grid.setBackground(
+        row.setBackground(
             round(
                 panelColor(),
                 18,
@@ -1732,28 +1896,24 @@ public class KeyKiiService extends InputMethodService {
 
         final PopupWindow popup=
             new PopupWindow(
-                grid,
-                -2,
-                -2,
+                row,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
                 true
             );
 
-        for(String choice:items) {
+        for(String item:items) {
 
-            TextView option=
-                new TextView(this);
+            final String value=item;
 
-            option.setText(choice);
-            option.setTextSize(20);
-            option.setTextColor(
-                textColor()
-            );
+            TextView key=new TextView(this);
 
-            option.setGravity(
-                Gravity.CENTER
-            );
+            key.setText(value);
+            key.setTextSize(19);
+            key.setTextColor(textColor());
+            key.setGravity(Gravity.CENTER);
 
-            option.setBackground(
+            key.setBackground(
                 round(
                     keyColor(false),
                     12,
@@ -1761,37 +1921,31 @@ public class KeyKiiService extends InputMethodService {
                 )
             );
 
-            option.setOnClickListener(v -> {
+            key.setOnClickListener(v -> {
 
                 InputConnection ic=
                     getCurrentInputConnection();
 
                 if(ic!=null)
-                    ic.commitText(
-                        choice,
-                        1
-                    );
+                    ic.commitText(value,1);
 
                 popup.dismiss();
             });
 
-            GridLayout.LayoutParams gp=
-                new GridLayout.LayoutParams();
+            LinearLayout.LayoutParams lp=
+                new LinearLayout.LayoutParams(
+                    dp(44),
+                    dp(44)
+                );
 
-            gp.width=dp(46);
-            gp.height=dp(46);
-
-            gp.setMargins(
-                dp(3),
-                dp(3),
-                dp(3),
-                dp(3)
+            lp.setMargins(
+                dp(2),
+                dp(2),
+                dp(2),
+                dp(2)
             );
 
-            grid.addView(
-                option,
-                gp
-            );
+            row.addView(key,lp);
         }
 
         popup.setOutsideTouchable(true);
@@ -1802,39 +1956,29 @@ public class KeyKiiService extends InputMethodService {
             )
         );
 
-        grid.measure(
+        popup.setElevation(dp(10));
+        popup.setClippingEnabled(false);
+
+        row.measure(
             View.MeasureSpec.UNSPECIFIED,
             View.MeasureSpec.UNSPECIFIED
         );
 
-        int[] pos=
-            new int[2];
+        int popupWidth=row.getMeasuredWidth();
 
-        anchor.getLocationOnScreen(
-            pos
-        );
+        int xOffset=
+            anchor.getWidth()/2
+            - popupWidth/2;
 
-        int x=
-            pos[0]
-            + anchor.getWidth()/2
-            - grid.getMeasuredWidth()/2;
+        int yOffset=
+            -anchor.getHeight()
+            -row.getMeasuredHeight()
+            -dp(8);
 
-        int y=
-            pos[1]
-            - grid.getMeasuredHeight()
-            - dp(8);
-
-        popup.showAtLocation(
+        popup.showAsDropDown(
             anchor,
-            Gravity.NO_GRAVITY,
-            Math.max(
-                dp(5),
-                x
-            ),
-            Math.max(
-                dp(5),
-                y
-            )
+            xOffset,
+            yOffset
         );
     }
 
