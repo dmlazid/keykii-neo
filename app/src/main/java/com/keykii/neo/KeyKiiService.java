@@ -13,6 +13,9 @@ public class KeyKiiService extends InputMethodService {
 
     LinearLayout root, panel, body;
 
+    ClipboardManager clipboardManager;
+    ClipboardManager.OnPrimaryClipChangedListener clipboardListener;
+
     boolean shift=false;
     boolean symbols=false;
     boolean floating=true;
@@ -21,6 +24,68 @@ public class KeyKiiService extends InputMethodService {
     int page=0;
     int theme=0;
     int hand=0;
+    int emojiCategory=0;
+
+    @Override
+    public void onCreate() {
+
+        super.onCreate();
+
+        clipboardManager=
+            (ClipboardManager)
+            getSystemService(
+                CLIPBOARD_SERVICE
+            );
+
+        clipboardListener=()->captureClipboard();
+
+        if(clipboardManager!=null)
+            clipboardManager
+                .addPrimaryClipChangedListener(
+                    clipboardListener
+                );
+    }
+
+    @Override
+    public void onDestroy() {
+
+        if(
+            clipboardManager!=null &&
+            clipboardListener!=null
+        ){
+            clipboardManager
+                .removePrimaryClipChangedListener(
+                    clipboardListener
+                );
+        }
+
+        super.onDestroy();
+    }
+
+    void captureClipboard(){
+
+        if(
+            clipboardManager==null ||
+            !clipboardManager.hasPrimaryClip()
+        ) return;
+
+        ClipData clip=
+            clipboardManager.getPrimaryClip();
+
+        if(
+            clip==null ||
+            clip.getItemCount()==0
+        ) return;
+
+        CharSequence text=
+            clip.getItemAt(0)
+                .coerceToText(this);
+
+        if(text!=null)
+            rememberClip(
+                text.toString()
+            );
+    }
 
     @Override
     public View onCreateInputView() {
@@ -54,7 +119,7 @@ public class KeyKiiService extends InputMethodService {
             dp(12),
             dp(4),
             dp(12),
-            dp(floating ? 96 : 62)
+            dp(floating ? 96 : 72)
         );
 
         panel=new LinearLayout(this);
@@ -86,7 +151,7 @@ public class KeyKiiService extends InputMethodService {
         else if(floating)
             ratio=.76f;
         else
-            ratio=.90f;
+            ratio=.96f;
 
         LinearLayout.LayoutParams p=
             new LinearLayout.LayoutParams(
@@ -158,7 +223,6 @@ public class KeyKiiService extends InputMethodService {
         tool(r,"✎",3);
         tool(r,"◐",4);
         tool(r,"↔",5);
-        tool(r,"◇",6);
 
         panel.addView(
             r,
@@ -196,12 +260,9 @@ public class KeyKiiService extends InputMethodService {
 
             } else if(action==5) {
 
-                hand=(hand+1)%3;
-                buildShell();
-
-            } else {
-
+                // Real Compact / Wide switch
                 floating=!floating;
+                hand=0;
                 buildShell();
             }
         });
@@ -543,45 +604,75 @@ public class KeyKiiService extends InputMethodService {
 
     void buildEmoji() {
 
+        LinearLayout tabs=new LinearLayout(this);
+        tabs.setGravity(Gravity.CENTER);
+
+        String[] icons={
+            "🕘","😀","🧑","🐻","🍔",
+            "⚽","🚗","💡","❤️","🏳️"
+        };
+
+        for(int n=0;n<icons.length;n++){
+
+            final int c=n;
+
+            TextView tab=new TextView(this);
+            tab.setText(icons[n]);
+            tab.setTextSize(17);
+            tab.setGravity(Gravity.CENTER);
+
+            if(n==emojiCategory){
+
+                tab.setBackground(
+                    round(
+                        keyColor(false),
+                        13,
+                        borderColor()
+                    )
+                );
+            }
+
+            tab.setOnClickListener(v->{
+                emojiCategory=c;
+                showPage();
+            });
+
+            LinearLayout.LayoutParams tp=
+                new LinearLayout.LayoutParams(
+                    0,
+                    dp(31),
+                    1
+                );
+
+            tp.setMargins(
+                dp(1),0,dp(1),dp(5)
+            );
+
+            tabs.addView(tab,tp);
+        }
+
+        body.addView(tabs);
+
         ScrollView scroll=new ScrollView(this);
-        scroll.setFillViewport(true);
 
         LinearLayout wrap=new LinearLayout(this);
         wrap.setOrientation(LinearLayout.VERTICAL);
 
-        String data=
-            "😀 😃 😄 😁 😆 😅 😂 🤣 " +
-            "🥲 🥹 😊 😇 🙂 🙃 😉 😌 " +
-            "😍 🥰 😘 😗 😙 😚 😋 😛 " +
-            "😝 😜 🤪 🤨 🧐 🤓 😎 🥸 " +
-            "🤩 🥳 😏 😒 😞 😔 😟 😕 " +
-            "🙁 ☹️ 😣 😖 😫 😩 🥺 😢 " +
-            "😭 😤 😠 😡 🤬 🤯 😳 🥵 " +
-            "🥶 😱 😨 😰 😥 😓 🤗 🤔 " +
-            "🫣 🤭 🫢 🤫 🤥 😶 🫥 😐 " +
-            "😑 😬 🙄 😯 😦 😧 😮 😲 " +
-            "🥱 😴 🤤 😪 😵 🤐 🥴 🤢 " +
-            "🤮 🤧 😷 🤒 🤕 🤑 🤠 😈 " +
-            "👿 👻 💀 ☠️ 👽 🤖 💩 😺 " +
-            "😸 😹 😻 😼 😽 🙀 😿 😾 " +
-            "❤️ 🩷 🧡 💛 💚 💙 🩵 💜 " +
-            "🖤 🤍 🤎 💔 ❤️‍🔥 ❤️‍🩹 ❣️ 💕 " +
-            "💞 💓 💗 💖 💘 💝 ✨ ⭐ " +
-            "🔥 💫 ⚡ 💥 💯 ✅ ❌ ❗ " +
-            "👍 👎 👌 ✌️ 🤞 🤟 🤘 🤙 " +
-            "👏 🙌 🫶 🙏 💪 👀 🧠 👋";
+        String[] emojis=
+            emojiData(emojiCategory)
+                .trim()
+                .split(" ");
 
-        String[] emojis=data.split(" ");
-
-        for(int i=0;i<emojis.length;i+=6){
+        for(int i=0;i<emojis.length;i+=7){
 
             LinearLayout r=newRow();
 
             for(
                 int j=i;
-                j<Math.min(i+6,emojis.length);
+                j<Math.min(i+7,emojis.length);
                 j++
             ){
+
                 key(
                     r,
                     emojis[j],
@@ -600,9 +691,127 @@ public class KeyKiiService extends InputMethodService {
             scroll,
             new LinearLayout.LayoutParams(
                 -1,
-                dp(185)
+                dp(220)
             )
         );
+    }
+
+    String emojiData(int c){
+
+        if(c==0){
+
+            String recent=
+                getSharedPreferences(
+                    "keykii_emoji",
+                    MODE_PRIVATE
+                ).getString(
+                    "recent",
+                    ""
+                );
+
+            if(!recent.trim().isEmpty())
+                return recent;
+
+            return
+                "😂 ❤️ 😭 😊 😍 🥹 🤣 😎 " +
+                "🥰 😘 🔥 ✨ 👍 🙏 😡 🎉";
+        }
+
+        if(c==1)
+            return
+            "😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 " +
+            "😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 " +
+            "😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 " +
+            "😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 " +
+            "🙁 ☹️ 😣 😖 😫 😩 🥺 😢 😭 😤 " +
+            "😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 " +
+            "😥 😓 🤗 🤔 🫣 🤭 🫢 🤫 🤥 😶 " +
+            "🫥 😐 😑 😬 🙄 😯 😦 😧 😮 😲 " +
+            "🥱 😴 🤤 😪 😵 🤐 🥴 🤢 🤮 🤧 " +
+            "😷 🤒 🤕 🤑 🤠 😈 👿 👻 💀 ☠️ " +
+            "👽 🤖 💩 😺 😸 😹 😻 😼 😽 🙀 😿 😾";
+
+        if(c==2)
+            return
+            "👋 🤚 🖐️ ✋ 🖖 👌 🤌 🤏 ✌️ 🤞 " +
+            "🫰 🤟 🤘 🤙 👈 👉 👆 👇 ☝️ 🫵 " +
+            "👍 👎 ✊ 👊 🤛 🤜 👏 🙌 🫶 👐 " +
+            "🤲 🤝 🙏 ✍️ 💅 🤳 💪 🦾 🦿 🦵 " +
+            "🦶 👂 👃 🧠 🫀 🫁 🦷 🦴 👀 👁️ " +
+            "👅 👄 👶 🧒 👦 👧 🧑 👨 👩 🧓 " +
+            "👴 👵 👮 👷 💂 🕵️ 👩‍⚕️ 👨‍⚕️ 👩‍🎓 👨‍🎓 " +
+            "👩‍🏫 👨‍🏫 👩‍💻 👨‍💻 👩‍🍳 👨‍🍳 👩‍🎨 👨‍🎨 👩‍🚀 👨‍🚀";
+
+        if(c==3)
+            return
+            "🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 " +
+            "🦁 🐮 🐷 🐸 🐵 🙈 🙉 🙊 🐒 🐔 " +
+            "🐧 🐦 🐤 🐣 🐥 🦆 🦅 🦉 🦇 🐺 " +
+            "🐗 🐴 🦄 🐝 🪱 🐛 🦋 🐌 🐞 🐜 " +
+            "🪰 🪲 🪳 🦟 🦗 🕷️ 🦂 🐢 🐍 🦎 " +
+            "🐙 🦑 🦐 🦞 🦀 🐠 🐟 🐡 🐬 🐳 " +
+            "🐋 🦈 🐊 🐅 🐆 🦓 🦍 🦧 🐘 🦛 " +
+            "🦏 🐪 🐫 🦒 🦬 🐃 🐂 🐄 🐎 🐖";
+
+        if(c==4)
+            return
+            "🍏 🍎 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🫐 " +
+            "🍈 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🍆 🥑 " +
+            "🥦 🥬 🥒 🌶️ 🫑 🌽 🥕 🧄 🧅 🥔 " +
+            "🍠 🥐 🥯 🍞 🥖 🥨 🧀 🥚 🍳 🧈 " +
+            "🥞 🧇 🥓 🥩 🍗 🍖 🌭 🍔 🍟 🍕 " +
+            "🥪 🌮 🌯 🥗 🍝 🍜 🍲 🍛 🍣 🍱 " +
+            "🥟 🍤 🍙 🍚 🍘 🍥 🍢 🍡 🍧 🍨 " +
+            "🍦 🥧 🧁 🍰 🎂 🍮 🍭 🍬 🍫 🍿 " +
+            "🍩 🍪 ☕ 🧋 🥤";
+
+        if(c==5)
+            return
+            "⚽ 🏀 🏈 ⚾ 🥎 🎾 🏐 🏉 🥏 🎱 " +
+            "🏓 🏸 🏒 🏑 🥍 🏏 🥅 ⛳ 🏹 🎣 " +
+            "🥊 🥋 🎽 🛹 🛼 🛷 ⛸️ 🥌 🎿 ⛷️ " +
+            "🏂 🪂 🏋️ 🤼 🤸 ⛹️ 🤺 🤾 🏌️ 🏇 " +
+            "🧘 🏄 🏊 🤽 🚣 🧗 🚵 🚴 🏆 🥇 " +
+            "🥈 🥉 🏅 🎖️ 🎗️ 🎟️ 🎫 🎪 🤹 🎭 " +
+            "🩰 🎨 🎬 🎤 🎧 🎼 🎹 🥁 🎷 🎺 🎸";
+
+        if(c==6)
+            return
+            "🚗 🚕 🚙 🚌 🚎 🏎️ 🚓 🚑 🚒 🚐 " +
+            "🛻 🚚 🚛 🚜 🏍️ 🛵 🚲 🛴 🚨 🚔 " +
+            "🚍 🚘 🚖 ✈️ 🛫 🛬 🛩️ 💺 🚁 🚟 " +
+            "🚠 🚡 🛰️ 🚀 🛸 🚆 🚇 🚊 🚉 🚂 " +
+            "🚤 ⛵ 🛶 🚢 ⚓ ⛽ 🚧 🚦 🚥 🗺️ " +
+            "🗿 🗽 🗼 🏰 🏯 🏟️ 🎡 🎢 🎠 ⛲ " +
+            "⛱️ 🏖️ 🏝️ 🏜️ 🌋 ⛰️ 🏕️ 🏠 🏡 🏢";
+
+        if(c==7)
+            return
+            "⌚ 📱 📲 💻 ⌨️ 🖥️ 🖨️ 🖱️ 💽 💾 " +
+            "💿 📀 🧮 🎥 🎞️ 📽️ 🎬 📺 📷 📸 " +
+            "📹 🔍 🔎 🕯️ 💡 🔦 🏮 📔 📕 📖 " +
+            "📗 📘 📙 📚 📓 📒 📃 📜 📄 📰 " +
+            "🗞️ 📑 🔖 🏷️ 💰 🪙 💴 💵 💶 💷 " +
+            "💸 💳 🧾 ✉️ 📧 📨 📩 📤 📥 📦 " +
+            "📫 📪 📬 📭 📮 📝 ✏️ 🖊️ 🖋️ 🖌️ " +
+            "🖍️ 📌 📍 📎 🖇️ 📏 📐 ✂️ 🗃️ 🗑️";
+
+        if(c==8)
+            return
+            "❤️ 🩷 🧡 💛 💚 💙 🩵 💜 🤎 🖤 " +
+            "🩶 🤍 💔 ❤️‍🔥 ❤️‍🩹 ❣️ 💕 💞 💓 💗 " +
+            "💖 💘 💝 💟 ☮️ ✝️ ☪️ 🕉️ ☸️ ✡️ " +
+            "☯️ ☦️ 🛐 ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ " +
+            "♐ ♑ ♒ ♓ ⚛️ ☢️ ☣️ 📴 📳 ✴️ 🆚 " +
+            "❌ ⭕ 🛑 ⛔ 📛 🚫 💯 💢 ♨️ 🚷 🚯 " +
+            "✅ ☑️ ✔️ ❗ ❓ ❕ ❔ ‼️ ⁉️ ➕ ➖ ➗";
+
+        return
+            "🏳️ 🏴 🏁 🚩 🏳️‍🌈 🏳️‍⚧️ 🇵🇭 🇺🇸 🇬🇧 🇨🇦 " +
+            "🇦🇺 🇯🇵 🇰🇷 🇨🇳 🇹🇼 🇸🇬 🇲🇾 🇮🇩 🇹🇭 🇻🇳 " +
+            "🇮🇳 🇫🇷 🇩🇪 🇮🇹 🇪🇸 🇧🇷 🇲🇽 🇦🇷 🇳🇿 🇿🇦 " +
+            "🇸🇦 🇦🇪 🇶🇦 🇮🇱 🇹🇷 🇬🇷 🇳🇱 🇧🇪 🇨🇭 🇸🇪 " +
+            "🇳🇴 🇩🇰 🇫🇮 🇵🇱 🇺🇦 🇮🇪 🇵🇹 🇨🇿 🇦🇹 🇭🇺";
     }
 
     void buildClipboard() {
@@ -1011,7 +1220,7 @@ public class KeyKiiService extends InputMethodService {
                 return "next";
 
             default:
-                return "return";
+                return "↵";
         }
     }
 

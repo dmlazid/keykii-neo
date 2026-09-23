@@ -89,8 +89,11 @@ public class MainActivity extends Activity {
 
         addButton(
                 "Keyboard settings",
-                () -> toast(
-                        "More keyboard settings coming in 2.2"
+                () -> startActivity(
+                        new Intent(
+                                this,
+                                SettingsActivity.class
+                        )
                 )
         );
 
