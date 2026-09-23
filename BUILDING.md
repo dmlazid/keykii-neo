@@ -1,11 +1,13 @@
-# KeyKii Neo 2.10.2
+# KeyKii Neo 2.10.3
 
 The app icon, the keyboard's settings shortcut and Android's keyboard settings
 entry open the same settings hub. Enable KeyKii and Choose Keyboard are available
 at the top. Version labels come from the installed app.
 
 Emoji and kaomoji use continuous vertical lists. Category buttons jump within
-those lists. The spacebar cursor gesture implementation is retained from 2.10.1.
+those lists. Emoji tabs follow the section order, including Travel & Places
+before Activities, so the highlighted icon advances in the same direction as scrolling.
+The spacebar cursor gesture implementation is retained from 2.10.1.
 
 ## Build in your existing Codespace
 

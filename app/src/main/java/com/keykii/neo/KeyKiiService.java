@@ -2334,8 +2334,8 @@ public class KeyKiiService extends InputMethodService {
             "People & Body",
             "Animals & Nature",
             "Food & Drink",
-            "Activities",
             "Travel & Places",
+            "Activities",
             "Objects",
             "Symbols",
             "Flags"
@@ -2343,7 +2343,7 @@ public class KeyKiiService extends InputMethodService {
 
         String[] icons={
             "🕘","😀","🧑","🐻","🍔",
-            "⚽","🚗","💡","❤️","🏳️"
+            "🚗","⚽","💡","❤️","🏳️"
         };
 
         // One adapter holds every section; tabs only move its scroll position.
