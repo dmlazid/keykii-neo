@@ -67,14 +67,28 @@ jobs:
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "apk_name=${APK_NAME}" >> "$GITHUB_OUTPUT"
 
-      - name: Save versioned APK in repository
+      - name: Save latest APK and archive older builds
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "${{ steps.package.outputs.apk_name }}"
+
+          mkdir -p old-versions
+          APK_NAME="${{ steps.package.outputs.apk_name }}"
+
+          # Keep the newly built APK in the repository root.
+          # Move every older KeyKii APK into one archive folder.
+          shopt -s nullglob
+          for file in KeyKii-Neo*.apk; do
+            if [ "$file" != "$APK_NAME" ]; then
+              git mv -f "$file" "old-versions/$file"
+            fi
+          done
+
+          git add -A old-versions "$APK_NAME"
+
           if git diff --cached --quiet; then
-            echo "APK already exists with the same contents."
+            echo "Latest APK is already current and older builds are already archived."
           else
             git commit -m "Build KeyKii Neo ${{ steps.package.outputs.version }} APK"
             git push
