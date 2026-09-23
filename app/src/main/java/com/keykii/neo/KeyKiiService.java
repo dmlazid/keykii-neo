@@ -6154,11 +6154,9 @@ public class KeyKiiService extends InputMethodService {
             image.setGravity(Gravity.FILL);
 
             int overlayBaseAlpha=
-                theme==1
-                ? 105
-                : theme==2
-                    ? 58
-                    : 78;
+                photoKeyBorders()
+                ? 64
+                : 46;
 
             int overlayColor=
                 theme==1
@@ -6360,7 +6358,40 @@ public class KeyKiiService extends InputMethodService {
         );
     }
 
+    boolean photoThemeActive() {
+        SharedPreferences p=
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            );
+
+        return
+            p.getInt(
+                "theme_surface_mode",
+                0
+            )==3 &&
+            !p.getString(
+                "theme_image_uri",
+                ""
+            ).isEmpty();
+    }
+
+
+    boolean photoKeyBorders() {
+        return getSharedPreferences(
+            "keykii_prefs",
+            MODE_PRIVATE
+        ).getBoolean(
+            "photo_key_borders",
+            false
+        );
+    }
+
+
     int textColor() {
+
+        if(photoThemeActive())
+            return Color.WHITE;
 
         return theme==1
             ? Color.rgb(45,45,45)
@@ -6380,6 +6411,87 @@ public class KeyKiiService extends InputMethodService {
         boolean special,
         boolean space
     ) {
+
+        if(photoThemeActive()) {
+            boolean borders=
+                photoKeyBorders();
+
+            int normalColor;
+
+            if(!borders && !special && !space) {
+                normalColor=
+                    Color.TRANSPARENT;
+
+            } else if(space) {
+                normalColor=
+                    Color.argb(
+                        borders ? 105 : 58,
+                        245,245,247
+                    );
+
+            } else if(special) {
+                normalColor=
+                    Color.argb(
+                        borders ? 92 : 48,
+                        245,245,247
+                    );
+
+            } else {
+                normalColor=
+                    Color.argb(
+                        92,
+                        245,245,247
+                    );
+            }
+
+            int pressedColor=
+                Color.argb(
+                    115,
+                    245,245,247
+                );
+
+            int stroke=
+                borders
+                ? Color.argb(
+                    88,
+                    255,255,255
+                )
+                : Color.TRANSPARENT;
+
+            GradientDrawable normal=
+                round(
+                    normalColor,
+                    keyCornerRadius(),
+                    stroke
+                );
+
+            GradientDrawable pressed=
+                round(
+                    pressedColor,
+                    keyCornerRadius(),
+                    Color.argb(
+                        90,
+                        255,255,255
+                    )
+                );
+
+            StateListDrawable state=
+                new StateListDrawable();
+
+            state.addState(
+                new int[]{
+                    android.R.attr.state_pressed
+                },
+                pressed
+            );
+
+            state.addState(
+                new int[]{},
+                normal
+            );
+
+            return state;
+        }
 
         int normalColor=
             space
@@ -6424,6 +6536,7 @@ public class KeyKiiService extends InputMethodService {
 
         return state;
     }
+
 
     GradientDrawable round(
         int color,

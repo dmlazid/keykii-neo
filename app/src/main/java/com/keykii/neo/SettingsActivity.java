@@ -17,6 +17,8 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
@@ -38,6 +40,10 @@ public class SettingsActivity extends Activity {
 
     private SharedPreferences prefs;
     private String screen = "home";
+
+    private ScrollView themeScrollView;
+    private int themeScrollY = 0;
+    private String pendingThemeImageUri = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,23 +89,24 @@ public class SettingsActivity extends Activity {
             } catch (Exception ignored) {
             }
 
-            prefs.edit()
-                    .putString("theme_image_uri", uri.toString())
-                    .putInt("theme_surface_mode", 3)
-                    .apply();
-
-            toast("Theme image selected");
-            showTheme();
+            pendingThemeImageUri = uri.toString();
+            showPhotoThemeSetup(pendingThemeImageUri);
         }
     }
 
 
     @Override
     public void onBackPressed() {
+        if ("photo_theme".equals(screen)) {
+            showTheme();
+            return;
+        }
+
         if (!"home".equals(screen)) {
             showHome();
             return;
         }
+
         super.onBackPressed();
     }
 
@@ -310,6 +317,23 @@ public class SettingsActivity extends Activity {
     }
 
     private void showTheme() {
+        boolean restoreThemeScroll =
+                "theme".equals(screen) ||
+                "photo_theme".equals(screen);
+
+        int restoreY = 0;
+
+        if (restoreThemeScroll) {
+            if (
+                    "theme".equals(screen) &&
+                    themeScrollView != null
+            ) {
+                restoreY = themeScrollView.getScrollY();
+            } else {
+                restoreY = themeScrollY;
+            }
+        }
+
         screen = "theme";
 
         LinearLayout page = page(
@@ -421,12 +445,21 @@ public class SettingsActivity extends Activity {
                 }
         );
 
-        addSection(page, "Background image");
+        String imageUri =
+                prefs.getString(
+                        "theme_image_uri",
+                        ""
+                );
 
-        String imageUri = prefs.getString("theme_image_uri", "");
-        boolean imageActive = prefs.getInt("theme_surface_mode",0)==3;
+        if(imageUri!=null && !imageUri.isEmpty()) {
+            addSection(page, "Photo theme");
 
-        addPhotoThemeTile(page,imageUri,imageActive);
+            addInfoCard(
+                    page,
+                    "Your saved photo",
+                    "Tap the photo tile in My themes to preview it, change Key borders, or apply it again."
+            );
+        }
 
         addSection(page, "Fine tuning");
 
@@ -494,7 +527,17 @@ public class SettingsActivity extends Activity {
             showTheme();
         });
 
-        setContentView(wrap(page));
+        ScrollView scroll = wrap(page);
+        themeScrollView = scroll;
+        themeScrollY = restoreY;
+
+        setContentView(scroll);
+
+        final int targetY = restoreY;
+
+        scroll.post(() ->
+                scroll.scrollTo(0,targetY)
+        );
     }
 
 
@@ -918,7 +961,13 @@ public class SettingsActivity extends Activity {
         if (back) {
             TextView b = textButton("‹");
             b.setTextSize(38);
-            b.setOnClickListener(v -> showHome());
+            b.setOnClickListener(v -> {
+                if ("photo_theme".equals(screen)) {
+                    showTheme();
+                } else {
+                    showHome();
+                }
+            });
             top.addView(b, new LinearLayout.LayoutParams(dp(52), dp(52)));
         }
 
@@ -1065,8 +1114,14 @@ public class SettingsActivity extends Activity {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
 
-        LinearLayout create = createThemeTile("＋","Create");
-        create.setOnClickListener(v -> showCustomColorDialog());
+        LinearLayout create = createThemeTile(
+                "＋",
+                "Add photo"
+        );
+
+        create.setOnClickListener(v ->
+                chooseThemeImage());
+
         addThemeTileToRow(row,create);
 
         int saved = prefs.getInt(
@@ -1089,25 +1144,116 @@ public class SettingsActivity extends Activity {
                 ""
         );
 
-        LinearLayout photo = createThemeTile(
-                imageUri==null || imageUri.isEmpty() ? "▧" : "▣",
-                "Photo"
+        if(imageUri!=null && !imageUri.isEmpty()) {
+            LinearLayout photo =
+                    photoThemeThumbnail(
+                            imageUri,
+                            "Photo"
+                    );
+
+            boolean active =
+                    prefs.getInt(
+                            "theme_surface_mode",
+                            0
+                    )==3;
+
+            markThemeTileSelected(
+                    photo,
+                    active
+            );
+
+            photo.setOnClickListener(v -> {
+                pendingThemeImageUri = imageUri;
+                showPhotoThemeSetup(imageUri);
+            });
+
+            addThemeTileToRow(row,photo);
+
+        } else {
+            addThemeTileSpacer(row);
+        }
+
+        page.addView(row);
+    }
+
+
+    private LinearLayout photoThemeThumbnail(
+            String uriText,
+            String labelText
+    ) {
+        LinearLayout tile =
+                new LinearLayout(this);
+
+        tile.setOrientation(
+                LinearLayout.VERTICAL
         );
 
-        photo.setOnClickListener(v -> {
-            if(imageUri!=null && !imageUri.isEmpty()) {
-                prefs.edit()
-                        .putInt("theme_surface_mode",3)
-                        .apply();
-                toast("Photo theme selected");
-                showTheme();
-            } else {
-                chooseThemeImage();
-            }
-        });
+        tile.setPadding(
+                dp(3),
+                dp(3),
+                dp(3),
+                dp(6)
+        );
 
-        addThemeTileToRow(row,photo);
-        page.addView(row);
+        ImageView preview =
+                new ImageView(this);
+
+        preview.setScaleType(
+                ImageView.ScaleType.CENTER_CROP
+        );
+
+        try {
+            preview.setImageURI(
+                    Uri.parse(uriText)
+            );
+        } catch(Exception ignored) {
+            preview.setBackgroundColor(
+                    Color.rgb(70,70,74)
+            );
+        }
+
+        GradientDrawable fallback =
+                new GradientDrawable();
+
+        fallback.setColor(
+                Color.rgb(70,70,74)
+        );
+
+        fallback.setCornerRadius(dp(16));
+        preview.setBackground(fallback);
+        preview.setClipToOutline(true);
+
+        tile.addView(
+                preview,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(68)
+                )
+        );
+
+        TextView label =
+                new TextView(this);
+
+        label.setText(labelText);
+        label.setTextColor(TEXT);
+        label.setTextSize(10);
+        label.setGravity(Gravity.CENTER);
+        label.setPadding(
+                0,
+                dp(4),
+                0,
+                0
+        );
+
+        tile.addView(
+                label,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(25)
+                )
+        );
+
+        return tile;
     }
 
 
@@ -1496,6 +1642,9 @@ public class SettingsActivity extends Activity {
 
 
     private void chooseThemeImage() {
+        if(themeScrollView!=null)
+            themeScrollY=themeScrollView.getScrollY();
+
         try {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -1528,6 +1677,381 @@ public class SettingsActivity extends Activity {
                  Color.blue(color)*114) / 1000;
 
         return brightness>=155;
+    }
+
+
+    private void showPhotoThemeSetup(
+            String uriText
+    ) {
+        if(uriText==null || uriText.isEmpty()) {
+            showTheme();
+            return;
+        }
+
+        screen = "photo_theme";
+
+        LinearLayout page = page(
+                "Photo theme",
+                "Preview first, then tap Apply",
+                true
+        );
+
+        addSection(page,"Preview");
+
+        FrameLayout previewFrame =
+                new FrameLayout(this);
+
+        ImageView image =
+                new ImageView(this);
+
+        image.setScaleType(
+                ImageView.ScaleType.CENTER_CROP
+        );
+
+        try {
+            image.setImageURI(
+                    Uri.parse(uriText)
+            );
+        } catch(Exception ignored) {
+            image.setBackgroundColor(
+                    Color.rgb(42,42,45)
+            );
+        }
+
+        previewFrame.addView(
+                image,
+                new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                )
+        );
+
+        View shade = new View(this);
+        shade.setBackgroundColor(
+                Color.argb(48,0,0,0)
+        );
+
+        previewFrame.addView(
+                shade,
+                new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                )
+        );
+
+        TextView keyboard =
+                new TextView(this);
+
+        keyboard.setText(
+                "⌨     ☺     ▣     ✎     ◐     ↔\n\n" +
+                "Q  W  E  R  T  Y  U  I  O  P\n" +
+                " A  S  D  F  G  H  J  K  L\n" +
+                "⇧   Z  X  C  V  B  N  M   ⌫\n" +
+                "?123        KeyKii          ↵"
+        );
+
+        keyboard.setTextColor(Color.WHITE);
+        keyboard.setTextSize(15);
+        keyboard.setTypeface(
+                Typeface.MONOSPACE
+        );
+
+        keyboard.setGravity(
+                Gravity.CENTER
+        );
+
+        keyboard.setPadding(
+                dp(12),
+                dp(12),
+                dp(12),
+                dp(12)
+        );
+
+        previewFrame.addView(
+                keyboard,
+                new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                )
+        );
+
+        GradientDrawable previewBorder =
+                new GradientDrawable();
+
+        previewBorder.setColor(
+                Color.TRANSPARENT
+        );
+
+        previewBorder.setCornerRadius(
+                dp(22)
+        );
+
+        previewBorder.setStroke(
+                dp(1),
+                BORDER
+        );
+
+        previewFrame.setBackground(
+                previewBorder
+        );
+
+        previewFrame.setClipToOutline(
+                true
+        );
+
+        LinearLayout.LayoutParams previewParams =
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(235)
+                );
+
+        previewParams.setMargins(
+                0,
+                dp(5),
+                0,
+                dp(12)
+        );
+
+        page.addView(
+                previewFrame,
+                previewParams
+        );
+
+        addInfoCard(
+                page,
+                "Photo style",
+                "Key borders OFF gives the cleaner look with the letters directly over your photo. Turn it ON only if you want rounded boxes behind every key."
+        );
+
+        LinearLayout borderRow = card();
+        borderRow.setGravity(
+                Gravity.CENTER_VERTICAL
+        );
+
+        borderRow.setPadding(
+                dp(16),
+                dp(14),
+                dp(12),
+                dp(14)
+        );
+
+        LinearLayout borderWords =
+                new LinearLayout(this);
+
+        borderWords.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        TextView borderTitle =
+                new TextView(this);
+
+        borderTitle.setText(
+                "Key borders"
+        );
+
+        borderTitle.setTextColor(TEXT);
+        borderTitle.setTextSize(17);
+
+        TextView borderSub =
+                new TextView(this);
+
+        borderSub.setText(
+                "Show rounded backgrounds behind letter keys"
+        );
+
+        borderSub.setTextColor(MUTED);
+        borderSub.setTextSize(12);
+
+        borderWords.addView(borderTitle);
+        borderWords.addView(borderSub);
+
+        borderRow.addView(
+                borderWords,
+                new LinearLayout.LayoutParams(
+                        0,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        1f
+                )
+        );
+
+        final boolean[] borders =
+                new boolean[]{
+                    prefs.getBoolean(
+                        "photo_key_borders",
+                        false
+                    )
+                };
+
+        Switch borderSwitch =
+                new Switch(this);
+
+        borderSwitch.setChecked(
+                borders[0]
+        );
+
+        borderSwitch.setOnCheckedChangeListener(
+                (buttonView,isChecked) -> {
+                    borders[0]=isChecked;
+
+                    GradientDrawable keyPreview =
+                            new GradientDrawable();
+
+                    keyPreview.setCornerRadius(
+                            dp(18)
+                    );
+
+                    if(isChecked) {
+                        keyPreview.setColor(
+                                Color.argb(
+                                    72,
+                                    255,255,255
+                                )
+                        );
+
+                        keyPreview.setStroke(
+                                dp(1),
+                                Color.argb(
+                                    100,
+                                    255,255,255
+                                )
+                        );
+
+                    } else {
+                        keyPreview.setColor(
+                                Color.TRANSPARENT
+                        );
+                    }
+
+                    keyboard.setBackground(
+                            keyPreview
+                    );
+                }
+        );
+
+        borderRow.addView(
+                borderSwitch
+        );
+
+        page.addView(
+                borderRow,
+                cardParams()
+        );
+
+        LinearLayout buttons =
+                new LinearLayout(this);
+
+        buttons.setGravity(
+                Gravity.CENTER
+        );
+
+        TextView cancel =
+                textButton("Cancel");
+
+        cancel.setTextSize(15);
+        cancel.setOnClickListener(
+                v -> showTheme()
+        );
+
+        TextView apply =
+                textButton("Apply");
+
+        apply.setTextSize(15);
+        apply.setBackground(
+                round(
+                    ACCENT,
+                    18
+                )
+        );
+
+        apply.setOnClickListener(v -> {
+            prefs.edit()
+                    .putString(
+                            "theme_image_uri",
+                            uriText
+                    )
+                    .putInt(
+                            "theme_surface_mode",
+                            3
+                    )
+                    .putBoolean(
+                            "photo_key_borders",
+                            borders[0]
+                    )
+                    .putInt(
+                            "theme",
+                            0
+                    )
+                    .putBoolean(
+                            "theme_auto_day_night",
+                            false
+                    )
+                    .apply();
+
+            pendingThemeImageUri="";
+            toast("Photo theme applied");
+            showTheme();
+        });
+
+        LinearLayout.LayoutParams buttonParams =
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(52),
+                        1f
+                );
+
+        buttonParams.setMargins(
+                dp(4),
+                dp(10),
+                dp(4),
+                0
+        );
+
+        buttons.addView(
+                cancel,
+                buttonParams
+        );
+
+        buttons.addView(
+                apply,
+                buttonParams
+        );
+
+        page.addView(buttons);
+
+        String savedImage =
+                prefs.getString(
+                        "theme_image_uri",
+                        ""
+                );
+
+        if(
+            savedImage!=null &&
+            savedImage.equals(uriText)
+        ) {
+            addActionButton(
+                    page,
+                    "Remove saved photo",
+                    v -> {
+                        prefs.edit()
+                                .remove(
+                                    "theme_image_uri"
+                                )
+                                .putInt(
+                                    "theme_surface_mode",
+                                    0
+                                )
+                                .apply();
+
+                        pendingThemeImageUri="";
+                        toast("Photo removed");
+                        showTheme();
+                    }
+            );
+        }
+
+        setContentView(
+                wrap(page)
+        );
     }
 
 
