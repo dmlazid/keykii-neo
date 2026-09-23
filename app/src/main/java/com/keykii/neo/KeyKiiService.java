@@ -298,8 +298,10 @@ public class KeyKiiService extends InputMethodService {
 
         int bottomPadding=
             wideMode
-            ? 52
-            : floatGap;
+            ? 34
+            : hand!=0
+                ? Math.min(floatGap,58)
+                : Math.min(floatGap,68);
 
         root.setPadding(
             dp(sidePadding),
@@ -313,11 +315,25 @@ public class KeyKiiService extends InputMethodService {
             LinearLayout.VERTICAL
         );
 
+        int panelPadX=
+            wideMode
+            ? 8
+            : hand!=0
+                ? 6
+                : 7;
+
+        int panelPadBottom=
+            wideMode
+            ? 8
+            : hand!=0
+                ? 6
+                : 7;
+
         panel.setPadding(
-            dp(8),
-            dp(5),
-            dp(8),
-            dp(8)
+            dp(panelPadX),
+            dp(4),
+            dp(panelPadX),
+            dp(panelPadBottom)
         );
 
         panel.setElevation(dp(10));
@@ -332,8 +348,8 @@ public class KeyKiiService extends InputMethodService {
             wideMode
             ? .985f
             : hand!=0
-                ? .78f
-                : .92f;
+                ? .83f
+                : .955f;
 
         LinearLayout.LayoutParams panelParams=
             new LinearLayout.LayoutParams(
@@ -487,9 +503,16 @@ public class KeyKiiService extends InputMethodService {
         expand.setLineSpacing(0f,.9f);
 
         expand.setOnClickListener(v -> {
+            // Leave one-handed completely and return to the real,
+            // full-width docked keyboard.
             hand=0;
-            wideMode=false;
+            wideMode=true;
+            floating=false;
             page=0;
+            symbols=false;
+            symbolPage=1;
+            shift=false;
+            capsLock=false;
 
             getSharedPreferences(
                 "keykii_prefs",
@@ -501,7 +524,7 @@ public class KeyKiiService extends InputMethodService {
              )
              .putBoolean(
                  "wide_default",
-                 false
+                 true
              )
              .apply();
 
@@ -726,11 +749,18 @@ public class KeyKiiService extends InputMethodService {
             }
         }
 
+        int toolbarHeight=
+            wideMode
+            ? 44
+            : hand!=0
+                ? 38
+                : 40;
+
         panel.addView(
             r,
             new LinearLayout.LayoutParams(
                 -1,
-                dp(44)
+                dp(toolbarHeight)
             )
         );
     }
@@ -1477,10 +1507,23 @@ public class KeyKiiService extends InputMethodService {
             });
         });
 
-        int effectiveKeyHeight=
-            hand!=0
-            ? Math.min(keyHeight,42)
-            : keyHeight;
+        int effectiveKeyHeight;
+
+        if(hand!=0) {
+            effectiveKeyHeight=
+                Math.min(
+                    keyHeight,
+                    39
+                );
+        } else if(!wideMode) {
+            effectiveKeyHeight=
+                Math.min(
+                    keyHeight,
+                    43
+                );
+        } else {
+            effectiveKeyHeight=keyHeight;
+        }
 
         int height=dp(effectiveKeyHeight);
 
@@ -5588,6 +5631,7 @@ public class KeyKiiService extends InputMethodService {
 
     void activateOneHanded() {
         wideMode=false;
+        floating=true;
 
         if(hand==0) {
             int preferred=
@@ -5605,6 +5649,10 @@ public class KeyKiiService extends InputMethodService {
                 : 1;
         }
 
+        page=0;
+        symbols=false;
+        symbolPage=1;
+
         getSharedPreferences(
             "keykii_prefs",
             MODE_PRIVATE
@@ -5619,30 +5667,24 @@ public class KeyKiiService extends InputMethodService {
          )
          .apply();
 
-        page=0;
         buildShell();
     }
 
-
     void toggleWideFromTools() {
-        wideMode=!wideMode;
-
-        if(wideMode) {
+        if(!wideMode) {
+            wideMode=true;
+            floating=false;
             hand=0;
+            page=0;
+            symbols=false;
+            symbolPage=1;
         } else {
-            int preferred=
-                getSharedPreferences(
-                    "keykii_prefs",
-                    MODE_PRIVATE
-                ).getInt(
-                    "one_handed_default",
-                    0
-                );
-
-            if(preferred<0 || preferred>2)
-                preferred=0;
-
-            hand=preferred;
+            // Leaving real full width returns to the regular compact layout,
+            // not to one-handed mode.
+            wideMode=false;
+            floating=true;
+            hand=0;
+            page=0;
         }
 
         getSharedPreferences(
@@ -5653,12 +5695,14 @@ public class KeyKiiService extends InputMethodService {
              "wide_default",
              wideMode
          )
+         .putInt(
+             "one_handed_default",
+             hand
+         )
          .apply();
 
-        page=0;
         buildShell();
     }
-
 
     void buildResizePanel() {
 
