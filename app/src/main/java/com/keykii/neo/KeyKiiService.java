@@ -4720,7 +4720,7 @@ public class KeyKiiService extends InputMethodService {
         LinearLayout header=new LinearLayout(this);
         header.setGravity(Gravity.CENTER_VERTICAL);
 
-        TextView heading=title("Saved text shortcuts");
+        TextView heading=title("Tap to paste • hold to edit");
         heading.setTextSize(14);
         heading.setGravity(Gravity.CENTER_VERTICAL);
         heading.setPadding(dp(8),0,0,0);
@@ -4843,6 +4843,7 @@ public class KeyKiiService extends InputMethodService {
 
             TextView preview=new TextView(this);
             preview.setText(
+                "Pastes: " +
                 value
                     .replace("\n"," ")
                     .replace("\r"," ")
@@ -4865,6 +4866,7 @@ public class KeyKiiService extends InputMethodService {
             item.addView(preview);
 
             final String pasteText=value;
+            final int shortcutIndex=i;
 
             item.setOnClickListener(v -> {
                 InputConnection ic=
@@ -4875,6 +4877,30 @@ public class KeyKiiService extends InputMethodService {
                         pasteText,
                         1
                     );
+            });
+
+            item.setOnLongClickListener(v -> {
+                try {
+                    Intent intent=new Intent();
+                    intent.setClassName(
+                        getPackageName(),
+                        "com.keykii.neo.SettingsActivity"
+                    );
+                    intent.putExtra(
+                        "open_screen",
+                        "shortcuts"
+                    );
+                    intent.putExtra(
+                        "shortcut_index",
+                        shortcutIndex
+                    );
+                    intent.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK
+                    );
+                    startActivity(intent);
+                } catch(Exception ignored) {}
+
+                return true;
             });
 
             LinearLayout.LayoutParams itemParams=

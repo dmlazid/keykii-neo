@@ -43,6 +43,11 @@ public class SettingsActivity extends Activity {
 
         if ("shortcuts".equals(getIntent().getStringExtra("open_screen"))) {
             showShortcuts();
+
+            int shortcutIndex = getIntent().getIntExtra("shortcut_index", -1);
+            if (shortcutIndex >= 0 && shortcutIndex < 12) {
+                showShortcutEditor(shortcutIndex);
+            }
         } else {
             showHome();
         }
@@ -264,7 +269,7 @@ public class SettingsActivity extends Activity {
                 page,
                 "Saved shortcuts",
                 count + (count == 1 ? " shortcut is" : " shortcuts are") +
-                        " stored locally. Open Clipboard → Shortcuts on the keyboard to paste them."
+                        " stored locally. Tap one below to edit or delete it. On the keyboard, tap to paste or hold to edit."
         );
 
         for (int i = 0; i < 12; i++) {
@@ -285,7 +290,7 @@ public class SettingsActivity extends Activity {
                     page,
                     "⚡",
                     label == null || label.trim().isEmpty() ? "Shortcut" : label,
-                    preview,
+                    "Pastes: " + preview,
                     v -> showShortcutEditor(index)
             );
         }
