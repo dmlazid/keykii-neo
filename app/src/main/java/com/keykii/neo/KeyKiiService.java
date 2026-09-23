@@ -768,15 +768,31 @@ public class KeyKiiService extends InputMethodService {
                 String choices=
                     alternativesFor(action);
 
+                // Number/symbol layouts may use an
+                // internal action different from the
+                // text actually shown on the key.
+                if(choices.isEmpty()) {
+
+                    String visible=
+                        main.getText()==null
+                        ? ""
+                        : main.getText().toString();
+
+                    choices=
+                        alternativesFor(visible);
+                }
+
                 if(!choices.isEmpty()) {
 
                     showLongPressPopup(
                         v,
                         choices
                     );
+
+                    return true;
                 }
 
-                return true;
+                return false;
             });
         }
 
@@ -1101,6 +1117,220 @@ public class KeyKiiService extends InputMethodService {
         }
 
         return rows;
+    }
+
+
+
+    String removeSkinTone(String emoji) {
+
+        StringBuilder out=new StringBuilder();
+
+        for(int i=0;i<emoji.length();) {
+
+            int cp=emoji.codePointAt(i);
+
+            // Fitzpatrick skin-tone modifiers
+            if(cp<0x1F3FB || cp>0x1F3FF)
+                out.appendCodePoint(cp);
+
+            i+=Character.charCount(cp);
+        }
+
+        return out.toString();
+    }
+
+
+    java.util.ArrayList<String>
+    emojiToneVariants(String emoji) {
+
+        loadFastEmojiDb();
+
+        java.util.ArrayList<String> out=
+            new java.util.ArrayList<>();
+
+        String base=removeSkinTone(emoji);
+
+        // Put the neutral/default version first.
+        for(String[] x:fastEmojiDb) {
+
+            if(x.length<3)
+                continue;
+
+            String candidate=x[2];
+
+            if(
+                removeSkinTone(candidate).equals(base) &&
+                !out.contains(candidate)
+            ) {
+                out.add(candidate);
+            }
+        }
+
+        // Only treat it as a variant emoji
+        // when at least one skin-tone version exists.
+        boolean hasTone=false;
+
+        for(String v:out) {
+
+            for(int i=0;i<v.length();) {
+
+                int cp=v.codePointAt(i);
+
+                if(cp>=0x1F3FB && cp<=0x1F3FF) {
+                    hasTone=true;
+                    break;
+                }
+
+                i+=Character.charCount(cp);
+            }
+
+            if(hasTone)
+                break;
+        }
+
+        if(!hasTone)
+            out.clear();
+
+        return out;
+    }
+
+
+    void showEmojiVariantPopup(
+        View anchor,
+        String emoji
+    ) {
+
+        java.util.ArrayList<String> variants=
+            emojiToneVariants(emoji);
+
+        if(variants.size()<2)
+            return;
+
+        LinearLayout strip=
+            new LinearLayout(this);
+
+        strip.setOrientation(
+            LinearLayout.HORIZONTAL
+        );
+
+        strip.setGravity(Gravity.CENTER);
+
+        strip.setPadding(
+            dp(5),dp(5),dp(5),dp(5)
+        );
+
+        strip.setBackground(
+            round(
+                keyColor(false),
+                22,
+                borderColor()
+            )
+        );
+
+
+        HorizontalScrollView scroller=
+            new HorizontalScrollView(this);
+
+        scroller.setHorizontalScrollBarEnabled(
+            false
+        );
+
+        scroller.addView(strip);
+
+
+        int maxWidth=
+            getResources()
+            .getDisplayMetrics()
+            .widthPixels-dp(24);
+
+        int wanted=
+            dp(10)+variants.size()*dp(52);
+
+        int popupWidth=
+            Math.min(maxWidth,wanted);
+
+
+        final PopupWindow popup=
+            new PopupWindow(
+                scroller,
+                popupWidth,
+                dp(66),
+                true
+            );
+
+        popup.setOutsideTouchable(true);
+        popup.setFocusable(true);
+
+        popup.setBackgroundDrawable(
+            new android.graphics.drawable.ColorDrawable(
+                android.graphics.Color.TRANSPARENT
+            )
+        );
+
+        if(
+            android.os.Build.VERSION.SDK_INT>=21
+        )
+            popup.setElevation(dp(10));
+
+
+        for(String value:variants) {
+
+            TextView choice=
+                new TextView(this);
+
+            choice.setText(value);
+            choice.setTextSize(29);
+
+            choice.setGravity(
+                Gravity.CENTER
+            );
+
+            strip.addView(
+                choice,
+                new LinearLayout.LayoutParams(
+                    dp(52),
+                    dp(56)
+                )
+            );
+
+            choice.setOnClickListener(v -> {
+
+                fastCommitEmoji(value);
+
+                popup.dismiss();
+            });
+        }
+
+
+        int[] pos=new int[2];
+        anchor.getLocationOnScreen(pos);
+
+        int x=
+            pos[0]+
+            anchor.getWidth()/2-
+            popupWidth/2;
+
+        if(x<dp(8))
+            x=dp(8);
+
+        int screenWidth=
+            getResources()
+            .getDisplayMetrics()
+            .widthPixels;
+
+        if(x+popupWidth>screenWidth-dp(8))
+            x=screenWidth-popupWidth-dp(8);
+
+
+        int y=
+            pos[1]-dp(72);
+
+        popup.showAtLocation(
+            anchor,
+            Gravity.TOP|Gravity.LEFT,
+            x,
+            y
+        );
     }
 
 
@@ -1534,6 +1764,24 @@ public class KeyKiiService extends InputMethodService {
                                         value
                                     )
                                 );
+
+                                e.setOnLongClickListener(v -> {
+
+                                    java.util.ArrayList<String> variants=
+                                        emojiToneVariants(value);
+
+                                    if(variants.size()>1) {
+
+                                        showEmojiVariantPopup(
+                                            v,
+                                            value
+                                        );
+
+                                        return true;
+                                    }
+
+                                    return false;
+                                });
 
                             } else {
 
