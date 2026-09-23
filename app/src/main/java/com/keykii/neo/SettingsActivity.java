@@ -45,6 +45,14 @@ public class SettingsActivity extends Activity {
     private int themeScrollY = 0;
     private String pendingThemeImageUri = "";
 
+    // Keep every settings screen at the same scroll position when it
+    // refreshes itself after a tap. This avoids the recurring jump-to-top
+    // glitch across toolbar, preferences, shortcuts, themes, and future pages.
+    private ScrollView activeSettingsScrollView;
+    private String activeSettingsScrollScreen = "";
+    private final java.util.HashMap<String,Integer> settingsScrollPositions =
+            new java.util.HashMap<>();
+
     // Gboard-style theme picker draft state. Theme tiles only update this
     // preview; nothing is saved until Apply is pressed.
     private LinearLayout themePreviewSheet;
@@ -1294,18 +1302,68 @@ public class SettingsActivity extends Activity {
     }
 
     private ScrollView wrap(LinearLayout content) {
+        // Save the previous screen before replacing its view.
+        if (
+                activeSettingsScrollView != null &&
+                activeSettingsScrollScreen != null &&
+                !activeSettingsScrollScreen.isEmpty()
+        ) {
+            settingsScrollPositions.put(
+                    activeSettingsScrollScreen,
+                    activeSettingsScrollView.getScrollY()
+            );
+        }
+
+        final String scrollScreen =
+                screen == null ? "" : screen;
+
+        final int restoreY =
+                settingsScrollPositions.containsKey(scrollScreen)
+                        ? settingsScrollPositions.get(scrollScreen)
+                        : 0;
+
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
         scroll.setBackgroundColor(BG);
+
         // Android 15 draws behind system bars; keep settings clear of them.
         scroll.setOnApplyWindowInsetsListener((view, insets) -> {
-            view.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
-                    insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
+            view.setPadding(
+                    insets.getSystemWindowInsetLeft(),
+                    insets.getSystemWindowInsetTop(),
+                    insets.getSystemWindowInsetRight(),
+                    insets.getSystemWindowInsetBottom()
+            );
             return insets;
         });
-        scroll.addView(content, new ScrollView.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        scroll.addView(
+                content,
+                new ScrollView.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+        );
+
+        scroll.setOnScrollChangeListener(
+                (view, scrollX, scrollY, oldScrollX, oldScrollY) ->
+                        settingsScrollPositions.put(
+                                scrollScreen,
+                                scrollY
+                        )
+        );
+
+        activeSettingsScrollView = scroll;
+        activeSettingsScrollScreen = scrollScreen;
+
+        // Restore after layout so Android does not override the position.
+        scroll.post(() ->
+                scroll.scrollTo(
+                        0,
+                        restoreY
+                )
+        );
+
         return scroll;
     }
 
