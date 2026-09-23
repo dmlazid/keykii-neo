@@ -66,6 +66,7 @@ public class KeyKiiService extends InputMethodService {
 
                 if(page==1 && emojiSearchMode) {
                     eraseEmojiSearchChar();
+                    refreshEmojiSearchResults();
                 } else {
                     InputConnection ic=
                         getCurrentInputConnection();
@@ -826,8 +827,20 @@ public class KeyKiiService extends InputMethodService {
 
         }
 
-        // Long-press works on both letter keys and the real 123 keys.
+        // Gboard-style comma key: tap types comma, long-press opens emoji.
+        // The small smiley hint is supplied by hintFor(",").
         box.setOnLongClickListener(v -> {
+
+            if(action.equals(",") && page==0 && !symbols) {
+                dismissKeyPreview();
+                page=1;
+                emojiCategory=0;
+                emojiSearchMode=false;
+                emojiSearchQuery="";
+                kaomojiMode=false;
+                showPage();
+                return true;
+            }
 
             String choices=alternativesFor(action);
 
@@ -1571,6 +1584,33 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    String emojiToneFamilyKey(String emoji) {
+
+        if(emoji==null) return "";
+
+        StringBuilder out=new StringBuilder();
+
+        for(int i=0;i<emoji.length();) {
+            int cp=emoji.codePointAt(i);
+
+            // Ignore Fitzpatrick modifiers and text/emoji presentation
+            // selectors when matching a base emoji to its tone variants.
+            // Unicode stores forms such as ✌️ and ✌🏻 differently.
+            if(
+                !(cp>=0x1F3FB && cp<=0x1F3FF) &&
+                cp!=0xFE0E &&
+                cp!=0xFE0F
+            ) {
+                out.appendCodePoint(cp);
+            }
+
+            i+=Character.charCount(cp);
+        }
+
+        return out.toString();
+    }
+
+
     java.util.ArrayList<String>
     emojiToneVariants(String emoji) {
 
@@ -1580,8 +1620,9 @@ public class KeyKiiService extends InputMethodService {
             new java.util.ArrayList<>();
 
         String base=removeSkinTone(emoji);
+        String familyKey=emojiToneFamilyKey(emoji);
 
-        if(!displayableEmoji(base))
+        if(familyKey.isEmpty() || !displayableEmoji(base))
             return out;
 
         out.add(base);
@@ -1597,7 +1638,7 @@ public class KeyKiiService extends InputMethodService {
                 if(x.length<3) continue;
 
                 String candidate=x[2];
-                if(!removeSkinTone(candidate).equals(base))
+                if(!emojiToneFamilyKey(candidate).equals(familyKey))
                     continue;
 
                 int count=0;
@@ -1781,12 +1822,42 @@ public class KeyKiiService extends InputMethodService {
             showPage();
         });
 
-        del.setOnClickListener(v -> {
-            InputConnection ic=getCurrentInputConnection();
-            if(ic!=null) {
-                ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DEL));
-                ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_DEL));
+        del.setOnTouchListener((v,e) -> {
+            if(e.getAction()==MotionEvent.ACTION_DOWN) {
+                backspaceRepeating=false;
+                suppressBackspaceClick=false;
+                repeatBackspaceHandler.postDelayed(
+                    repeatBackspaceRunnable,
+                    330
+                );
             }
+
+            if(
+                e.getAction()==MotionEvent.ACTION_UP ||
+                e.getAction()==MotionEvent.ACTION_CANCEL
+            ) {
+                repeatBackspaceHandler.removeCallbacks(
+                    repeatBackspaceRunnable
+                );
+
+                if(backspaceRepeating)
+                    suppressBackspaceClick=true;
+
+                backspaceRepeating=false;
+            }
+
+            return false;
+        });
+
+        del.setOnClickListener(v -> {
+            if(suppressBackspaceClick) {
+                suppressBackspaceClick=false;
+                return;
+            }
+
+            InputConnection ic=getCurrentInputConnection();
+            if(ic!=null)
+                ic.deleteSurroundingText(1,0);
         });
 
         for(TextView b:new TextView[]{abc,emoji,kao,del}) {
@@ -1878,9 +1949,58 @@ public class KeyKiiService extends InputMethodService {
         close.setTextColor(textColor());
         close.setGravity(Gravity.CENTER);
 
+        close.setOnTouchListener((v,e) -> {
+
+            if(
+                emojiSearchMode &&
+                emojiSearchQuery!=null &&
+                !emojiSearchQuery.isEmpty() &&
+                e.getAction()==MotionEvent.ACTION_DOWN
+            ) {
+                backspaceRepeating=false;
+                suppressBackspaceClick=false;
+                repeatBackspaceHandler.postDelayed(
+                    repeatBackspaceRunnable,
+                    330
+                );
+            }
+
+            if(
+                e.getAction()==MotionEvent.ACTION_UP ||
+                e.getAction()==MotionEvent.ACTION_CANCEL
+            ) {
+                repeatBackspaceHandler.removeCallbacks(
+                    repeatBackspaceRunnable
+                );
+
+                if(backspaceRepeating)
+                    suppressBackspaceClick=true;
+
+                backspaceRepeating=false;
+            }
+
+            return false;
+        });
+
         close.setOnClickListener(v -> {
 
-            // X ALWAYS returns to normal emoji page.
+            if(suppressBackspaceClick) {
+                suppressBackspaceClick=false;
+                return;
+            }
+
+            // In search, X behaves like backspace. When the field is
+            // empty, it exits search and returns to the emoji browser.
+            if(
+                emojiSearchMode &&
+                emojiSearchQuery!=null &&
+                !emojiSearchQuery.isEmpty()
+            ) {
+                eraseEmojiSearchChar();
+                refreshEmojiSearchResults();
+                return;
+            }
+
             kaomojiMode=false;
             emojiSearchMode=false;
             emojiSearchQuery="";
@@ -3763,6 +3883,7 @@ public class KeyKiiService extends InputMethodService {
             case "b": return ";";
             case "n": return "!";
             case "m": return "?";
+            case ",": return "☺";
 
             default: return "";
         }
