@@ -21,6 +21,16 @@ public class KeyKiiService extends InputMethodService {
     PopupWindow keyPreviewPopup=null;
     TextView keyPreviewText=null;
 
+    // Gboard-style drag selector used by long-press alternatives.
+    PopupWindow dragChoicePopup=null;
+    java.util.ArrayList<TextView> dragChoiceViews=
+        new java.util.ArrayList<>();
+    java.util.ArrayList<String> dragChoiceValues=
+        new java.util.ArrayList<>();
+    int dragChoiceIndex=-1;
+    boolean dragChoiceActive=false;
+    String dragChoiceMode="";
+    boolean suppressNextKeyClick=false;
 
 
     LinearLayout root, panel, body;
@@ -856,7 +866,32 @@ public class KeyKiiService extends InputMethodService {
 
         box.setOnTouchListener((v,e)->{
 
+            if(dragChoiceActive) {
+                int a=e.getActionMasked();
+
+                if(
+                    a==MotionEvent.ACTION_MOVE ||
+                    a==MotionEvent.ACTION_UP ||
+                    a==MotionEvent.ACTION_CANCEL
+                ) {
+                    if(
+                        a==MotionEvent.ACTION_UP ||
+                        a==MotionEvent.ACTION_CANCEL
+                    ) {
+                        v.animate()
+                         .scaleX(1f)
+                         .scaleY(1f)
+                         .setDuration(45)
+                         .start();
+                        dismissKeyPreview();
+                    }
+
+                    return handleDragChoiceTouch(e);
+                }
+            }
+
             if(e.getAction()==MotionEvent.ACTION_DOWN) {
+                suppressNextKeyClick=false;
                 // Soft Gboard-like press feedback. Keep it fast so typing
                 // still feels responsive instead of rigid.
                 v.animate()
@@ -927,6 +962,11 @@ public class KeyKiiService extends InputMethodService {
         });
 
         box.setOnClickListener(v -> {
+
+            if(suppressNextKeyClick) {
+                suppressNextKeyClick=false;
+                return;
+            }
 
             if(
                 action.equals("BACK") &&
@@ -1373,8 +1413,24 @@ public class KeyKiiService extends InputMethodService {
         if(q.isEmpty())
             return true;
 
-        // "cry" used to match CRYstal ball. Give common emotion
-        // searches explicit meaning before generic substring matching.
+        // Common feeling words should behave like an emoji search, not
+        // a raw substring search. This also keeps searches such as
+        // "key" from matching monKEY / turKEY.
+        if(q.equals("sad") || q.equals("sadness") || q.equals("unhappy")) {
+            return haystack.contains("sad") ||
+                   haystack.contains("frown") ||
+                   haystack.contains("disappoint") ||
+                   haystack.contains("worr") ||
+                   haystack.contains("plead") ||
+                   haystack.contains("tear") ||
+                   haystack.contains("cry") ||
+                   haystack.contains("anguish") ||
+                   haystack.contains("weary") ||
+                   haystack.contains("pensive") ||
+                   haystack.contains("downcast") ||
+                   haystack.contains("sorrow");
+        }
+
         if(q.equals("cry") || q.equals("crying")) {
             return haystack.contains("crying") ||
                    haystack.contains("tear") ||
@@ -1420,7 +1476,40 @@ public class KeyKiiService extends InputMethodService {
                    haystack.contains("zzz");
         }
 
-        return haystack.contains(q);
+        String normalized=haystack
+            .replace('-', ' ')
+            .replace('_', ' ')
+            .replace('/', ' ')
+            .replace(':', ' ');
+
+        String[] tokens=normalized.split("[^a-z0-9]+");
+        String[] terms=q.split("\\s+");
+
+        for(String term:terms) {
+            if(term.isEmpty()) continue;
+
+            boolean found=false;
+            String stem=term.length()>=5
+                ? term.substring(0,term.length()-1)
+                : term;
+
+            for(String token:tokens) {
+                if(token.isEmpty()) continue;
+
+                if(
+                    token.equals(term) ||
+                    token.startsWith(term) ||
+                    (stem.length()>=4 && token.startsWith(stem))
+                ) {
+                    found=true;
+                    break;
+                }
+            }
+
+            if(!found) return false;
+        }
+
+        return true;
     }
 
 
@@ -1486,6 +1575,9 @@ public class KeyKiiService extends InputMethodService {
                     }
                     return false;
                 });
+                e.setOnTouchListener((v,event) ->
+                    handleDragChoiceTouch(event)
+                );
                 emojiSearchResultsRow.addView(
                     e,
                     new LinearLayout.LayoutParams(dp(52),dp(56))
@@ -1675,74 +1767,18 @@ public class KeyKiiService extends InputMethodService {
         View anchor,
         String emoji
     ) {
-
         java.util.ArrayList<String> variants=
             emojiToneVariants(emoji);
 
         if(variants.size()<2)
             return;
 
-        LinearLayout strip=new LinearLayout(this);
-        strip.setOrientation(LinearLayout.HORIZONTAL);
-        strip.setGravity(Gravity.CENTER);
-        strip.setPadding(dp(6),dp(5),dp(6),dp(5));
-        strip.setBackground(
-            round(keyColor(false),22,borderColor())
-        );
-
-        final int cellW=dp(50);
-        final int popupWidth=dp(12)+variants.size()*cellW;
-        final int popupHeight=dp(64);
-
-        final PopupWindow popup=new PopupWindow(
-            strip,
-            popupWidth,
-            popupHeight,
-            true
-        );
-
-        popup.setOutsideTouchable(true);
-        popup.setFocusable(true);
-        popup.setBackgroundDrawable(
-            new android.graphics.drawable.ColorDrawable(
-                android.graphics.Color.TRANSPARENT
-            )
-        );
-
-        if(android.os.Build.VERSION.SDK_INT>=21)
-            popup.setElevation(dp(10));
-
-        for(String value:variants) {
-            TextView choice=new TextView(this);
-            choice.setText(value);
-            choice.setTextSize(28);
-            choice.setGravity(Gravity.CENTER);
-            choice.setIncludeFontPadding(false);
-
-            strip.addView(
-                choice,
-                new LinearLayout.LayoutParams(
-                    cellW,
-                    dp(54)
-                )
-            );
-
-            choice.setOnClickListener(v -> {
-                fastCommitEmoji(value);
-                popup.dismiss();
-            });
-        }
-
-        // InputMethodService uses its own window coordinates.
-        // Anchor-relative placement keeps the selector directly above
-        // the emoji instead of dropping it at the bottom of the IME.
-        int xOffset=(anchor.getWidth()-popupWidth)/2;
-        int yOffset=-anchor.getHeight()-popupHeight-dp(8);
-
-        popup.showAsDropDown(
+        showDragChoicePopup(
             anchor,
-            xOffset,
-            yOffset
+            variants,
+            variants,
+            "EMOJI",
+            0
         );
     }
 
@@ -2279,6 +2315,9 @@ public class KeyKiiService extends InputMethodService {
 
                                 return false;
                             });
+                            e.setOnTouchListener((v,event) ->
+                                handleDragChoiceTouch(event)
+                            );
                         }
 
                         row.addView(
@@ -3934,128 +3973,281 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
-    void showCommaShortcutPopup(View anchor) {
+    void dismissDragChoicePopup() {
+        if(dragChoicePopup!=null && dragChoicePopup.isShowing())
+            dragChoicePopup.dismiss();
 
-        final int cell=dp(58);
-        final int pad=dp(7);
-        final int popupWidth=(cell*3)+(pad*2);
-        final int popupHeight=cell+(pad*2);
+        dragChoicePopup=null;
+        dragChoiceViews.clear();
+        dragChoiceValues.clear();
+        dragChoiceIndex=-1;
+        dragChoiceActive=false;
+        dragChoiceMode="";
+    }
 
-        LinearLayout row=new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER);
-        row.setPadding(pad,pad,pad,pad);
-        row.setBackground(
-            round(keyColor(false),26,borderColor())
+
+    void paintDragChoiceSelection() {
+        for(int i=0;i<dragChoiceViews.size();i++) {
+            TextView v=dragChoiceViews.get(i);
+
+            if(i==dragChoiceIndex) {
+                v.setBackground(
+                    round(
+                        theme==1
+                        ? Color.rgb(221,226,239)
+                        : Color.argb(90,120,150,220),
+                        18,
+                        Color.TRANSPARENT
+                    )
+                );
+            } else {
+                v.setBackground(
+                    new android.graphics.drawable.ColorDrawable(
+                        Color.TRANSPARENT
+                    )
+                );
+            }
+        }
+    }
+
+
+    void updateDragChoiceSelection(float rawX, float rawY) {
+        if(!dragChoiceActive) return;
+
+        int best=-1;
+        float bestDistance=Float.MAX_VALUE;
+
+        for(int i=0;i<dragChoiceViews.size();i++) {
+            TextView v=dragChoiceViews.get(i);
+            int[] loc=new int[2];
+            v.getLocationOnScreen(loc);
+
+            float left=loc[0]-dp(8);
+            float top=loc[1]-dp(10);
+            float right=loc[0]+v.getWidth()+dp(8);
+            float bottom=loc[1]+v.getHeight()+dp(10);
+
+            if(
+                rawX>=left && rawX<=right &&
+                rawY>=top && rawY<=bottom
+            ) {
+                best=i;
+                break;
+            }
+
+            float cx=loc[0]+v.getWidth()/2f;
+            float cy=loc[1]+v.getHeight()/2f;
+            float dx=rawX-cx;
+            float dy=rawY-cy;
+            float d=dx*dx+dy*dy;
+
+            // Gboard lets the finger slide just below the popup as well.
+            if(rawY<=bottom+dp(46) && d<bestDistance) {
+                bestDistance=d;
+                best=i;
+            }
+        }
+
+        if(best>=0 && best!=dragChoiceIndex) {
+            dragChoiceIndex=best;
+            paintDragChoiceSelection();
+        }
+    }
+
+
+    void commitDragChoice() {
+        if(
+            dragChoiceIndex<0 ||
+            dragChoiceIndex>=dragChoiceValues.size()
+        ) {
+            dismissDragChoicePopup();
+            return;
+        }
+
+        String value=dragChoiceValues.get(dragChoiceIndex);
+        String mode=dragChoiceMode;
+
+        dismissDragChoicePopup();
+
+        if(mode.equals("TEXT")) {
+            InputConnection ic=getCurrentInputConnection();
+            if(ic!=null) ic.commitText(value,1);
+            return;
+        }
+
+        if(mode.equals("EMOJI")) {
+            fastCommitEmoji(value);
+            return;
+        }
+
+        if(mode.equals("COMMA")) {
+            if(value.equals("HAND")) {
+                if(wideMode) wideMode=false;
+                hand=(hand==0) ? 1 : (hand==1 ? 2 : 0);
+                buildShell();
+                return;
+            }
+
+            if(value.equals("EMOJI")) {
+                page=1;
+                emojiCategory=0;
+                emojiSearchMode=false;
+                emojiSearchQuery="";
+                kaomojiMode=false;
+                showPage();
+                return;
+            }
+
+            if(value.equals("SETTINGS")) {
+                try {
+                    Intent intent=new Intent();
+                    intent.setClassName(
+                        getPackageName(),
+                        "com.keykii.neo.SettingsActivity"
+                    );
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                } catch(Exception ignored) {}
+            }
+        }
+    }
+
+
+    boolean handleDragChoiceTouch(MotionEvent e) {
+        if(!dragChoiceActive) return false;
+
+        int action=e.getActionMasked();
+
+        if(action==MotionEvent.ACTION_MOVE) {
+            updateDragChoiceSelection(e.getRawX(),e.getRawY());
+            return true;
+        }
+
+        if(action==MotionEvent.ACTION_UP) {
+            updateDragChoiceSelection(e.getRawX(),e.getRawY());
+            commitDragChoice();
+            suppressNextKeyClick=true;
+            return true;
+        }
+
+        if(action==MotionEvent.ACTION_CANCEL) {
+            dismissDragChoicePopup();
+            suppressNextKeyClick=true;
+            return true;
+        }
+
+        return false;
+    }
+
+
+    void showDragChoicePopup(
+        View anchor,
+        java.util.ArrayList<String> labels,
+        java.util.ArrayList<String> values,
+        String mode,
+        int initialIndex
+    ) {
+        if(anchor==null || labels==null || values==null) return;
+        if(labels.isEmpty() || labels.size()!=values.size()) return;
+
+        dismissDragChoicePopup();
+        dismissKeyPreview();
+
+        int columns=labels.size()<=6
+            ? labels.size()
+            : Math.min(6,(labels.size()+1)/2);
+        int rows=(labels.size()+columns-1)/columns;
+        int cellW=mode.equals("EMOJI") ? dp(50) : dp(52);
+        int cellH=mode.equals("EMOJI") ? dp(54) : dp(50);
+        int popupWidth=dp(14)+columns*cellW;
+        int popupHeight=dp(14)+rows*cellH;
+
+        android.widget.GridLayout grid=
+            new android.widget.GridLayout(this);
+        grid.setColumnCount(columns);
+        grid.setPadding(dp(7),dp(7),dp(7),dp(7));
+        grid.setBackground(
+            round(keyColor(false),20,borderColor())
         );
 
-        final PopupWindow popup=new PopupWindow(
-            row,
+        dragChoicePopup=new PopupWindow(
+            grid,
             popupWidth,
             popupHeight,
-            true
+            false
         );
 
-        popup.setFocusable(true);
-        popup.setOutsideTouchable(true);
-        popup.setBackgroundDrawable(
+        // Important: keep the current finger gesture on the original key.
+        // Selection is made by dragging, not by tapping the popup cells.
+        dragChoicePopup.setFocusable(false);
+        dragChoicePopup.setTouchable(false);
+        dragChoicePopup.setOutsideTouchable(false);
+        dragChoicePopup.setBackgroundDrawable(
             new android.graphics.drawable.ColorDrawable(
-                android.graphics.Color.TRANSPARENT
-            )
-        );
-
-        if(android.os.Build.VERSION.SDK_INT>=21)
-            popup.setElevation(dp(12));
-
-        TextView oneHand=new TextView(this);
-        oneHand.setText("↔");
-        oneHand.setTextSize(24);
-        oneHand.setTextColor(textColor());
-        oneHand.setGravity(Gravity.CENTER);
-        oneHand.setIncludeFontPadding(false);
-
-        TextView emoji=new TextView(this);
-        emoji.setText("☺");
-        emoji.setTextSize(28);
-        emoji.setTextColor(textColor());
-        emoji.setGravity(Gravity.CENTER);
-        emoji.setIncludeFontPadding(false);
-        emoji.setBackground(
-            round(
-                theme==1
-                    ? Color.rgb(221,226,239)
-                    : Color.argb(85,120,150,220),
-                24,
                 Color.TRANSPARENT
             )
         );
 
-        TextView settings=new TextView(this);
-        settings.setText("⚙");
-        settings.setTextSize(25);
-        settings.setTextColor(textColor());
-        settings.setGravity(Gravity.CENTER);
-        settings.setIncludeFontPadding(false);
+        if(android.os.Build.VERSION.SDK_INT>=21)
+            dragChoicePopup.setElevation(dp(10));
 
-        row.addView(
-            oneHand,
-            new LinearLayout.LayoutParams(cell,cell)
-        );
-        row.addView(
-            emoji,
-            new LinearLayout.LayoutParams(cell,cell)
-        );
-        row.addView(
-            settings,
-            new LinearLayout.LayoutParams(cell,cell)
-        );
+        dragChoiceViews.clear();
+        dragChoiceValues.clear();
 
-        oneHand.setOnClickListener(v -> {
-            popup.dismiss();
+        for(int i=0;i<labels.size();i++) {
+            TextView option=new TextView(this);
+            option.setText(labels.get(i));
+            option.setTextSize(mode.equals("EMOJI") ? 28 : 21);
+            option.setTextColor(textColor());
+            option.setGravity(Gravity.CENTER);
+            option.setIncludeFontPadding(false);
 
-            if(wideMode)
-                wideMode=false;
+            android.widget.GridLayout.LayoutParams lp=
+                new android.widget.GridLayout.LayoutParams();
+            lp.width=cellW;
+            lp.height=cellH;
+            grid.addView(option,lp);
 
-            hand=(hand==0) ? 1 : (hand==1 ? 2 : 0);
-            buildShell();
-        });
+            dragChoiceViews.add(option);
+            dragChoiceValues.add(values.get(i));
+        }
 
-        emoji.setOnClickListener(v -> {
-            popup.dismiss();
-            page=1;
-            emojiCategory=0;
-            emojiSearchMode=false;
-            emojiSearchQuery="";
-            kaomojiMode=false;
-            showPage();
-        });
-
-        settings.setOnClickListener(v -> {
-            popup.dismiss();
-            try {
-                Intent intent=new Intent();
-                intent.setClassName(
-                    getPackageName(),
-                    "com.keykii.neo.SettingsActivity"
-                );
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-            } catch(Exception ignored) {}
-        });
+        dragChoiceMode=mode;
+        dragChoiceIndex=Math.max(0,Math.min(initialIndex,labels.size()-1));
+        dragChoiceActive=true;
+        suppressNextKeyClick=true;
 
         int xOffset=(anchor.getWidth()-popupWidth)/2;
-        int yOffset=-anchor.getHeight()-popupHeight-dp(10);
+        int yOffset=-anchor.getHeight()-popupHeight-dp(8);
 
-        popup.showAsDropDown(
+        dragChoicePopup.showAsDropDown(
             anchor,
             xOffset,
             yOffset
         );
+
+        grid.post(() -> paintDragChoiceSelection());
+    }
+
+
+    void showCommaShortcutPopup(View anchor) {
+        java.util.ArrayList<String> labels=new java.util.ArrayList<>();
+        java.util.ArrayList<String> values=new java.util.ArrayList<>();
+
+        labels.add("↔");
+        labels.add("☺");
+        labels.add("⚙");
+
+        values.add("HAND");
+        values.add("EMOJI");
+        values.add("SETTINGS");
+
+        // Center smiley starts selected, just like the Gboard-style popup.
+        showDragChoicePopup(anchor,labels,values,"COMMA",1);
     }
 
 
     void showLongPressPopup(View anchor, String choices) {
-
         if(choices==null || choices.trim().isEmpty())
             return;
 
@@ -4073,7 +4265,6 @@ public class KeyKiiService extends InputMethodService {
 
             boolean supported=true;
 
-            // Reject any truly unassigned code point first.
             for(int i=0;i<value.length();) {
                 int cp=value.codePointAt(i);
                 if(Character.getType(cp)==Character.UNASSIGNED) {
@@ -4099,72 +4290,7 @@ public class KeyKiiService extends InputMethodService {
 
         if(options.isEmpty()) return;
 
-        int columns=options.size()<=5
-            ? options.size()
-            : Math.min(5,(options.size()+1)/2);
-
-        int rows=(options.size()+columns-1)/columns;
-        int cellW=dp(52);
-        int cellH=dp(50);
-        int popupWidth=dp(14)+columns*cellW;
-        int popupHeight=dp(14)+rows*cellH;
-
-        android.widget.GridLayout grid=
-            new android.widget.GridLayout(this);
-
-        grid.setColumnCount(columns);
-        grid.setPadding(dp(7),dp(7),dp(7),dp(7));
-        grid.setBackground(
-            round(keyColor(false),20,borderColor())
-        );
-
-        final PopupWindow popup=new PopupWindow(
-            grid,
-            popupWidth,
-            popupHeight,
-            true
-        );
-
-        popup.setFocusable(true);
-        popup.setOutsideTouchable(true);
-        popup.setBackgroundDrawable(
-            new android.graphics.drawable.ColorDrawable(
-                android.graphics.Color.TRANSPARENT
-            )
-        );
-
-        if(android.os.Build.VERSION.SDK_INT>=21)
-            popup.setElevation(dp(10));
-
-        for(String value:options) {
-            TextView option=new TextView(this);
-            option.setText(value);
-            option.setTextSize(20);
-            option.setTextColor(textColor());
-            option.setGravity(Gravity.CENTER);
-            option.setIncludeFontPadding(false);
-
-            android.widget.GridLayout.LayoutParams lp=
-                new android.widget.GridLayout.LayoutParams();
-            lp.width=cellW;
-            lp.height=cellH;
-            grid.addView(option,lp);
-
-            option.setOnClickListener(v -> {
-                InputConnection ic=getCurrentInputConnection();
-                if(ic!=null) ic.commitText(value,1);
-                popup.dismiss();
-            });
-        }
-
-        int xOffset=(anchor.getWidth()-popupWidth)/2;
-        int yOffset=-anchor.getHeight()-popupHeight-dp(8);
-
-        popup.showAsDropDown(
-            anchor,
-            xOffset,
-            yOffset
-        );
+        showDragChoicePopup(anchor,options,options,"TEXT",0);
     }
 
 
