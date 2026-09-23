@@ -15,19 +15,8 @@ public class KeyKiiService extends InputMethodService {
     boolean kaomojiMode=false;
     int kaomojiCategory=0;
     TextView emojiSearchField=null;
-    android.os.Handler emojiCursorHandler=
-        new android.os.Handler(android.os.Looper.getMainLooper());
-    boolean emojiCursorVisible=true;
-    Runnable emojiCursorRunnable=new Runnable() {
-        @Override
-        public void run() {
-            if(page==1 && emojiSearchMode && emojiSearchField!=null) {
-                emojiCursorVisible=!emojiCursorVisible;
-                renderEmojiSearchField();
-                emojiCursorHandler.postDelayed(this,500);
-            }
-        }
-    };
+    int emojiSearchCursor=0;
+    int emojiSearchGestureStart=0;
     HorizontalScrollView emojiSearchResultsScroll=null;
     LinearLayout emojiSearchResultsRow=null;
 
@@ -1106,7 +1095,22 @@ public class KeyKiiService extends InputMethodService {
             spaceDownX=e.getX();
             spaceCursorDragging=false;
             spacePickerShown=false;
-            beginSpaceCursorGesture();
+            if(page==1 && emojiSearchMode) {
+                if(emojiSearchQuery==null)
+                    emojiSearchQuery="";
+
+                emojiSearchCursor=Math.max(
+                    0,
+                    Math.min(
+                        emojiSearchCursor,
+                        emojiSearchQuery.length()
+                    )
+                );
+
+                emojiSearchGestureStart=emojiSearchCursor;
+            } else {
+                beginSpaceCursorGesture();
+            }
 
             v.animate()
              .scaleX(1.02f)
@@ -1136,7 +1140,10 @@ public class KeyKiiService extends InputMethodService {
                     spaceCursorDragging=true;
                     spaceGestureHandler.removeCallbacksAndMessages(null);
                 }
-                moveCursorFromSpace(dx);
+                if(page==1 && emojiSearchMode)
+                    moveEmojiSearchCursorFromSpace(dx);
+                else
+                    moveCursorFromSpace(dx);
             }
 
             return true;
@@ -1683,6 +1690,59 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    java.util.ArrayList<String>
+    findFastEmojiMatches(String query,int limit) {
+
+        loadFastEmojiDb();
+
+        java.util.ArrayList<String> results=
+            new java.util.ArrayList<>();
+
+        java.util.HashSet<String> seen=
+            new java.util.HashSet<>();
+
+        String q=query==null
+            ? ""
+            : query.trim().toLowerCase();
+
+        if(q.isEmpty())
+            return results;
+
+        for(String[] x:fastEmojiDb) {
+            if(x.length<3) continue;
+
+            String group=x[0];
+            String subgroup=x.length>1 ? x[1] : "";
+            String emoji=x[2];
+            String name=x.length>3 ? x[3] : "";
+
+            if(group.equalsIgnoreCase("Component"))
+                continue;
+
+            if(hasSkinToneModifier(emoji))
+                continue;
+
+            String haystack=(
+                group+" "+subgroup+" "+name
+            ).toLowerCase();
+
+            if(!emojiSearchMatches(haystack,q))
+                continue;
+
+            if(!displayableEmoji(emoji))
+                continue;
+
+            if(seen.add(emoji))
+                results.add(emoji);
+
+            if(results.size()>=limit)
+                break;
+        }
+
+        return results;
+    }
+
+
     void refreshEmojiSearchResults() {
 
         if(emojiSearchResultsRow==null || emojiSearchResultsScroll==null)
@@ -1699,23 +1759,8 @@ public class KeyKiiService extends InputMethodService {
             return;
         }
 
-        java.util.ArrayList<Object> rows=makeFastEmojiRows(q);
-        java.util.ArrayList<String> results=new java.util.ArrayList<>();
-
-        for(Object item:rows) {
-            if(item instanceof java.util.ArrayList) {
-                @SuppressWarnings("unchecked")
-                java.util.ArrayList<String> row=(java.util.ArrayList<String>)item;
-                for(String value:row) {
-                    if(!results.contains(value))
-                        results.add(value);
-                    if(results.size()>=24)
-                        break;
-                }
-            }
-            if(results.size()>=24)
-                break;
-        }
+        java.util.ArrayList<String> results=
+            findFastEmojiMatches(q,24);
 
         if(results.isEmpty()) {
             TextView empty=new TextView(this);
@@ -2190,6 +2235,10 @@ public class KeyKiiService extends InputMethodService {
             }
 
             emojiSearchMode=true;
+            emojiSearchCursor=
+                emojiSearchQuery==null
+                ? 0
+                : emojiSearchQuery.length();
             symbols=false;
             symbolPage=1;
             shift=false;
@@ -2668,6 +2717,10 @@ public class KeyKiiService extends InputMethodService {
 
         search.setOnClickListener(v -> {
             emojiSearchMode=true;
+            emojiSearchCursor=
+                emojiSearchQuery==null
+                ? 0
+                : emojiSearchQuery.length();
             showPage();
         });
 
@@ -3303,6 +3356,53 @@ public class KeyKiiService extends InputMethodService {
 
 
 
+    class EmojiSearchCursorSpan
+        extends android.text.style.ReplacementSpan {
+
+        @Override
+        public int getSize(
+            android.graphics.Paint paint,
+            CharSequence text,
+            int start,
+            int end,
+            android.graphics.Paint.FontMetricsInt fm
+        ) {
+            return Math.max(dp(2),1);
+        }
+
+        @Override
+        public void draw(
+            android.graphics.Canvas canvas,
+            CharSequence text,
+            int start,
+            int end,
+            float x,
+            int top,
+            int y,
+            int bottom,
+            android.graphics.Paint paint
+        ) {
+            int oldColor=paint.getColor();
+            float oldWidth=paint.getStrokeWidth();
+
+            paint.setColor(textColor());
+            paint.setStrokeWidth(Math.max(dp(1),1));
+
+            float lineX=x+Math.max(dp(1),1);
+            canvas.drawLine(
+                lineX,
+                top+dp(5),
+                lineX,
+                bottom-dp(5),
+                paint
+            );
+
+            paint.setColor(oldColor);
+            paint.setStrokeWidth(oldWidth);
+        }
+    }
+
+
     void renderEmojiSearchField() {
         if(emojiSearchField==null) return;
 
@@ -3313,8 +3413,29 @@ public class KeyKiiService extends InputMethodService {
 
         if(emojiSearchMode) {
             String q=emojiSearchQuery==null ? "" : emojiSearchQuery;
-            String caret=emojiCursorVisible ? "│" : " ";
-            emojiSearchField.setText("🔍  "+q+caret);
+            emojiSearchCursor=Math.max(
+                0,
+                Math.min(emojiSearchCursor,q.length())
+            );
+
+            android.text.SpannableStringBuilder text=
+                new android.text.SpannableStringBuilder();
+
+            text.append("🔍  ");
+            text.append(q.substring(0,emojiSearchCursor));
+
+            int cursorStart=text.length();
+            text.append("\u200B");
+
+            text.setSpan(
+                new EmojiSearchCursorSpan(),
+                cursorStart,
+                cursorStart+1,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+
+            text.append(q.substring(emojiSearchCursor));
+            emojiSearchField.setText(text);
             return;
         }
 
@@ -3323,18 +3444,20 @@ public class KeyKiiService extends InputMethodService {
 
 
     void startEmojiSearchCursor() {
-        emojiCursorHandler.removeCallbacks(emojiCursorRunnable);
-        emojiCursorVisible=true;
-        renderEmojiSearchField();
+        if(emojiSearchQuery==null)
+            emojiSearchQuery="";
 
-        if(page==1 && emojiSearchMode)
-            emojiCursorHandler.postDelayed(emojiCursorRunnable,500);
+        emojiSearchCursor=Math.max(
+            0,
+            Math.min(emojiSearchCursor,emojiSearchQuery.length())
+        );
+
+        renderEmojiSearchField();
     }
 
 
     void stopEmojiSearchCursor() {
-        emojiCursorHandler.removeCallbacks(emojiCursorRunnable);
-        emojiCursorVisible=false;
+        // No timer is used. Keeping the caret static avoids typing lag.
     }
 
 
@@ -3342,12 +3465,90 @@ public class KeyKiiService extends InputMethodService {
         renderEmojiSearchField();
     }
 
-    void eraseEmojiSearchChar() {
-        if(emojiSearchQuery==null || emojiSearchQuery.isEmpty()) return;
-        int end=emojiSearchQuery.length();
-        int start=emojiSearchQuery.offsetByCodePoints(end,-1);
-        emojiSearchQuery=emojiSearchQuery.substring(0,start);
+
+    void insertEmojiSearchText(String value) {
+        if(value==null || value.isEmpty())
+            return;
+
+        if(emojiSearchQuery==null)
+            emojiSearchQuery="";
+
+        emojiSearchCursor=Math.max(
+            0,
+            Math.min(emojiSearchCursor,emojiSearchQuery.length())
+        );
+
+        emojiSearchQuery=
+            emojiSearchQuery.substring(0,emojiSearchCursor) +
+            value +
+            emojiSearchQuery.substring(emojiSearchCursor);
+
+        emojiSearchCursor+=value.length();
         refreshEmojiSearchField();
+    }
+
+
+    void eraseEmojiSearchChar() {
+        if(
+            emojiSearchQuery==null ||
+            emojiSearchQuery.isEmpty() ||
+            emojiSearchCursor<=0
+        ) return;
+
+        emojiSearchCursor=Math.min(
+            emojiSearchCursor,
+            emojiSearchQuery.length()
+        );
+
+        int start=emojiSearchQuery.offsetByCodePoints(
+            emojiSearchCursor,
+            -1
+        );
+
+        emojiSearchQuery=
+            emojiSearchQuery.substring(0,start) +
+            emojiSearchQuery.substring(emojiSearchCursor);
+
+        emojiSearchCursor=start;
+        refreshEmojiSearchField();
+    }
+
+
+    void moveEmojiSearchCursorFromSpace(float dx) {
+        if(emojiSearchQuery==null)
+            emojiSearchQuery="";
+
+        int stepPx=Math.max(dp(14),1);
+        int steps=Math.round(dx/(float)stepPx);
+
+        int start=Math.max(
+            0,
+            Math.min(emojiSearchGestureStart,emojiSearchQuery.length())
+        );
+
+        int totalCodePoints=
+            emojiSearchQuery.codePointCount(
+                0,
+                emojiSearchQuery.length()
+            );
+
+        int startCodePoint=
+            emojiSearchQuery.codePointCount(0,start);
+
+        int targetCodePoint=Math.max(
+            0,
+            Math.min(totalCodePoints,startCodePoint+steps)
+        );
+
+        int target=emojiSearchQuery.offsetByCodePoints(
+            0,
+            targetCodePoint
+        );
+
+        if(target!=emojiSearchCursor) {
+            emojiSearchCursor=target;
+            refreshEmojiSearchField();
+        }
     }
 
     void toggleShiftState() {
@@ -3437,22 +3638,20 @@ public class KeyKiiService extends InputMethodService {
             return true;
         }
         if(action.equals("SPACE")) {
-            emojiSearchQuery+=" ";
-            refreshEmojiSearchField();
+            insertEmojiSearchText(" ");
             refreshEmojiSearchResults();
             return true;
         }
         if(action.length()==1) {
             boolean shifted=shift && !symbols;
             String value=shifted ? action.toUpperCase() : action;
-            emojiSearchQuery+=value;
+            insertEmojiSearchText(value);
 
             if(shifted && !capsLock) {
                 shift=false;
                 lastShiftTap=0L;
                 showPage();
             } else {
-                refreshEmojiSearchField();
                 refreshEmojiSearchResults();
             }
             return true;
