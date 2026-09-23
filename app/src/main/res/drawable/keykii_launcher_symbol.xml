@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group
+        android:rotation="-7"
+        android:pivotX="54"
+        android:pivotY="58">
+
+        <!-- keyboard outer body -->
+        <path
+            android:pathData="M27,45 C27,39 32,35 38,35 H77 C83,35 87,39 87,45 V70 C87,76 83,80 77,80 H38 C32,80 27,76 27,70 Z"
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="4"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"/>
+
+        <!-- top row -->
+        <path
+            android:pathData="M34,43 H42 V51 H34 Z"
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2.8"/>
+        <path
+            android:pathData="M46,43 H54 V51 H46 Z"
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2.8"/>
+        <path
+            android:pathData="M58,43 H66 V51 H58 Z"
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2.8"/>
+        <path
+            android:pathData="M70,43 H78 V51 H70 Z"
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2.8"/>
+
+        <!-- lower row -->
+        <path
+            android:pathData="M34,59 H43 V69 H34 Z"
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2.8"/>
+        <path
+            android:pathData="M48,59 H68 V69 H48 Z"
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2.8"/>
+        <path
+            android:pathData="M73,59 H80 V69 H73 Z"
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2.8"/>
+    </group>
+
+    <!-- left shine marks -->
+    <path
+        android:pathData="M24,39 L19,35 M30,34 L28,28"
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="3.3"
+        android:strokeLineCap="round"/>
+
+    <!-- large sparkle -->
+    <path
+        android:pathData="M80,20 C81,26 84,29 90,30 C84,31 81,34 80,40 C79,34 76,31 70,30 C76,29 79,26 80,20 Z"
+        android:fillColor="#FFFFFFFF"/>
+
+    <!-- small sparkle -->
+    <path
+        android:pathData="M92,34 C93,37 95,39 98,40 C95,41 93,43 92,46 C91,43 89,41 86,40 C89,39 91,37 92,34 Z"
+        android:fillColor="#FFFFFFFF"/>
+</vector>
