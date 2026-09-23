@@ -986,6 +986,14 @@ public class SettingsActivity extends Activity {
                 true
         );
 
+        addSwitchRow(
+                page,
+                "Swipe Backspace to delete word",
+                "Swipe left on ⌫ to delete the previous word",
+                "swipe_delete_word",
+                true
+        );
+
         addInfoCard(
                 page,
                 "About suggestions",

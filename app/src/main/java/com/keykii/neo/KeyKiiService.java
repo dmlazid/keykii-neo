@@ -76,7 +76,11 @@ public class KeyKiiService extends InputMethodService {
     boolean autoCapitalization=true;
     boolean doubleSpacePeriod=true;
     boolean keyPreviewEnabled=true;
+    boolean swipeDeleteWord=true;
     long lastSpaceTap=0L;
+
+    float backspaceGestureStartX=0f;
+    boolean backspaceSwipeActive=false;
 
     android.os.Handler repeatBackspaceHandler=
         new android.os.Handler(
@@ -208,6 +212,11 @@ public class KeyKiiService extends InputMethodService {
             true
         );
 
+        swipeDeleteWord=keykiiPrefs.getBoolean(
+            "swipe_delete_word",
+            true
+        );
+
         numberRow=keykiiPrefs.getBoolean(
             "number_row",
             false
@@ -273,6 +282,11 @@ public class KeyKiiService extends InputMethodService {
         );
         keyPreviewEnabled=p.getBoolean(
             "key_preview",
+            true
+        );
+
+        swipeDeleteWord=p.getBoolean(
+            "swipe_delete_word",
             true
         );
 
@@ -1507,10 +1521,47 @@ public class KeyKiiService extends InputMethodService {
             ){
                 backspaceRepeating=false;
                 suppressBackspaceClick=false;
+                backspaceSwipeActive=false;
+                backspaceGestureStartX=e.getRawX();
+
                 repeatBackspaceHandler.postDelayed(
                     repeatBackspaceRunnable,
                     330
                 );
+            }
+
+            if(
+                action.equals("BACK") &&
+                e.getAction()==MotionEvent.ACTION_MOVE &&
+                swipeDeleteWord
+            ){
+                float dx=
+                    e.getRawX()-
+                    backspaceGestureStartX;
+
+                if(dx<=-dp(42)) {
+                    repeatBackspaceHandler.removeCallbacks(
+                        repeatBackspaceRunnable
+                    );
+
+                    if(!backspaceSwipeActive) {
+                        InputConnection ic=
+                            getCurrentInputConnection();
+
+                        if(ic!=null)
+                            deletePreviousWord(ic);
+
+                        backspaceSwipeActive=true;
+                        suppressBackspaceClick=true;
+
+                        if(haptic)
+                            v.performHapticFeedback(
+                                HapticFeedbackConstants.LONG_PRESS
+                            );
+                    }
+
+                    return true;
+                }
             }
 
             if(
@@ -1524,10 +1575,15 @@ public class KeyKiiService extends InputMethodService {
                     repeatBackspaceRunnable
                 );
 
-                if(backspaceRepeating)
+                if(
+                    backspaceRepeating ||
+                    backspaceSwipeActive
+                ) {
                     suppressBackspaceClick=true;
+                }
 
                 backspaceRepeating=false;
+                backspaceSwipeActive=false;
             }
 
             return false;
@@ -6521,6 +6577,65 @@ public class KeyKiiService extends InputMethodService {
         }
 
         return end-pos;
+    }
+
+
+    void deletePreviousWord(
+        InputConnection ic
+    ) {
+        if(ic==null)
+            return;
+
+        try {
+            CharSequence before=
+                ic.getTextBeforeCursor(
+                    256,
+                    0
+                );
+
+            if(
+                before==null ||
+                before.length()==0
+            ) {
+                return;
+            }
+
+            int end=
+                before.length();
+
+            int start=end;
+
+            // Remove spaces directly before the previous word first.
+            while(
+                start>0 &&
+                Character.isWhitespace(
+                    before.charAt(start-1)
+                )
+            ) {
+                start--;
+            }
+
+            // Then remove the previous word/punctuation chunk.
+            while(
+                start>0 &&
+                !Character.isWhitespace(
+                    before.charAt(start-1)
+                )
+            ) {
+                start--;
+            }
+
+            int units=end-start;
+
+            if(units>0) {
+                ic.deleteSurroundingText(
+                    units,
+                    0
+                );
+            }
+
+        } catch(Exception ignored) {
+        }
     }
 
 
