@@ -6049,13 +6049,31 @@ public class KeyKiiService extends InputMethodService {
                 MODE_PRIVATE
             );
 
+        int surfaceMode=
+            p.getInt(
+                "theme_surface_mode",
+                0
+            );
+
+        if(surfaceMode==1 || surfaceMode==2) {
+            applyColorPanelBackground(
+                p,
+                surfaceMode==2
+            );
+            return;
+        }
+
         String uriText=
             p.getString(
                 "theme_image_uri",
                 ""
             );
 
-        if(uriText==null || uriText.isEmpty()) {
+        if(
+            surfaceMode!=3 ||
+            uriText==null ||
+            uriText.isEmpty()
+        ) {
             applyPlainPanelBackground();
             return;
         }
@@ -6066,9 +6084,6 @@ public class KeyKiiService extends InputMethodService {
             android.net.Uri uri=
                 android.net.Uri.parse(uriText);
 
-            // Read only the image dimensions first. Phone photos can be
-            // thousands of pixels wide, so decoding the original directly
-            // inside the IME can exhaust memory and stop the keyboard.
             android.graphics.BitmapFactory.Options bounds=
                 new android.graphics.BitmapFactory.Options();
 
@@ -6140,10 +6155,10 @@ public class KeyKiiService extends InputMethodService {
 
             int overlayBaseAlpha=
                 theme==1
-                ? 115
+                ? 105
                 : theme==2
-                    ? 70
-                    : 95;
+                    ? 58
+                    : 78;
 
             int overlayColor=
                 theme==1
@@ -6195,13 +6210,76 @@ public class KeyKiiService extends InputMethodService {
             }
 
         } catch(OutOfMemoryError memoryError) {
-            // Never let a very large/corrupt image take the IME down.
             applyPlainPanelBackground();
 
         } catch(Throwable ignored) {
-            // Broken permissions or unsupported images fall back safely.
             applyPlainPanelBackground();
         }
+    }
+
+
+    int customThemeColor(
+        int color,
+        int baseAlpha
+    ) {
+        return Color.argb(
+            adjustedAlpha(baseAlpha),
+            Color.red(color),
+            Color.green(color),
+            Color.blue(color)
+        );
+    }
+
+
+    void applyColorPanelBackground(
+        SharedPreferences p,
+        boolean gradient
+    ) {
+        if(panel==null) return;
+
+        int start=
+            p.getInt(
+                "theme_custom_start",
+                Color.rgb(93,118,171)
+            );
+
+        int end=
+            p.getInt(
+                "theme_custom_end",
+                start
+            );
+
+        GradientDrawable bg;
+
+        if(gradient) {
+            bg=new GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                new int[]{
+                    customThemeColor(start,248),
+                    customThemeColor(end,248)
+                }
+            );
+        } else {
+            bg=new GradientDrawable();
+            bg.setColor(
+                customThemeColor(start,248)
+            );
+        }
+
+        bg.setCornerRadius(dp(24));
+        bg.setStroke(
+            dp(1),
+            borderColor()
+        );
+
+        if(android.os.Build.VERSION.SDK_INT>=21) {
+            panel.setClipToOutline(false);
+            panel.setOutlineProvider(
+                android.view.ViewOutlineProvider.BACKGROUND
+            );
+        }
+
+        panel.setBackground(bg);
     }
 
 

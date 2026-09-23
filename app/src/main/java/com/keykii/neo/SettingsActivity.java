@@ -19,6 +19,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -84,6 +85,7 @@ public class SettingsActivity extends Activity {
 
             prefs.edit()
                     .putString("theme_image_uri", uri.toString())
+                    .putInt("theme_surface_mode", 3)
                     .apply();
 
             toast("Theme image selected");
@@ -309,31 +311,133 @@ public class SettingsActivity extends Activity {
 
     private void showTheme() {
         screen = "theme";
+
         LinearLayout page = page(
                 "Theme",
-                "Customize colors, transparency, corners and background",
+                "Pick a style, color, gradient or your own image",
                 true
         );
 
-        addSection(page, "Base theme");
+        addSection(page, "My themes");
+        addMyThemeTiles(page);
 
-        addThemeChoice(page, "Glass Dark", "Dark translucent KeyKii panel", 0);
-        addThemeChoice(page, "Morning Cream", "Warm cream floating keyboard", 1);
-        addThemeChoice(page, "Clear Glass", "Darker transparent glass look", 2);
+        addSection(page, "Default");
+        addDefaultThemeGallery(page);
 
-        addSection(page, "Customization");
+        addSection(page, "Colours");
+
+        String[] colorNames = new String[]{
+                "Snow","Silver","Stone",
+                "Charcoal","Black","Navy",
+                "Royal","Blue","Sky",
+                "Cyan","Aqua","Teal",
+                "Emerald","Green","Lime",
+                "Olive","Yellow","Gold",
+                "Amber","Orange","Coral",
+                "Red","Crimson","Wine",
+                "Rose","Pink","Blush",
+                "Magenta","Purple","Violet",
+                "Indigo","Brown","Cocoa",
+                "Sand","Cream","Mint"
+        };
+
+        int[] colors = new int[]{
+                Color.rgb(248,249,250), Color.rgb(213,219,224), Color.rgb(151,157,162),
+                Color.rgb(55,61,66), Color.rgb(12,12,14), Color.rgb(22,45,78),
+
+                Color.rgb(42,105,196), Color.rgb(48,126,226), Color.rgb(105,190,235),
+                Color.rgb(55,202,222), Color.rgb(100,218,222), Color.rgb(19,126,116),
+
+                Color.rgb(36,145,83), Color.rgb(64,168,75), Color.rgb(150,198,64),
+                Color.rgb(113,124,48), Color.rgb(247,205,70), Color.rgb(219,166,48),
+
+                Color.rgb(237,174,57), Color.rgb(230,132,52), Color.rgb(240,112,90),
+                Color.rgb(210,45,48), Color.rgb(174,31,55), Color.rgb(111,29,47),
+
+                Color.rgb(207,65,101), Color.rgb(235,112,164), Color.rgb(244,171,190),
+                Color.rgb(194,32,128), Color.rgb(128,60,181), Color.rgb(108,72,201),
+
+                Color.rgb(64,55,172), Color.rgb(103,69,56), Color.rgb(113,77,63),
+                Color.rgb(210,190,166), Color.rgb(246,238,218), Color.rgb(157,222,191)
+        };
+
+        addColorThemeGrid(page,colorNames,colors);
+
+        addSection(page, "Light gradients");
+
+        addGradientThemeGrid(
+                page,
+                new String[]{
+                        "Cotton candy","Sea glass","Lavender",
+                        "Peach sky","Lemon mint","Ocean pearl",
+                        "Pink cloud","Blue blush","Spring",
+                        "Sunrise","Ice","Pastel"
+                },
+                new int[]{
+                        Color.rgb(255,184,196), Color.rgb(207,231,255),
+                        Color.rgb(218,235,227), Color.rgb(199,226,220),
+                        Color.rgb(225,209,247), Color.rgb(245,225,239),
+
+                        Color.rgb(255,205,177), Color.rgb(255,238,201),
+                        Color.rgb(241,229,129), Color.rgb(190,234,188),
+                        Color.rgb(195,225,244), Color.rgb(236,238,255),
+
+                        Color.rgb(251,193,213), Color.rgb(255,229,237),
+                        Color.rgb(206,224,251), Color.rgb(250,209,226),
+                        Color.rgb(211,239,189), Color.rgb(179,226,205),
+
+                        Color.rgb(255,205,151), Color.rgb(250,231,166),
+                        Color.rgb(202,232,255), Color.rgb(221,246,248),
+                        Color.rgb(255,209,223), Color.rgb(207,236,255)
+                }
+        );
+
+        addSection(page, "Dark gradients");
+
+        addGradientThemeGrid(
+                page,
+                new String[]{
+                        "Midnight","Graphite","Coffee",
+                        "Deep ocean","Forest night","Electric",
+                        "Plum night","Storm","Black glass",
+                        "Burgundy","Deep teal","Indigo dusk"
+                },
+                new int[]{
+                        Color.rgb(56,20,103), Color.rgb(164,54,141),
+                        Color.rgb(78,84,88), Color.rgb(10,12,14),
+                        Color.rgb(91,59,48), Color.rgb(40,24,22),
+
+                        Color.rgb(36,71,86), Color.rgb(14,31,40),
+                        Color.rgb(30,92,76), Color.rgb(12,42,37),
+                        Color.rgb(21,88,190), Color.rgb(16,48,103),
+
+                        Color.rgb(96,31,91), Color.rgb(32,19,52),
+                        Color.rgb(77,92,106), Color.rgb(28,35,43),
+                        Color.rgb(42,42,44), Color.rgb(4,4,5),
+
+                        Color.rgb(105,30,49), Color.rgb(45,15,23),
+                        Color.rgb(17,111,105), Color.rgb(9,45,49),
+                        Color.rgb(70,62,145), Color.rgb(28,26,65)
+                }
+        );
+
+        addSection(page, "Background image");
+
+        String imageUri = prefs.getString("theme_image_uri", "");
+        boolean imageActive = prefs.getInt("theme_surface_mode",0)==3;
+
+        addPhotoThemeTile(page,imageUri,imageActive);
+
+        addSection(page, "Fine tuning");
 
         addChoiceRow(
                 page,
                 "Accent color",
                 accentColorName(),
                 new String[]{
-                        "Blue",
-                        "Rose",
-                        "Purple",
-                        "Teal",
-                        "Green",
-                        "Orange"
+                        "Blue","Rose","Purple","Teal",
+                        "Green","Orange","Gold","Cyan",
+                        "Magenta","Red","Black","White"
                 },
                 new int[]{
                         Color.rgb(93,118,171),
@@ -341,7 +445,13 @@ public class SettingsActivity extends Activity {
                         Color.rgb(142,96,190),
                         Color.rgb(57,145,151),
                         Color.rgb(85,145,91),
-                        Color.rgb(217,133,62)
+                        Color.rgb(217,133,62),
+                        Color.rgb(214,166,46),
+                        Color.rgb(61,183,211),
+                        Color.rgb(194,32,128),
+                        Color.rgb(208,48,52),
+                        Color.rgb(35,35,38),
+                        Color.rgb(240,240,242)
                 },
                 "accent_color",
                 Color.rgb(93,118,171),
@@ -352,12 +462,7 @@ public class SettingsActivity extends Activity {
                 page,
                 "Keyboard transparency",
                 themeTransparencyName(),
-                new String[]{
-                        "More transparent",
-                        "Transparent",
-                        "Balanced",
-                        "Solid"
-                },
+                new String[]{"More transparent","Transparent","Balanced","Solid"},
                 new int[]{55,70,85,100},
                 "theme_transparency",
                 100,
@@ -368,117 +473,26 @@ public class SettingsActivity extends Activity {
                 page,
                 "Key corner roundness",
                 keyCornerName(),
-                new String[]{
-                        "Small",
-                        "Medium",
-                        "Default",
-                        "Very round"
-                },
+                new String[]{"Small","Medium","Default","Very round"},
                 new int[]{6,11,15,22},
                 "key_corner_radius",
                 15,
                 this::showTheme
         );
 
-        addSection(page, "Light & dark appearance");
-
-        addSwitchRow(
-                page,
-                "Automatic light/dark themes",
-                "Use a different KeyKii theme for light and dark phone appearance",
-                "theme_auto_day_night",
-                false
-        );
-
-        if (prefs.getBoolean("theme_auto_day_night", false)) {
-            addChoiceRow(
-                    page,
-                    "Light appearance",
-                    themeDisplayName(prefs.getInt("theme_light", 1)),
-                    new String[]{
-                            "Glass Dark",
-                            "Morning Cream",
-                            "Clear Glass"
-                    },
-                    new int[]{0,1,2},
-                    "theme_light",
-                    1,
-                    this::showTheme
-            );
-
-            addChoiceRow(
-                    page,
-                    "Dark appearance",
-                    themeDisplayName(prefs.getInt("theme_dark", 0)),
-                    new String[]{
-                            "Glass Dark",
-                            "Morning Cream",
-                            "Clear Glass"
-                    },
-                    new int[]{0,1,2},
-                    "theme_dark",
-                    0,
-                    this::showTheme
-            );
-        }
-
-        addSection(page, "Background image");
-
-        String imageUri = prefs.getString("theme_image_uri", "");
-
-        addInfoCard(
-                page,
-                "Custom image",
-                imageUri == null || imageUri.isEmpty()
-                        ? "No image selected. Your normal KeyKii theme background is being used."
-                        : "A custom image is active behind the keyboard. Your theme overlay keeps the keys readable."
-        );
-
-        addActionButton(page, "Choose background image", v -> {
-            try {
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("image/*");
-                intent.addFlags(
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION |
-                        Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
-                );
-                startActivityForResult(intent, REQUEST_THEME_IMAGE);
-            } catch (Exception e) {
-                toast("Image picker is unavailable on this device.");
-            }
-        });
-
-        if (imageUri != null && !imageUri.isEmpty()) {
-            addActionButton(page, "Remove background image", v -> {
-                prefs.edit()
-                        .remove("theme_image_uri")
-                        .apply();
-
-                toast("Theme image removed");
-                showTheme();
-            });
-        }
-
         addActionButton(page, "Reset theme customization", v -> {
             prefs.edit()
                     .remove("accent_color")
                     .remove("theme_transparency")
                     .remove("key_corner_radius")
-                    .putBoolean("theme_auto_day_night", false)
-                    .remove("theme_light")
-                    .remove("theme_dark")
+                    .remove("theme_custom_start")
+                    .remove("theme_custom_end")
+                    .putInt("theme_surface_mode", 0)
                     .apply();
 
             toast("Theme customization reset");
             showTheme();
         });
-
-        addInfoCard(
-                page,
-                "Current appearance",
-                themeName() + ". Changes apply the next time the keyboard view refreshes."
-        );
 
         setContentView(wrap(page));
     }
@@ -1047,6 +1061,586 @@ public class SettingsActivity extends Activity {
         });
     }
 
+    private void addMyThemeTiles(LinearLayout page) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+
+        LinearLayout create = createThemeTile("＋","Create");
+        create.setOnClickListener(v -> showCustomColorDialog());
+        addThemeTileToRow(row,create);
+
+        int saved = prefs.getInt(
+                "theme_custom_start",
+                Color.rgb(93,118,171)
+        );
+
+        LinearLayout custom = themeTile(
+                "Custom",
+                new int[]{saved}
+        );
+
+        custom.setOnClickListener(v ->
+                applySolidTheme("Custom",saved));
+
+        addThemeTileToRow(row,custom);
+
+        String imageUri = prefs.getString(
+                "theme_image_uri",
+                ""
+        );
+
+        LinearLayout photo = createThemeTile(
+                imageUri==null || imageUri.isEmpty() ? "▧" : "▣",
+                "Photo"
+        );
+
+        photo.setOnClickListener(v -> {
+            if(imageUri!=null && !imageUri.isEmpty()) {
+                prefs.edit()
+                        .putInt("theme_surface_mode",3)
+                        .apply();
+                toast("Photo theme selected");
+                showTheme();
+            } else {
+                chooseThemeImage();
+            }
+        });
+
+        addThemeTileToRow(row,photo);
+        page.addView(row);
+    }
+
+
+    private void addDefaultThemeGallery(LinearLayout page) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+
+        addDefaultThemeTile(row,"Cream",Color.rgb(247,245,242),1);
+        addDefaultThemeTile(row,"Glass",Color.rgb(45,48,54),0);
+        addDefaultThemeTile(row,"Clear",Color.rgb(30,32,37),2);
+
+        page.addView(row);
+    }
+
+
+    private void addDefaultThemeTile(
+            LinearLayout row,
+            String name,
+            int previewColor,
+            int themeValue
+    ) {
+        LinearLayout tile = themeTile(
+                name,
+                new int[]{previewColor}
+        );
+
+        boolean selected =
+                prefs.getInt("theme_surface_mode",0)==0 &&
+                prefs.getInt("theme",1)==themeValue;
+
+        markThemeTileSelected(tile,selected);
+
+        tile.setOnClickListener(v -> {
+            prefs.edit()
+                    .putInt("theme",themeValue)
+                    .putInt("theme_surface_mode",0)
+                    .putBoolean("theme_auto_day_night",false)
+                    .apply();
+
+            toast(name+" selected");
+            showTheme();
+        });
+
+        addThemeTileToRow(row,tile);
+    }
+
+
+    private void addColorThemeGrid(
+            LinearLayout page,
+            String[] names,
+            int[] colors
+    ) {
+        for(int i=0;i<colors.length;i+=3) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+
+            for(int col=0;col<3;col++) {
+                int index=i+col;
+
+                if(index<colors.length) {
+                    final int color=colors[index];
+                    final String name=names[index];
+
+                    LinearLayout tile = themeTile(
+                            name,
+                            new int[]{color}
+                    );
+
+                    boolean selected =
+                            prefs.getInt("theme_surface_mode",0)==1 &&
+                            prefs.getInt("theme_custom_start",0)==color;
+
+                    markThemeTileSelected(tile,selected);
+
+                    tile.setOnClickListener(v ->
+                            applySolidTheme(name,color));
+
+                    addThemeTileToRow(row,tile);
+                } else {
+                    addThemeTileSpacer(row);
+                }
+            }
+
+            page.addView(row);
+        }
+    }
+
+
+    private void addGradientThemeGrid(
+            LinearLayout page,
+            String[] names,
+            int[] pairs
+    ) {
+        int count=Math.min(names.length,pairs.length/2);
+
+        for(int i=0;i<count;i+=3) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+
+            for(int col=0;col<3;col++) {
+                int index=i+col;
+
+                if(index<count) {
+                    final int start=pairs[index*2];
+                    final int end=pairs[index*2+1];
+                    final String name=names[index];
+
+                    LinearLayout tile = themeTile(
+                            name,
+                            new int[]{start,end}
+                    );
+
+                    boolean selected =
+                            prefs.getInt("theme_surface_mode",0)==2 &&
+                            prefs.getInt("theme_custom_start",0)==start &&
+                            prefs.getInt("theme_custom_end",0)==end;
+
+                    markThemeTileSelected(tile,selected);
+
+                    tile.setOnClickListener(v ->
+                            applyGradientTheme(name,start,end));
+
+                    addThemeTileToRow(row,tile);
+                } else {
+                    addThemeTileSpacer(row);
+                }
+            }
+
+            page.addView(row);
+        }
+    }
+
+
+    private LinearLayout themeTile(
+            String name,
+            int[] colors
+    ) {
+        LinearLayout tile = new LinearLayout(this);
+        tile.setOrientation(LinearLayout.VERTICAL);
+        tile.setPadding(dp(3),dp(3),dp(3),dp(6));
+
+        TextView preview = new TextView(this);
+        preview.setText("━━━━  ●");
+        preview.setTextSize(15);
+        preview.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        preview.setPadding(dp(5),dp(6),dp(5),dp(8));
+
+        int middle=colors[0];
+        if(colors.length>1)
+            middle=averageColor(colors[0],colors[colors.length-1]);
+
+        preview.setTextColor(
+                isLightThemeColor(middle)
+                        ? Color.argb(155,55,60,65)
+                        : Color.argb(205,245,245,247)
+        );
+
+        GradientDrawable bg;
+
+        if(colors.length>1) {
+            bg=new GradientDrawable(
+                    GradientDrawable.Orientation.TL_BR,
+                    colors
+            );
+        } else {
+            bg=new GradientDrawable();
+            bg.setColor(colors[0]);
+        }
+
+        bg.setCornerRadius(dp(16));
+        bg.setStroke(dp(1),BORDER);
+        preview.setBackground(bg);
+
+        tile.addView(
+                preview,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(68)
+                )
+        );
+
+        TextView label = new TextView(this);
+        label.setText(name);
+        label.setTextColor(TEXT);
+        label.setTextSize(10);
+        label.setGravity(Gravity.CENTER);
+        label.setSingleLine(true);
+        label.setPadding(0,dp(4),0,0);
+
+        tile.addView(
+                label,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(25)
+                )
+        );
+
+        return tile;
+    }
+
+
+    private LinearLayout createThemeTile(
+            String symbol,
+            String labelText
+    ) {
+        LinearLayout tile = new LinearLayout(this);
+        tile.setOrientation(LinearLayout.VERTICAL);
+        tile.setPadding(dp(3),dp(3),dp(3),dp(6));
+
+        TextView preview = new TextView(this);
+        preview.setText(symbol);
+        preview.setTextSize(34);
+        preview.setGravity(Gravity.CENTER);
+        preview.setTextColor(Color.rgb(77,99,148));
+
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.WHITE);
+        bg.setCornerRadius(dp(16));
+        bg.setStroke(dp(2),Color.rgb(101,124,173));
+        preview.setBackground(bg);
+
+        tile.addView(
+                preview,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(68)
+                )
+        );
+
+        TextView label = new TextView(this);
+        label.setText(labelText);
+        label.setTextColor(TEXT);
+        label.setTextSize(10);
+        label.setGravity(Gravity.CENTER);
+        label.setPadding(0,dp(4),0,0);
+
+        tile.addView(
+                label,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(25)
+                )
+        );
+
+        return tile;
+    }
+
+
+    private void addThemeTileToRow(
+            LinearLayout row,
+            View tile
+    ) {
+        LinearLayout.LayoutParams p =
+                new LinearLayout.LayoutParams(
+                        0,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        1f
+                );
+
+        p.setMargins(dp(3),dp(3),dp(3),dp(5));
+        row.addView(tile,p);
+    }
+
+
+    private void addThemeTileSpacer(LinearLayout row) {
+        View spacer=new View(this);
+
+        LinearLayout.LayoutParams p =
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(1),
+                        1f
+                );
+
+        p.setMargins(dp(3),0,dp(3),0);
+        row.addView(spacer,p);
+    }
+
+
+    private void markThemeTileSelected(
+            LinearLayout tile,
+            boolean selected
+    ) {
+        if(!selected) return;
+
+        GradientDrawable frame = new GradientDrawable();
+        frame.setColor(Color.TRANSPARENT);
+        frame.setCornerRadius(dp(18));
+        frame.setStroke(dp(3),Color.rgb(82,107,161));
+        tile.setBackground(frame);
+    }
+
+
+    private void applySolidTheme(
+            String name,
+            int color
+    ) {
+        prefs.edit()
+                .putInt("theme_custom_start",color)
+                .putInt("theme_custom_end",color)
+                .putInt("theme_surface_mode",1)
+                .putInt("theme",isLightThemeColor(color) ? 1 : 0)
+                .putBoolean("theme_auto_day_night",false)
+                .apply();
+
+        toast(name+" selected");
+        showTheme();
+    }
+
+
+    private void applyGradientTheme(
+            String name,
+            int start,
+            int end
+    ) {
+        int average=averageColor(start,end);
+
+        prefs.edit()
+                .putInt("theme_custom_start",start)
+                .putInt("theme_custom_end",end)
+                .putInt("theme_surface_mode",2)
+                .putInt("theme",isLightThemeColor(average) ? 1 : 0)
+                .putBoolean("theme_auto_day_night",false)
+                .apply();
+
+        toast(name+" selected");
+        showTheme();
+    }
+
+
+    private void addPhotoThemeTile(
+            LinearLayout page,
+            String imageUri,
+            boolean active
+    ) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+
+        LinearLayout choose = createThemeTile(
+                "▧",
+                imageUri==null || imageUri.isEmpty()
+                        ? "Choose photo"
+                        : "Change photo"
+        );
+
+        choose.setOnClickListener(v -> chooseThemeImage());
+        addThemeTileToRow(row,choose);
+
+        if(imageUri!=null && !imageUri.isEmpty()) {
+            LinearLayout use=createThemeTile(
+                    active ? "✓" : "▣",
+                    active ? "Photo active" : "Use photo"
+            );
+
+            use.setOnClickListener(v -> {
+                prefs.edit()
+                        .putInt("theme_surface_mode",3)
+                        .apply();
+
+                toast("Photo theme selected");
+                showTheme();
+            });
+
+            addThemeTileToRow(row,use);
+
+            LinearLayout remove=createThemeTile("×","Remove");
+
+            remove.setOnClickListener(v -> {
+                prefs.edit()
+                        .remove("theme_image_uri")
+                        .putInt("theme_surface_mode",0)
+                        .apply();
+
+                toast("Theme image removed");
+                showTheme();
+            });
+
+            addThemeTileToRow(row,remove);
+        } else {
+            addThemeTileSpacer(row);
+            addThemeTileSpacer(row);
+        }
+
+        page.addView(row);
+    }
+
+
+    private void chooseThemeImage() {
+        try {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/*");
+            intent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION |
+                    Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+            );
+
+            startActivityForResult(intent,REQUEST_THEME_IMAGE);
+        } catch(Exception e) {
+            toast("Image picker is unavailable on this device.");
+        }
+    }
+
+
+    private int averageColor(int a,int b) {
+        return Color.rgb(
+                (Color.red(a)+Color.red(b))/2,
+                (Color.green(a)+Color.green(b))/2,
+                (Color.blue(a)+Color.blue(b))/2
+        );
+    }
+
+
+    private boolean isLightThemeColor(int color) {
+        int brightness =
+                (Color.red(color)*299 +
+                 Color.green(color)*587 +
+                 Color.blue(color)*114) / 1000;
+
+        return brightness>=155;
+    }
+
+
+    private void showCustomColorDialog() {
+        int current = prefs.getInt(
+                "theme_custom_start",
+                Color.rgb(93,118,171)
+        );
+
+        final int[] chosen=new int[]{current};
+        final int[] initial=new int[]{
+                Color.red(current),
+                Color.green(current),
+                Color.blue(current)
+        };
+        final SeekBar[] bars=new SeekBar[3];
+
+        LinearLayout box=new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(22),dp(8),dp(22),0);
+
+        TextView preview=new TextView(this);
+        preview.setTextSize(16);
+        preview.setGravity(Gravity.CENTER);
+
+        box.addView(
+                preview,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(82)
+                )
+        );
+
+        final String[] labels=new String[]{"Red","Green","Blue"};
+
+        Runnable refreshPreview=() -> {
+            int red=bars[0]==null ? initial[0] : bars[0].getProgress();
+            int green=bars[1]==null ? initial[1] : bars[1].getProgress();
+            int blue=bars[2]==null ? initial[2] : bars[2].getProgress();
+
+            chosen[0]=Color.rgb(red,green,blue);
+
+            GradientDrawable d=new GradientDrawable();
+            d.setColor(chosen[0]);
+            d.setCornerRadius(dp(18));
+            preview.setBackground(d);
+
+            preview.setTextColor(
+                    isLightThemeColor(chosen[0])
+                            ? Color.rgb(40,40,42)
+                            : Color.WHITE
+            );
+
+            preview.setText(
+                    String.format("#%02X%02X%02X",red,green,blue)
+            );
+        };
+
+        for(int i=0;i<3;i++) {
+            final int channel=i;
+
+            TextView label=new TextView(this);
+            label.setText(labels[channel]+"  "+initial[channel]);
+            label.setTextColor(TEXT);
+            label.setTextSize(13);
+            label.setPadding(0,dp(10),0,0);
+            box.addView(label);
+
+            SeekBar bar=new SeekBar(this);
+            bar.setMax(255);
+            bar.setProgress(initial[channel]);
+            bars[channel]=bar;
+
+            bar.setOnSeekBarChangeListener(
+                    new SeekBar.OnSeekBarChangeListener() {
+                        @Override
+                        public void onProgressChanged(
+                                SeekBar seekBar,
+                                int progress,
+                                boolean fromUser
+                        ) {
+                            label.setText(
+                                    labels[channel]+"  "+progress
+                            );
+                            refreshPreview.run();
+                        }
+
+                        @Override
+                        public void onStartTrackingTouch(SeekBar seekBar) {}
+
+                        @Override
+                        public void onStopTrackingTouch(SeekBar seekBar) {}
+                    }
+            );
+
+            box.addView(bar);
+        }
+
+        refreshPreview.run();
+
+        new AlertDialog.Builder(this)
+                .setTitle("Create any color")
+                .setView(box)
+                .setNegativeButton("Cancel",null)
+                .setPositiveButton(
+                        "Use color",
+                        (dialog,which) ->
+                                applySolidTheme("Custom",chosen[0])
+                )
+                .show();
+    }
+
+
     private void addThemeChoice(LinearLayout page, String title, String subtitle, int value) {
         int current;
 
@@ -1210,9 +1804,14 @@ public class SettingsActivity extends Activity {
         if (value == Color.rgb(57,145,151)) return "Teal";
         if (value == Color.rgb(85,145,91)) return "Green";
         if (value == Color.rgb(217,133,62)) return "Orange";
+        if (value == Color.rgb(214,166,46)) return "Gold";
+        if (value == Color.rgb(61,183,211)) return "Cyan";
+        if (value == Color.rgb(194,32,128)) return "Magenta";
+        if (value == Color.rgb(208,48,52)) return "Red";
+        if (value == Color.rgb(35,35,38)) return "Black";
+        if (value == Color.rgb(240,240,242)) return "White";
         return "Blue";
     }
-
 
     private String themeTransparencyName() {
         int value = prefs.getInt("theme_transparency", 100);
