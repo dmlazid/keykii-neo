@@ -205,17 +205,20 @@ public class SettingsActivity extends Activity {
 
     private void showToolbar() {
         screen = "toolbar";
+
         LinearLayout page = page(
                 "Toolbar buttons",
-                "Choose which tools appear above the keys",
+                "Show, hide and reorder tools above the keys",
                 true
         );
 
         addInfoCard(
                 page,
                 "Keyboard button",
-                "The ⌨ keyboard button always stays visible so you can always return to normal typing."
+                "The ⌨ keyboard button always stays first and cannot be hidden."
         );
+
+        addSection(page, "Show or hide");
 
         addSwitchRow(
                 page,
@@ -257,26 +260,346 @@ public class SettingsActivity extends Activity {
                 true
         );
 
-        addActionButton(page, "Restore all toolbar buttons", v -> {
-            prefs.edit()
-                    .putBoolean("toolbar_emoji", true)
-                    .putBoolean("toolbar_clipboard", true)
-                    .putBoolean("toolbar_actions", true)
-                    .putBoolean("toolbar_theme", true)
-                    .putBoolean("toolbar_width", true)
-                    .apply();
+        addSection(page, "Order");
 
-            toast("Toolbar restored");
-            showToolbar();
-        });
+        addInfoCard(
+                page,
+                "Reorder toolbar",
+                "Use ↑ and ↓ to choose the order. Hidden buttons keep their place and return there when enabled again."
+        );
+
+        java.util.ArrayList<String> order=
+                toolbarOrder();
+
+        for(int i=0;i<order.size();i++) {
+            addToolbarOrderRow(
+                    page,
+                    order.get(i),
+                    i,
+                    order.size()
+            );
+        }
+
+        addActionButton(
+                page,
+                "Restore default toolbar",
+                v -> {
+                    prefs.edit()
+                            .putBoolean("toolbar_emoji", true)
+                            .putBoolean("toolbar_clipboard", true)
+                            .putBoolean("toolbar_actions", true)
+                            .putBoolean("toolbar_theme", true)
+                            .putBoolean("toolbar_width", true)
+                            .putString(
+                                    "toolbar_order",
+                                    "emoji,clipboard,actions,theme,width"
+                            )
+                            .apply();
+
+                    toast("Toolbar restored");
+                    showToolbar();
+                }
+        );
 
         addInfoCard(
                 page,
                 "When changes appear",
-                "Close and reopen KeyKii, or switch to another text field, to refresh the toolbar."
+                "Switch to another text field or reopen KeyKii to refresh the toolbar."
         );
 
         setContentView(wrap(page));
+    }
+
+
+    private java.util.ArrayList<String> toolbarOrder() {
+        String stored=
+                prefs.getString(
+                        "toolbar_order",
+                        "emoji,clipboard,actions,theme,width"
+                );
+
+        java.util.LinkedHashSet<String> clean=
+                new java.util.LinkedHashSet<>();
+
+        if(stored!=null) {
+            for(String id:stored.split(",")) {
+                String item=id.trim();
+
+                if(
+                    item.equals("emoji") ||
+                    item.equals("clipboard") ||
+                    item.equals("actions") ||
+                    item.equals("theme") ||
+                    item.equals("width")
+                ) {
+                    clean.add(item);
+                }
+            }
+        }
+
+        clean.add("emoji");
+        clean.add("clipboard");
+        clean.add("actions");
+        clean.add("theme");
+        clean.add("width");
+
+        return new java.util.ArrayList<>(
+                clean
+        );
+    }
+
+
+    private void saveToolbarOrder(
+            java.util.ArrayList<String> order
+    ) {
+        StringBuilder value=
+                new StringBuilder();
+
+        for(int i=0;i<order.size();i++) {
+            if(i>0)
+                value.append(",");
+
+            value.append(order.get(i));
+        }
+
+        prefs.edit()
+                .putString(
+                        "toolbar_order",
+                        value.toString()
+                )
+                .apply();
+    }
+
+
+    private void moveToolbarItem(
+            String id,
+            int direction
+    ) {
+        java.util.ArrayList<String> order=
+                toolbarOrder();
+
+        int index=order.indexOf(id);
+
+        if(index<0)
+            return;
+
+        int target=index+direction;
+
+        if(
+            target<0 ||
+            target>=order.size()
+        ) {
+            return;
+        }
+
+        java.util.Collections.swap(
+                order,
+                index,
+                target
+        );
+
+        saveToolbarOrder(order);
+        showToolbar();
+    }
+
+
+    private void addToolbarOrderRow(
+            LinearLayout page,
+            String id,
+            int index,
+            int count
+    ) {
+        LinearLayout row=card();
+
+        row.setGravity(
+                Gravity.CENTER_VERTICAL
+        );
+
+        row.setPadding(
+                dp(15),
+                dp(10),
+                dp(10),
+                dp(10)
+        );
+
+        TextView icon=
+                new TextView(this);
+
+        icon.setText(
+                toolbarIcon(id)
+        );
+
+        icon.setTextSize(23);
+        icon.setTextColor(TEXT);
+        icon.setGravity(Gravity.CENTER);
+
+        row.addView(
+                icon,
+                new LinearLayout.LayoutParams(
+                        dp(42),
+                        dp(44)
+                )
+        );
+
+        LinearLayout words=
+                new LinearLayout(this);
+
+        words.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        words.setPadding(
+                dp(8),
+                0,
+                dp(8),
+                0
+        );
+
+        TextView title=
+                new TextView(this);
+
+        title.setText(
+                toolbarTitle(id)
+        );
+
+        title.setTextColor(TEXT);
+        title.setTextSize(16);
+
+        TextView subtitle=
+                new TextView(this);
+
+        subtitle.setText(
+                "Position " +
+                (index+1)
+        );
+
+        subtitle.setTextColor(MUTED);
+        subtitle.setTextSize(11);
+
+        words.addView(title);
+        words.addView(subtitle);
+
+        row.addView(
+                words,
+                new LinearLayout.LayoutParams(
+                        0,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        1f
+                )
+        );
+
+        TextView up=
+                textButton("↑");
+
+        up.setTextSize(22);
+        up.setAlpha(
+                index==0
+                        ? .3f
+                        : 1f
+        );
+
+        up.setEnabled(index>0);
+
+        up.setOnClickListener(v ->
+                moveToolbarItem(
+                        id,
+                        -1
+                ));
+
+        row.addView(
+                up,
+                new LinearLayout.LayoutParams(
+                        dp(46),
+                        dp(44)
+                )
+        );
+
+        TextView down=
+                textButton("↓");
+
+        down.setTextSize(22);
+        down.setAlpha(
+                index==count-1
+                        ? .3f
+                        : 1f
+        );
+
+        down.setEnabled(
+                index<count-1
+        );
+
+        down.setOnClickListener(v ->
+                moveToolbarItem(
+                        id,
+                        1
+                ));
+
+        LinearLayout.LayoutParams downParams=
+                new LinearLayout.LayoutParams(
+                        dp(46),
+                        dp(44)
+                );
+
+        downParams.setMargins(
+                dp(5),
+                0,
+                0,
+                0
+        );
+
+        row.addView(
+                down,
+                downParams
+        );
+
+        page.addView(
+                row,
+                cardParams()
+        );
+    }
+
+
+    private String toolbarIcon(
+            String id
+    ) {
+        if(id.equals("emoji"))
+            return "☺";
+
+        if(id.equals("clipboard"))
+            return "▣";
+
+        if(id.equals("actions"))
+            return "✎";
+
+        if(id.equals("theme"))
+            return "◐";
+
+        if(id.equals("width"))
+            return "↔";
+
+        return "•";
+    }
+
+
+    private String toolbarTitle(
+            String id
+    ) {
+        if(id.equals("emoji"))
+            return "Emoji & kaomoji";
+
+        if(id.equals("clipboard"))
+            return "Clipboard";
+
+        if(id.equals("actions"))
+            return "Quick actions";
+
+        if(id.equals("theme"))
+            return "Theme";
+
+        if(id.equals("width"))
+            return "Width";
+
+        return id;
     }
 
 

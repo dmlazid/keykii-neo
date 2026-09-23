@@ -408,24 +408,91 @@ public class KeyKiiService extends InputMethodService {
                 MODE_PRIVATE
             );
 
-        // Keyboard is always available so the toolbar can never hide
-        // the way back to normal typing.
+        // Keyboard is always fixed first so there is always a way back
+        // to normal typing.
         tool(r,"⌨",0);
 
-        if(toolbarPrefs.getBoolean("toolbar_emoji",true))
-            tool(r,"☺",1);
+        String orderText=
+            toolbarPrefs.getString(
+                "toolbar_order",
+                "emoji,clipboard,actions,theme,width"
+            );
 
-        if(toolbarPrefs.getBoolean("toolbar_clipboard",true))
-            tool(r,"▣",2);
+        java.util.LinkedHashSet<String> order=
+            new java.util.LinkedHashSet<>();
 
-        if(toolbarPrefs.getBoolean("toolbar_actions",true))
-            tool(r,"✎",3);
+        if(orderText!=null) {
+            for(String id:orderText.split(",")) {
+                String clean=id.trim();
 
-        if(toolbarPrefs.getBoolean("toolbar_theme",true))
-            tool(r,"◐",4);
+                if(
+                    clean.equals("emoji") ||
+                    clean.equals("clipboard") ||
+                    clean.equals("actions") ||
+                    clean.equals("theme") ||
+                    clean.equals("width")
+                ) {
+                    order.add(clean);
+                }
+            }
+        }
 
-        if(toolbarPrefs.getBoolean("toolbar_width",true))
-            tool(r,"↔",5);
+        // Add anything missing so old/corrupt preferences can never
+        // make a toolbar item disappear from the ordering system.
+        order.add("emoji");
+        order.add("clipboard");
+        order.add("actions");
+        order.add("theme");
+        order.add("width");
+
+        for(String id:order) {
+
+            if(
+                id.equals("emoji") &&
+                toolbarPrefs.getBoolean(
+                    "toolbar_emoji",
+                    true
+                )
+            ) {
+                tool(r,"☺",1);
+
+            } else if(
+                id.equals("clipboard") &&
+                toolbarPrefs.getBoolean(
+                    "toolbar_clipboard",
+                    true
+                )
+            ) {
+                tool(r,"▣",2);
+
+            } else if(
+                id.equals("actions") &&
+                toolbarPrefs.getBoolean(
+                    "toolbar_actions",
+                    true
+                )
+            ) {
+                tool(r,"✎",3);
+
+            } else if(
+                id.equals("theme") &&
+                toolbarPrefs.getBoolean(
+                    "toolbar_theme",
+                    true
+                )
+            ) {
+                tool(r,"◐",4);
+
+            } else if(
+                id.equals("width") &&
+                toolbarPrefs.getBoolean(
+                    "toolbar_width",
+                    true
+                )
+            ) {
+                tool(r,"↔",5);
+            }
+        }
 
         panel.addView(
             r,
