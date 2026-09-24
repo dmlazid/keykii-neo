@@ -17786,6 +17786,111 @@ public class KeyKiiService extends InputMethodService {
                 strokeWidth=2;
                 break;
 
+            // Porcelain / floral ceramic.
+            case 9:
+                normalStart=
+                    special || space
+                        ? blendThemeColor(accent,white,76)
+                        : Color.rgb(250,252,255);
+                normalEnd=
+                    blendThemeColor(accent,white,90);
+                pressedStart=
+                    blendThemeColor(accent,white,60);
+                pressedEnd=
+                    Color.rgb(255,255,255);
+                stroke=
+                    blendThemeColor(accent,black,12);
+                strokeWidth=1;
+                break;
+
+            // Cafe / teddy / warm stitched.
+            case 10:
+                normalStart=
+                    special || space
+                        ? blendThemeColor(accent,white,38)
+                        : blendThemeColor(accent,white,68);
+                normalEnd=
+                    blendThemeColor(accent,white,54);
+                pressedStart=
+                    blendThemeColor(accent,white,28);
+                pressedEnd=
+                    blendThemeColor(accent,white,50);
+                stroke=
+                    blendThemeColor(accent,black,28);
+                strokeWidth=1;
+                break;
+
+            // Jelly / sky / ocean translucent.
+            case 11:
+                normalStart=
+                    Color.argb(
+                        special || space ? 220 : 170,
+                        Color.red(blendThemeColor(accent,white,45)),
+                        Color.green(blendThemeColor(accent,white,45)),
+                        Color.blue(blendThemeColor(accent,white,45))
+                    );
+                normalEnd=
+                    Color.argb(
+                        special || space ? 205 : 145,
+                        255,255,255
+                    );
+                pressedStart=
+                    Color.argb(
+                        235,
+                        Color.red(accent),
+                        Color.green(accent),
+                        Color.blue(accent)
+                    );
+                pressedEnd=
+                    Color.argb(220,255,255,255);
+                stroke=Color.WHITE;
+                strokeWidth=2;
+                break;
+
+            // Lace / diary / soft floral.
+            case 12:
+                normalStart=
+                    blendThemeColor(accent,white,82);
+                normalEnd=
+                    blendThemeColor(accent,white,67);
+                pressedStart=
+                    blendThemeColor(accent,white,48);
+                pressedEnd=
+                    blendThemeColor(accent,white,68);
+                stroke=
+                    blendThemeColor(accent,white,22);
+                strokeWidth=1;
+                break;
+
+            // Candy / ribbon / kitty glossy.
+            case 13:
+                normalStart=
+                    blendThemeColor(accent,white,74);
+                normalEnd=
+                    blendThemeColor(accent,Color.rgb(255,224,240),45);
+                pressedStart=
+                    blendThemeColor(accent,white,35);
+                pressedEnd=
+                    blendThemeColor(accent,white,60);
+                stroke=Color.WHITE;
+                strokeWidth=2;
+                break;
+
+            // Winter / frosted snow.
+            case 14:
+                normalStart=
+                    Color.rgb(250,253,255);
+                normalEnd=
+                    blendThemeColor(accent,white,82);
+                pressedStart=
+                    blendThemeColor(accent,white,60);
+                pressedEnd=
+                    Color.rgb(236,248,255);
+                stroke=
+                    blendThemeColor(accent,white,42);
+                strokeWidth=2;
+                break;
+
             default:
                 normalStart=
                     keyColor(special);
