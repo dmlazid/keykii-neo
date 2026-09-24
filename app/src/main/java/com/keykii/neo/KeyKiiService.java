@@ -4548,103 +4548,139 @@ public class KeyKiiService extends InputMethodService {
             action.equals("SPACE") ||
             action.equals("5");
 
+        boolean midLeft=
+            action.equals("e") ||
+            action.equals("a") ||
+            action.equals("z");
+
+        boolean midRight=
+            action.equals("i") ||
+            action.equals("l") ||
+            action.equals("m");
+
         if(
             !left &&
             !right &&
-            !center
+            !center &&
+            !midLeft &&
+            !midRight
         ) {
             return 0;
         }
 
+        int primary=
+            themeDecorPrimaryAssetRes(pack);
+
+        int secondary=
+            themeDecorSecondaryAssetRes(pack);
+
+        int tertiary=
+            themeDecorTertiaryAssetRes(pack);
+
         switch(pack) {
             case 100:
-                if(right) return R.drawable.theme_motif_cherry;
+                if(right || midRight) return R.drawable.theme_motif_cherry;
                 if(center) return R.drawable.theme_motif_heart;
                 return R.drawable.theme_motif_flower;
 
             case 101:
-                if(right) return R.drawable.theme_motif_cloud;
                 if(center) return R.drawable.theme_motif_moonstar;
+                if(right || midRight) return R.drawable.theme_motif_cloud;
                 return R.drawable.theme_motif_star;
 
             case 102:
-                if(right) return R.drawable.theme_motif_leaf;
                 if(center) return R.drawable.theme_motif_cup;
+                if(midLeft || midRight) return R.drawable.theme_motif_leaf;
                 return R.drawable.theme_motif_bunny;
 
             case 103:
-                if(right) return R.drawable.theme_motif_cake;
+                if(right || midRight) return R.drawable.theme_motif_cake;
                 if(center) return R.drawable.theme_motif_heart;
                 return R.drawable.theme_motif_bear;
 
             case 104:
                 if(center) return R.drawable.theme_motif_bow;
+                if(midLeft || midRight) return R.drawable.theme_motif_flower;
                 return R.drawable.theme_motif_butterfly;
 
             case 105:
+                if(center) return R.drawable.theme_motif_bubble;
+                if(midLeft || midRight) return R.drawable.theme_motif_moonstar;
                 return R.drawable.theme_motif_star;
 
             case 106:
-                if(left) return R.drawable.theme_motif_strawberry;
-                if(right) return R.drawable.theme_motif_bow;
-                return R.drawable.theme_motif_heart;
+                if(center) return R.drawable.theme_motif_heart;
+                if(right || midRight) return R.drawable.theme_motif_bow;
+                return R.drawable.theme_motif_strawberry;
 
             case 107:
                 if(center) return R.drawable.theme_motif_moonstar;
+                if(midLeft || midRight) return R.drawable.theme_motif_star;
                 return R.drawable.theme_motif_cloud;
 
             case 108:
-                if(right) return R.drawable.theme_motif_leaf;
                 if(center) return R.drawable.theme_motif_flower;
+                if(midLeft || midRight) return R.drawable.theme_motif_leaf;
                 return R.drawable.theme_motif_frog;
 
             case 109:
                 if(center) return R.drawable.theme_motif_heart;
+                if(right || midRight) return R.drawable.theme_motif_bow;
                 return R.drawable.theme_motif_bear;
 
             case 110:
                 if(center) return R.drawable.theme_motif_bow;
+                if(midLeft || midRight) return R.drawable.theme_motif_flower;
                 return R.drawable.theme_motif_butterfly;
 
             case 111:
-                if(right) return R.drawable.theme_motif_cherry;
+                if(center) return R.drawable.theme_motif_cup;
+                if(right || midRight) return R.drawable.theme_motif_cherry;
                 return R.drawable.theme_motif_flower;
 
             case 112:
                 if(center) return R.drawable.theme_motif_star;
+                if(midLeft || midRight) return R.drawable.theme_motif_moonstar;
                 return R.drawable.theme_motif_bubble;
 
             case 113:
-                if(left) return R.drawable.theme_motif_bunny;
-                if(right) return R.drawable.theme_motif_cup;
-                return R.drawable.theme_motif_bear;
+                if(center) return R.drawable.theme_motif_cup;
+                if(right || midRight) return R.drawable.theme_motif_bear;
+                return R.drawable.theme_motif_bunny;
 
             case 114:
                 if(center) return R.drawable.theme_motif_heart;
-                if(right) return R.drawable.theme_motif_cat;
+                if(right || midRight) return R.drawable.theme_motif_cat;
                 return R.drawable.theme_motif_bow;
 
             case 115:
-                return R.drawable.theme_motif_flower;
+                if(center) return R.drawable.theme_motif_lotus;
+                if(midLeft || midRight) return R.drawable.theme_motif_flower;
+                return R.drawable.theme_motif_star;
 
             case 116:
-                if(right) return R.drawable.theme_motif_butterfly;
+                if(right || midRight) return R.drawable.theme_motif_butterfly;
                 return R.drawable.theme_motif_lotus;
 
             case 117:
-                if(right) return R.drawable.theme_motif_bow;
-                return R.drawable.theme_motif_heart;
+                if(center || midLeft) return R.drawable.theme_motif_heart;
+                if(right || midRight) return R.drawable.theme_motif_bow;
+                return R.drawable.theme_motif_flower;
 
             case 118:
+                if(center) return R.drawable.theme_motif_heart;
+                if(midLeft || midRight) return R.drawable.theme_motif_star;
                 return R.drawable.theme_motif_butterfly;
 
             case 119:
-                if(left) return R.drawable.theme_motif_snow;
-                if(right) return R.drawable.theme_motif_gift;
-                return R.drawable.theme_motif_bow;
+                if(center) return R.drawable.theme_motif_bow;
+                if(right || midRight) return R.drawable.theme_motif_gift;
+                return R.drawable.theme_motif_snow;
         }
 
-        return 0;
+        if(center) return tertiary;
+        if(right || midRight) return secondary;
+        return primary;
     }
 
 
