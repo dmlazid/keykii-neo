@@ -2686,7 +2686,7 @@ public class SettingsActivity extends Activity {
                 ),
                 new LinearLayout.LayoutParams(
                         -1,
-                        dp(116)
+                        dp(132)
                 )
         );
 
@@ -2754,7 +2754,10 @@ public class SettingsActivity extends Activity {
         int start=spec[0];
         int end=spec[1];
         int accent=spec[2];
-        int corner=spec[3];
+        int corner=Math.min(
+                spec[3],
+                large ? 10 : 8
+        );
         boolean borders=spec[5]==1;
         boolean dark=spec[6]==0;
         int decor=spec[7];
@@ -2767,27 +2770,27 @@ public class SettingsActivity extends Activity {
         );
 
         keyboard.setPadding(
-                dp(large ? 9 : 6),
-                dp(large ? 9 : 6),
-                dp(large ? 9 : 6),
-                dp(large ? 9 : 6)
+                dp(large ? 7 : 4),
+                dp(large ? 7 : 4),
+                dp(large ? 7 : 4),
+                dp(large ? 7 : 4)
         );
 
         GradientDrawable panelBg=
                 new GradientDrawable(
                         GradientDrawable.Orientation.TL_BR,
-                        new int[]{
-                            start,
-                            end
-                        }
+                        new int[]{start,end}
                 );
 
         panelBg.setCornerRadius(
-                dp(large ? 22 : 15)
+                dp(large ? 20 : 14)
         );
 
+        android.graphics.drawable.Drawable background=
+                panelBg;
+
         if(decor>0) {
-            android.graphics.drawable.LayerDrawable layers=
+            background=
                     new android.graphics.drawable.LayerDrawable(
                             new android.graphics.drawable.Drawable[]{
                                 panelBg,
@@ -2798,11 +2801,9 @@ public class SettingsActivity extends Activity {
                                 )
                             }
                     );
-
-            keyboard.setBackground(layers);
-        } else {
-            keyboard.setBackground(panelBg);
         }
+
+        keyboard.setBackground(background);
 
         Typeface currentFont=
                 settingsKeyboardTypeface(
@@ -2813,111 +2814,121 @@ public class SettingsActivity extends Activity {
                 );
 
         String[][] rows=
-                new String[][]{
-                        {"q","w","e","r","t","y"},
-                        {"a","s","d","f","g","h"},
-                        {"⇧","z","x","c","v","⌫"},
-                        {"123",",","KeyKii",".","↵"}
-                };
+                large
+                        ? new String[][]{
+                            {"1","2","3","4","5","6","7","8","9","0"},
+                            {"q","w","e","r","t","y","u","i","o","p"},
+                            {"a","s","d","f","g","h","j","k","l"},
+                            {"⇧","z","x","c","v","b","n","m","⌫"},
+                            {"123","☺",",","KeyKii",".","↵"}
+                        }
+                        : new String[][]{
+                            {"q","w","e","r","t","y","u","i","o","p"},
+                            {"a","s","d","f","g","h","j","k","l"},
+                            {"⇧","z","x","c","v","b","n","m","⌫"},
+                            {"123","☺",",","KeyKii",".","↵"}
+                        };
+
+        int rowHeight=
+                large
+                        ? dp(39)
+                        : dp(29);
+
+        int keyHeight=
+                large
+                        ? dp(35)
+                        : dp(25);
 
         for(int r=0;r<rows.length;r++) {
             LinearLayout row=
                     new LinearLayout(this);
 
-            row.setGravity(
-                    Gravity.CENTER
-            );
+            row.setGravity(Gravity.CENTER);
 
-            for(int k=0;k<rows[r].length;k++) {
-                String value=
-                        rows[r][k];
+            String[] values=rows[r];
+
+            for(int k=0;k<values.length;k++) {
+                String value=values[k];
 
                 TextView key=
                         new TextView(this);
 
                 key.setText(value);
                 key.setGravity(Gravity.CENTER);
+
                 key.setTextSize(
                         large
                                 ? (
                                     value.length()>2
-                                            ? 10
-                                            : 14
+                                            ? 8
+                                            : 11
                                 )
                                 : (
                                     value.length()>2
-                                            ? 7
-                                            : 10
+                                            ? 5
+                                            : 7
                                 )
                 );
 
                 key.setTypeface(currentFont);
 
                 boolean special=
-                        r==2 &&
-                        (
-                            k==0 ||
-                            k==rows[r].length-1
-                        );
+                        value.equals("⇧") ||
+                        value.equals("⌫") ||
+                        value.equals("123") ||
+                        value.equals("↵") ||
+                        value.equals("KeyKii");
 
                 key.setTextColor(
                         dark
                                 ? Color.WHITE
-                                : Color.rgb(
-                                    53,53,57
-                                )
+                                : Color.rgb(53,53,57)
                 );
-
-                int keyStyle=spec[8];
 
                 key.setBackground(
                         previewThemeKeyBackground(
-                                keyStyle,
+                                spec[8],
                                 accent,
                                 corner,
                                 dark,
                                 special,
-                                value.equals("KeyKii") ||
-                                value.equals("123"),
+                                value.equals("KeyKii"),
                                 borders
                         )
                 );
 
+                float weight=
+                        value.equals("KeyKii")
+                                ? 3.6f
+                                : (
+                                    value.equals("123") ||
+                                    value.equals("↵")
+                                        ? 1.35f
+                                        : 1f
+                                  );
+
                 LinearLayout.LayoutParams kp=
                         new LinearLayout.LayoutParams(
                                 0,
-                                dp(
-                                    large
-                                        ? 41
-                                        : 25
-                                ),
-                                value.equals("KeyKii")
-                                        ? 2.5f
-                                        : 1f
+                                keyHeight,
+                                weight
                         );
 
                 kp.setMargins(
-                        dp(large ? 2 : 1),
-                        dp(large ? 2 : 1),
-                        dp(large ? 2 : 1),
-                        dp(large ? 2 : 1)
+                        dp(1),
+                        dp(1),
+                        dp(1),
+                        dp(1)
                 );
 
-                row.addView(
-                        key,
-                        kp
-                );
+                row.addView(key,kp);
             }
 
             keyboard.addView(
                     row,
                     new LinearLayout.LayoutParams(
                             -1,
-                            dp(
-                                large
-                                    ? 45
-                                    : 27
-                            )
+                            rowHeight
                     )
             );
         }
@@ -3005,7 +3016,7 @@ public class SettingsActivity extends Activity {
                 ),
                 new LinearLayout.LayoutParams(
                         -1,
-                        dp(208)
+                        dp(228)
                 )
         );
 
@@ -3420,7 +3431,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,184,211),
                         Color.rgb(255,235,244),
                         Color.rgb(230,90,145),
-                        24,98,1,1,20,8
+                        12,98,1,1,20,8
                 };
 
             case 101:
@@ -3428,7 +3439,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(124,147,255),
                         Color.rgb(208,218,255),
                         Color.rgb(92,111,234),
-                        22,98,1,1,21,6
+                        12,98,1,1,21,6
                 };
 
             case 102:
@@ -3436,7 +3447,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(203,231,179),
                         Color.rgb(244,247,211),
                         Color.rgb(91,150,75),
-                        24,98,1,1,22,3
+                        13,98,1,1,22,3
                 };
 
             case 103:
@@ -3444,7 +3455,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,195,175),
                         Color.rgb(255,235,226),
                         Color.rgb(210,113,87),
-                        24,98,1,1,23,3
+                        12,98,1,1,23,3
                 };
 
             case 104:
@@ -3452,7 +3463,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(215,191,255),
                         Color.rgb(244,233,255),
                         Color.rgb(135,91,194),
-                        25,98,1,1,24,3
+                        12,98,1,1,24,3
                 };
 
             case 105:
@@ -3460,7 +3471,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(37,13,72),
                         Color.rgb(5,8,24),
                         Color.rgb(218,52,255),
-                        11,100,1,0,25,1
+                        8,100,1,0,25,1
                 };
 
             case 106:
@@ -3468,7 +3479,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,171,204),
                         Color.rgb(255,233,241),
                         Color.rgb(229,80,132),
-                        26,100,1,1,26,8
+                        13,100,1,1,26,8
                 };
 
             case 107:
@@ -3476,7 +3487,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(89,110,201),
                         Color.rgb(209,221,255),
                         Color.rgb(117,132,220),
-                        24,98,1,1,27,6
+                        12,98,1,1,27,6
                 };
 
             case 108:
@@ -3484,7 +3495,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(185,229,181),
                         Color.rgb(236,249,225),
                         Color.rgb(72,151,83),
-                        25,98,1,1,28,3
+                        13,98,1,1,28,3
                 };
 
             case 109:
@@ -3492,7 +3503,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(226,184,173),
                         Color.rgb(248,224,218),
                         Color.rgb(171,105,90),
-                        24,98,1,1,29,3
+                        12,98,1,1,29,3
                 };
 
             case 110:
@@ -3500,7 +3511,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(210,191,250),
                         Color.rgb(248,238,255),
                         Color.rgb(135,93,190),
-                        24,98,1,1,30,3
+                        12,98,1,1,30,3
                 };
 
             case 111:
@@ -3508,7 +3519,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,183,204),
                         Color.rgb(255,232,225),
                         Color.rgb(225,80,126),
-                        24,98,1,1,31,8
+                        12,98,1,1,31,8
                 };
 
             case 112:
@@ -3516,7 +3527,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(83,171,246),
                         Color.rgb(185,230,255),
                         Color.rgb(50,143,226),
-                        24,98,1,1,32,6
+                        12,98,1,1,32,6
                 };
 
             case 113:
@@ -3524,7 +3535,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(126,84,62),
                         Color.rgb(205,164,133),
                         Color.rgb(188,128,84),
-                        22,100,1,0,33,5
+                        11,100,1,0,33,5
                 };
 
             case 114:
@@ -3532,7 +3543,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,173,211),
                         Color.rgb(255,231,244),
                         Color.rgb(226,80,150),
-                        25,100,1,1,34,8
+                        13,100,1,1,34,8
                 };
 
             case 115:
@@ -3540,7 +3551,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(203,220,255),
                         Color.rgb(247,250,255),
                         Color.rgb(66,108,181),
-                        18,100,1,1,35,6
+                        10,100,1,1,35,6
                 };
 
             case 116:
@@ -3548,7 +3559,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(219,202,246),
                         Color.rgb(247,239,255),
                         Color.rgb(127,83,171),
-                        20,96,1,1,36,2
+                        10,96,1,1,36,2
                 };
 
             case 117:
@@ -3556,7 +3567,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(241,229,215),
                         Color.rgb(255,249,242),
                         Color.rgb(168,126,98),
-                        20,100,1,1,37,3
+                        10,100,1,1,37,3
                 };
 
             case 118:
@@ -3564,7 +3575,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(46,32,28),
                         Color.rgb(8,7,7),
                         Color.rgb(204,142,83),
-                        16,100,1,0,38,5
+                        9,100,1,0,38,5
                 };
 
             case 119:
@@ -3572,7 +3583,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(210,235,255),
                         Color.rgb(245,239,255),
                         Color.rgb(224,88,119),
-                        22,98,1,1,39,6
+                        10,98,1,1,39,6
                 };
 
             default:
@@ -3657,6 +3668,36 @@ public class SettingsActivity extends Activity {
     }
 
 
+    private int themePreviewAssetRes(
+            int style
+    ) {
+        switch(style) {
+            case 20: return R.drawable.theme_motif_flower;
+            case 21: return R.drawable.theme_motif_moonstar;
+            case 22: return R.drawable.theme_motif_bunny;
+            case 23: return R.drawable.theme_motif_bear;
+            case 24: return R.drawable.theme_motif_butterfly;
+            case 25: return R.drawable.theme_motif_star;
+            case 26: return R.drawable.theme_motif_bow;
+            case 27: return R.drawable.theme_motif_cloud;
+            case 28: return R.drawable.theme_motif_frog;
+            case 29: return R.drawable.theme_motif_bear;
+            case 30: return R.drawable.theme_motif_butterfly;
+            case 31: return R.drawable.theme_motif_cherry;
+            case 32: return R.drawable.theme_motif_bubble;
+            case 33: return R.drawable.theme_motif_bunny;
+            case 34: return R.drawable.theme_motif_cat;
+            case 35: return R.drawable.theme_motif_flower;
+            case 36: return R.drawable.theme_motif_lotus;
+            case 37: return R.drawable.theme_motif_heart;
+            case 38: return R.drawable.theme_motif_butterfly;
+            case 39: return R.drawable.theme_motif_snow;
+        }
+
+        return 0;
+    }
+
+
     class ThemePreviewDecorDrawable
         extends android.graphics.drawable.Drawable {
 
@@ -3710,6 +3751,55 @@ public class SettingsActivity extends Activity {
             paint.setStyle(
                     android.graphics.Paint.Style.FILL
             );
+
+            if(
+                    style>=20 &&
+                    style<=39
+            ) {
+                int res=
+                        themePreviewAssetRes(style);
+
+                android.graphics.drawable.Drawable motif=
+                        res==0
+                                ? null
+                                : SettingsActivity.this.getDrawable(res);
+
+                if(motif!=null) {
+                    motif=motif.mutate();
+                    motif.setTint(accent);
+                    motif.setAlpha(
+                            dark
+                                    ? 205
+                                    : 180
+                    );
+
+                    drawPreviewAsset(
+                            canvas,
+                            motif,
+                            w*.03f,
+                            h*.04f,
+                            previewAssetSize(w,h,false)
+                    );
+
+                    drawPreviewAsset(
+                            canvas,
+                            motif,
+                            w*.78f,
+                            h*.04f,
+                            previewAssetSize(w,h,true)
+                    );
+
+                    drawPreviewAsset(
+                            canvas,
+                            motif,
+                            w*.72f,
+                            h*.69f,
+                            previewAssetSize(w,h,false)
+                    );
+
+                    return;
+                }
+            }
 
             switch(style) {
                 case 1:
@@ -3913,6 +4003,48 @@ public class SettingsActivity extends Activity {
                     previewSnow(canvas,w*.75f,h*.80f,dp(7));
                     break;
             }
+        }
+
+
+        int previewAssetSize(
+                float w,
+                float h,
+                boolean hero
+        ) {
+            float base=Math.min(w,h);
+
+            return Math.max(
+                    dp(18),
+                    Math.round(
+                            base*
+                            (
+                                hero
+                                    ? .25f
+                                    : .19f
+                            )
+                    )
+            );
+        }
+
+
+        void drawPreviewAsset(
+                android.graphics.Canvas canvas,
+                android.graphics.drawable.Drawable drawable,
+                float x,
+                float y,
+                int size
+        ) {
+            int left=Math.round(x);
+            int top=Math.round(y);
+
+            drawable.setBounds(
+                    left,
+                    top,
+                    left+size,
+                    top+size
+            );
+
+            drawable.draw(canvas);
         }
 
 
