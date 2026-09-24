@@ -1098,6 +1098,24 @@ public class SettingsActivity extends Activity {
                 )==
                 android.content.pm.PackageManager.PERMISSION_GRANTED;
 
+        addSection(
+                page,
+                "Voice typing"
+        );
+
+        addSwitchRow(
+                page,
+                "Voice typing",
+                "Show the microphone and allow speech input",
+                "voice_typing_enabled",
+                true
+        );
+
+        addSection(
+                page,
+                "Microphone"
+        );
+
         addInfoCard(
                 page,
                 "Microphone access",
