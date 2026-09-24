@@ -68,6 +68,7 @@ public class SettingsActivity extends Activity {
     private int themeDraftEnd = Color.rgb(93,118,171);
     private String themeDraftImageUri = "";
     private boolean themeDraftKeyBorders = true;
+    private int themeDraftStylePack = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -2723,6 +2724,8 @@ public class SettingsActivity extends Activity {
 
 
     private void initThemeDraftFromPrefs() {
+        themeDraftStylePack=-1;
+
         themeDraftSurfaceMode =
                 prefs.getInt(
                         "theme_surface_mode",
@@ -3412,6 +3415,8 @@ public class SettingsActivity extends Activity {
     private void selectBuiltInThemeDraft(
             int themeValue
     ) {
+        themeDraftStylePack=-1;
+
         themeDraftSurfaceMode=0;
         themeDraftTheme=themeValue;
 
@@ -3423,6 +3428,8 @@ public class SettingsActivity extends Activity {
     private void selectSolidThemeDraft(
             int color
     ) {
+        themeDraftStylePack=-1;
+
         themeDraftSurfaceMode=1;
         themeDraftStart=color;
         themeDraftEnd=color;
@@ -3440,6 +3447,8 @@ public class SettingsActivity extends Activity {
             int start,
             int end
     ) {
+        themeDraftStylePack=-1;
+
         themeDraftSurfaceMode=2;
         themeDraftStart=start;
         themeDraftEnd=end;
@@ -3462,6 +3471,8 @@ public class SettingsActivity extends Activity {
     private void selectPhotoThemeDraft(
             String uriText
     ) {
+        themeDraftStylePack=-1;
+
         if(
                 uriText==null ||
                 uriText.isEmpty()
@@ -4168,6 +4179,35 @@ public class SettingsActivity extends Activity {
                 "theme_auto_day_night",
                 false
         );
+
+        if(themeDraftStylePack>=0) {
+            int[] pack=
+                    stylePackSpec(
+                            themeDraftStylePack
+                    );
+
+            e.putInt(
+                    "accent_color",
+                    pack[2]
+            );
+
+            e.putInt(
+                    "key_corner_radius",
+                    pack[3]
+            );
+
+            e.putInt(
+                    "theme_transparency",
+                    pack[4]
+            );
+
+            e.putInt(
+                    "keykii_style_pack",
+                    themeDraftStylePack
+            );
+
+            // Theme packs never change keyboard_font_style.
+        }
 
         if(
                 themeDraftSurfaceMode==1 ||
