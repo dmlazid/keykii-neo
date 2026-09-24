@@ -4073,47 +4073,72 @@ public class KeyKiiService extends InputMethodService {
 
         }
 
-        String themeSticker=
-            themeKeySticker(action);
+        int themeStickerRes=
+            themeKeyStickerRes(action);
 
-        if(
-            themeSticker!=null &&
-            !themeSticker.isEmpty()
-        ) {
-            TextView sticker=
-                new TextView(this);
+        if(themeStickerRes!=0) {
+            ImageView sticker=
+                new ImageView(this);
 
-            sticker.setText(themeSticker);
-            sticker.setTextSize(
-                action.equals("SPACE")
-                    ? 12
-                    : 10
+            android.graphics.drawable.Drawable stickerDrawable=
+                getDrawable(themeStickerRes);
+
+            if(stickerDrawable!=null) {
+                stickerDrawable=
+                    stickerDrawable.mutate();
+
+                stickerDrawable.setTint(
+                    accentColor()
+                );
+
+                sticker.setImageDrawable(
+                    stickerDrawable
+                );
+            }
+
+            sticker.setAlpha(.88f);
+            sticker.setScaleType(
+                ImageView.ScaleType.CENTER_INSIDE
             );
-
-            sticker.setGravity(
-                Gravity.CENTER
-            );
-
-            sticker.setIncludeFontPadding(false);
             sticker.setClickable(false);
             sticker.setFocusable(false);
+
+            boolean spaceSticker=
+                action.equals("SPACE");
 
             FrameLayout.LayoutParams sp=
                 new FrameLayout.LayoutParams(
                     dp(
-                        action.equals("SPACE")
-                            ? 26
-                            : 18
+                        spaceSticker
+                            ? 24
+                            : 16
                     ),
-                    dp(18),
-                    Gravity.TOP |
-                    Gravity.RIGHT
+                    dp(
+                        spaceSticker
+                            ? 20
+                            : 16
+                    ),
+                    spaceSticker
+                        ? (
+                            Gravity.CENTER_VERTICAL |
+                            Gravity.RIGHT
+                          )
+                        : (
+                            Gravity.TOP |
+                            Gravity.RIGHT
+                          )
                 );
 
             sp.setMargins(
                 0,
-                dp(1),
-                dp(2),
+                spaceSticker
+                    ? 0
+                    : dp(2),
+                dp(
+                    spaceSticker
+                        ? 8
+                        : 3
+                ),
                 0
             );
 
@@ -4476,7 +4501,7 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
-    String themeKeySticker(
+    int themeKeyStickerRes(
         String action
     ) {
         SharedPreferences p=
@@ -4491,20 +4516,7 @@ public class KeyKiiService extends InputMethodService {
                 0
             )!=2
         ) {
-            return "";
-        }
-
-        int decor=
-            p.getInt(
-                "theme_decor_style",
-                0
-            );
-
-        if(
-            decor<20 ||
-            decor>39
-        ) {
-            return "";
+            return 0;
         }
 
         int pack=
@@ -4514,10 +4526,12 @@ public class KeyKiiService extends InputMethodService {
             );
 
         if(
+            pack<100 ||
+            pack>119 ||
             action==null ||
             action.isEmpty()
         ) {
-            return "";
+            return 0;
         }
 
         boolean left=
@@ -4534,129 +4548,123 @@ public class KeyKiiService extends InputMethodService {
             action.equals("SPACE") ||
             action.equals("5");
 
-        switch(pack) {
-            case 100:
-                if(left) return "🌸";
-                if(right) return "🍒";
-                if(center) return "♡";
-                break;
-
-            case 101:
-                if(left) return "⭐";
-                if(right) return "☁";
-                if(center) return "🌙";
-                break;
-
-            case 102:
-                if(left) return "🌿";
-                if(right) return "🐰";
-                if(center) return "🍵";
-                break;
-
-            case 103:
-                if(left) return "🧸";
-                if(right) return "🍑";
-                if(center) return "🍰";
-                break;
-
-            case 104:
-                if(left) return "🦋";
-                if(right) return "✿";
-                if(center) return "🎀";
-                break;
-
-            case 105:
-                if(left) return "✦";
-                if(right) return "⚡";
-                if(center) return "🎮";
-                break;
-
-            case 106:
-                if(left) return "🍓";
-                if(right) return "🎀";
-                if(center) return "♡";
-                break;
-
-            case 107:
-                if(left) return "☁";
-                if(right) return "⭐";
-                if(center) return "🌙";
-                break;
-
-            case 108:
-                if(left) return "🌿";
-                if(right) return "🐸";
-                if(center) return "✿";
-                break;
-
-            case 109:
-                if(left) return "🧸";
-                if(right) return "🌹";
-                if(center) return "♡";
-                break;
-
-            case 110:
-                if(left) return "🦋";
-                if(right) return "❀";
-                if(center) return "🎀";
-                break;
-
-            case 111:
-                if(left) return "🌸";
-                if(right) return "🍒";
-                if(center) return "🥤";
-                break;
-
-            case 112:
-                if(left) return "⭐";
-                if(right) return "🫧";
-                if(center) return "🌊";
-                break;
-
-            case 113:
-                if(left) return "🐰";
-                if(right) return "☕";
-                if(center) return "🧸";
-                break;
-
-            case 114:
-                if(left) return "🎀";
-                if(right) return "🐾";
-                if(center) return "♡";
-                break;
-
-            case 115:
-                if(left) return "✿";
-                if(right) return "❀";
-                if(center) return "◇";
-                break;
-
-            case 116:
-                if(left) return "🪷";
-                if(right) return "🦋";
-                if(center) return "✦";
-                break;
-
-            case 117:
-                if(left) return "♡";
-                if(right) return "🎀";
-                if(center) return "♢";
-                break;
-
-            case 118:
-                if(left) return "🦋";
-                if(right) return "✦";
-                if(center) return "♡";
-                break;
-
-            case 119:
-                if(left) return "❄";
-                if(right) return "🎁";
-                if(center) return "☃";
-                break;
+        if(
+            !left &&
+            !right &&
+            !center
+        ) {
+            return 0;
         }
 
-        return "";
+        switch(pack) {
+            case 100:
+                if(right) return R.drawable.theme_motif_cherry;
+                if(center) return R.drawable.theme_motif_heart;
+                return R.drawable.theme_motif_flower;
+
+            case 101:
+                if(right) return R.drawable.theme_motif_cloud;
+                if(center) return R.drawable.theme_motif_moonstar;
+                return R.drawable.theme_motif_star;
+
+            case 102:
+                return R.drawable.theme_motif_bunny;
+
+            case 103:
+                return R.drawable.theme_motif_bear;
+
+            case 104:
+                if(center) return R.drawable.theme_motif_bow;
+                return R.drawable.theme_motif_butterfly;
+
+            case 105:
+                return R.drawable.theme_motif_star;
+
+            case 106:
+                if(center) return R.drawable.theme_motif_heart;
+                return R.drawable.theme_motif_bow;
+
+            case 107:
+                if(center) return R.drawable.theme_motif_moonstar;
+                return R.drawable.theme_motif_cloud;
+
+            case 108:
+                return R.drawable.theme_motif_frog;
+
+            case 109:
+                if(center) return R.drawable.theme_motif_heart;
+                return R.drawable.theme_motif_bear;
+
+            case 110:
+                if(center) return R.drawable.theme_motif_bow;
+                return R.drawable.theme_motif_butterfly;
+
+            case 111:
+                if(right) return R.drawable.theme_motif_cherry;
+                return R.drawable.theme_motif_flower;
+
+            case 112:
+                if(center) return R.drawable.theme_motif_star;
+                return R.drawable.theme_motif_bubble;
+
+            case 113:
+                if(center) return R.drawable.theme_motif_bear;
+                return R.drawable.theme_motif_bunny;
+
+            case 114:
+                if(center) return R.drawable.theme_motif_heart;
+                if(right) return R.drawable.theme_motif_cat;
+                return R.drawable.theme_motif_bow;
+
+            case 115:
+                return R.drawable.theme_motif_flower;
+
+            case 116:
+                if(right) return R.drawable.theme_motif_butterfly;
+                return R.drawable.theme_motif_lotus;
+
+            case 117:
+                if(right) return R.drawable.theme_motif_bow;
+                return R.drawable.theme_motif_heart;
+
+            case 118:
+                return R.drawable.theme_motif_butterfly;
+
+            case 119:
+                return R.drawable.theme_motif_snow;
+        }
+
+        return 0;
+    }
+
+
+    int themeDecorAssetRes(
+        int style
+    ) {
+        switch(style) {
+            case 20: return R.drawable.theme_motif_flower;
+            case 21: return R.drawable.theme_motif_moonstar;
+            case 22: return R.drawable.theme_motif_bunny;
+            case 23: return R.drawable.theme_motif_bear;
+            case 24: return R.drawable.theme_motif_butterfly;
+            case 25: return R.drawable.theme_motif_star;
+            case 26: return R.drawable.theme_motif_bow;
+            case 27: return R.drawable.theme_motif_cloud;
+            case 28: return R.drawable.theme_motif_frog;
+            case 29: return R.drawable.theme_motif_bear;
+            case 30: return R.drawable.theme_motif_butterfly;
+            case 31: return R.drawable.theme_motif_cherry;
+            case 32: return R.drawable.theme_motif_bubble;
+            case 33: return R.drawable.theme_motif_bunny;
+            case 34: return R.drawable.theme_motif_cat;
+            case 35: return R.drawable.theme_motif_flower;
+            case 36: return R.drawable.theme_motif_lotus;
+            case 37: return R.drawable.theme_motif_heart;
+            case 38: return R.drawable.theme_motif_butterfly;
+            case 39: return R.drawable.theme_motif_snow;
+        }
+
+        return 0;
     }
 
 
@@ -15226,6 +15234,65 @@ public class KeyKiiService extends InputMethodService {
                     255,255,255
                 );
 
+            if(
+                style>=20 &&
+                style<=39
+            ) {
+                int res=
+                    themeDecorAssetRes(style);
+
+                android.graphics.drawable.Drawable motif=
+                    res==0
+                        ? null
+                        : getDrawable(res);
+
+                if(motif!=null) {
+                    motif=
+                        motif.mutate();
+
+                    motif.setTint(accent);
+                    motif.setAlpha(
+                        theme==1
+                            ? 155
+                            : 175
+                    );
+
+                    drawMotifAsset(
+                        canvas,
+                        motif,
+                        w*.08f,
+                        h*.10f,
+                        dp(34)
+                    );
+
+                    drawMotifAsset(
+                        canvas,
+                        motif,
+                        w*.83f,
+                        h*.10f,
+                        dp(42)
+                    );
+
+                    drawMotifAsset(
+                        canvas,
+                        motif,
+                        w*.72f,
+                        h*.72f,
+                        dp(36)
+                    );
+
+                    drawMotifAsset(
+                        canvas,
+                        motif,
+                        w*.14f,
+                        h*.72f,
+                        dp(30)
+                    );
+
+                    return;
+                }
+            }
+
             switch(style) {
                 case 1:
                     paint.setColor(softAccent);
@@ -15628,6 +15695,30 @@ public class KeyKiiService extends InputMethodService {
                     drawBow(canvas,w*.23f,h*.80f,dp(8),paint);
                     break;
             }
+        }
+
+
+        void drawMotifAsset(
+            android.graphics.Canvas canvas,
+            android.graphics.drawable.Drawable drawable,
+            float x,
+            float y,
+            int size
+        ) {
+            int left=
+                Math.round(x);
+
+            int top=
+                Math.round(y);
+
+            drawable.setBounds(
+                left,
+                top,
+                left+size,
+                top+size
+            );
+
+            drawable.draw(canvas);
         }
 
 
