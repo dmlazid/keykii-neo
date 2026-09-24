@@ -3534,7 +3534,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,184,211),
                         Color.rgb(255,235,244),
                         Color.rgb(230,90,145),
-                        12,98,1,1,20,8
+                        12,98,1,1,20,13
                 };
 
             case 101:
@@ -3542,7 +3542,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(124,147,255),
                         Color.rgb(208,218,255),
                         Color.rgb(92,111,234),
-                        12,98,1,1,21,6
+                        12,98,1,1,21,11
                 };
 
             case 102:
@@ -3550,7 +3550,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(203,231,179),
                         Color.rgb(244,247,211),
                         Color.rgb(91,150,75),
-                        13,98,1,1,22,3
+                        13,98,1,1,22,10
                 };
 
             case 103:
@@ -3558,7 +3558,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,195,175),
                         Color.rgb(255,235,226),
                         Color.rgb(210,113,87),
-                        12,98,1,1,23,3
+                        12,98,1,1,23,10
                 };
 
             case 104:
@@ -3566,7 +3566,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(215,191,255),
                         Color.rgb(244,233,255),
                         Color.rgb(135,91,194),
-                        12,98,1,1,24,3
+                        12,98,1,1,24,12
                 };
 
             case 105:
@@ -3582,7 +3582,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,171,204),
                         Color.rgb(255,233,241),
                         Color.rgb(229,80,132),
-                        13,100,1,1,26,8
+                        13,100,1,1,26,13
                 };
 
             case 107:
@@ -3590,7 +3590,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(89,110,201),
                         Color.rgb(209,221,255),
                         Color.rgb(117,132,220),
-                        12,98,1,1,27,6
+                        12,98,1,1,27,11
                 };
 
             case 108:
@@ -3598,7 +3598,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(185,229,181),
                         Color.rgb(236,249,225),
                         Color.rgb(72,151,83),
-                        13,98,1,1,28,3
+                        13,98,1,1,28,10
                 };
 
             case 109:
@@ -3606,7 +3606,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(226,184,173),
                         Color.rgb(248,224,218),
                         Color.rgb(171,105,90),
-                        12,98,1,1,29,3
+                        12,98,1,1,29,10
                 };
 
             case 110:
@@ -3614,7 +3614,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(210,191,250),
                         Color.rgb(248,238,255),
                         Color.rgb(135,93,190),
-                        12,98,1,1,30,3
+                        12,98,1,1,30,12
                 };
 
             case 111:
@@ -3622,7 +3622,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,183,204),
                         Color.rgb(255,232,225),
                         Color.rgb(225,80,126),
-                        12,98,1,1,31,8
+                        12,98,1,1,31,13
                 };
 
             case 112:
@@ -3630,7 +3630,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(83,171,246),
                         Color.rgb(185,230,255),
                         Color.rgb(50,143,226),
-                        12,98,1,1,32,6
+                        12,98,1,1,32,11
                 };
 
             case 113:
@@ -3638,7 +3638,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(126,84,62),
                         Color.rgb(205,164,133),
                         Color.rgb(188,128,84),
-                        11,100,1,0,33,5
+                        11,100,1,0,33,10
                 };
 
             case 114:
@@ -3646,7 +3646,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,173,211),
                         Color.rgb(255,231,244),
                         Color.rgb(226,80,150),
-                        13,100,1,1,34,8
+                        13,100,1,1,34,13
                 };
 
             case 115:
@@ -3654,7 +3654,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(203,220,255),
                         Color.rgb(247,250,255),
                         Color.rgb(66,108,181),
-                        10,100,1,1,35,6
+                        10,100,1,1,35,9
                 };
 
             case 116:
@@ -3662,7 +3662,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(219,202,246),
                         Color.rgb(247,239,255),
                         Color.rgb(127,83,171),
-                        10,96,1,1,36,2
+                        10,96,1,1,36,12
                 };
 
             case 117:
@@ -3670,7 +3670,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(241,229,215),
                         Color.rgb(255,249,242),
                         Color.rgb(168,126,98),
-                        10,100,1,1,37,3
+                        10,100,1,1,37,9
                 };
 
             case 118:
@@ -3686,7 +3686,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(210,235,255),
                         Color.rgb(245,239,255),
                         Color.rgb(224,88,119),
-                        10,98,1,1,39,6
+                        10,98,1,1,39,14
                 };
 
             default:
