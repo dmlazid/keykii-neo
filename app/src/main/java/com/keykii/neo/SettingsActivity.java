@@ -31,13 +31,19 @@ public class SettingsActivity extends Activity {
     private static final int REQUEST_THEME_IMAGE = 2160;
     private static final int REQUEST_RECORD_AUDIO = 2161;
 
-    private static final int BG = Color.rgb(248, 246, 242);
+    private static final int BG = Color.rgb(252, 248, 253);
     private static final int CARD = Color.WHITE;
-    private static final int TEXT = Color.rgb(45, 43, 40);
-    private static final int MUTED = Color.rgb(118, 113, 107);
-    private static final int BORDER = Color.rgb(229, 224, 217);
-    private static final int ACCENT = Color.rgb(239, 232, 221);
-    private static final int SOFT = Color.rgb(245, 241, 235);
+    private static final int TEXT = Color.rgb(55, 45, 62);
+    private static final int MUTED = Color.rgb(126, 111, 133);
+    private static final int BORDER = Color.rgb(236, 226, 241);
+    private static final int ACCENT = Color.rgb(240, 225, 251);
+    private static final int SOFT = Color.rgb(249, 241, 251);
+
+    private static final int PASTEL_PINK = Color.rgb(255, 229, 241);
+    private static final int PASTEL_PURPLE = Color.rgb(237, 227, 255);
+    private static final int PASTEL_BLUE = Color.rgb(226, 240, 255);
+    private static final int PASTEL_MINT = Color.rgb(225, 246, 238);
+    private static final int PASTEL_PEACH = Color.rgb(255, 238, 220);
 
     private SharedPreferences prefs;
     private String screen = "home";
@@ -202,34 +208,52 @@ public class SettingsActivity extends Activity {
 
     private void showHome() {
         screen = "home";
-        LinearLayout page = page("KeyKii settings", "KeyKii Neo " + appVersion(), false);
+
+        LinearLayout page =
+                page(
+                        "KeyKii",
+                        "Cute, smart and made for you  ✨",
+                        false
+                );
+
+        addHomeHero(page);
+
+        addSection(page, "Customize your keyboard");
+        addHomeCustomizeCards(page);
+        addHomeProBanner(page);
 
         addSection(page, "Set up keyboard");
-        addActionButton(page, "Enable KeyKii", v -> {
-            try {
-                startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS));
-            } catch (Exception e) {
-                toast("Android keyboard settings are unavailable on this device.");
-            }
-        });
-        addActionButton(page, "Choose Keyboard", v -> {
-            InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-            if (imm != null) imm.showInputMethodPicker();
-        });
+        addHomeSetupButtons(page);
 
         addSection(page, "Keyboard");
-        addRow(page, "⌨", "Languages", "Add and switch KeyKii keyboard layouts", v -> showLanguages());
-        addRow(page, "⚙", "Preferences", "Size, spacing, haptics and default width", v -> showPreferences());
-        addRow(page, "◐", "Themes", "Backgrounds, colours and key shapes", v -> showTheme());
-        addRow(page, "Aa", "Fonts", keyboardFontName(), v -> showFonts());
-        addRow(page, "☰", "Toolbar buttons", "Choose which tools appear above the keys", v -> showToolbar());
-
-        addSection(page, "Typing");
         addRow(
                 page,
-                "✓",
+                "⌨",
+                "Languages",
+                "Add and switch KeyKii keyboard layouts",
+                v -> showLanguages()
+        );
+        addRow(
+                page,
+                "⚙",
+                "Preferences",
+                "Size, spacing, sound, vibration and width",
+                v -> showPreferences()
+        );
+        addRow(
+                page,
+                "☰",
+                "Toolbar",
+                "Choose which tools appear above the keys",
+                v -> showToolbar()
+        );
+
+        addSection(page, "Typing & tools");
+        addRow(
+                page,
+                "✨",
                 "Smart typing",
-                "Auto-capitalization, double-space period and key preview",
+                "Suggestions, capitalization and quick punctuation",
                 v -> showSmartTyping()
         );
         addRow(
@@ -241,21 +265,686 @@ public class SettingsActivity extends Activity {
                         : "Off • Swipe across letters to type",
                 v -> showGlideTyping()
         );
-        addRow(page, "🎙", "Voice typing", "Android voice input", v -> showVoice());
+        addRow(
+                page,
+                "🎙",
+                "Voice typing",
+                "Speak and insert text with KeyKii",
+                v -> showVoice()
+        );
 
-        addSection(page, "Data & content");
-        addRow(page, "▣", "Clipboard", "Manage KeyKii clipboard history", v -> showClipboard());
-        addRow(page, "⚡", "Text shortcuts", "Save reusable text and paste it from KeyKii", v -> showShortcuts());
-        addRow(page, "Aa", "Dictionary", "Open Android personal dictionary", v -> showDictionary());
-        addRow(page, "☺", "Emoji & kaomoji", "Recents and emoji behavior", v -> showEmoji());
+        addSection(page, "Your content");
+        addRow(
+                page,
+                "▣",
+                "Clipboard",
+                "Manage your KeyKii clipboard history",
+                v -> showClipboard()
+        );
+        addRow(
+                page,
+                "⚡",
+                "Text shortcuts",
+                "Save reusable text for faster typing",
+                v -> showShortcuts()
+        );
+        addRow(
+                page,
+                "Aa",
+                "Dictionary",
+                "Open Android personal dictionary",
+                v -> showDictionary()
+        );
+        addRow(
+                page,
+                "☺",
+                "Emoji & kaomoji",
+                "Recents and emoji behavior",
+                v -> showEmoji()
+        );
 
-        addSection(page, "General");
-        addRow(page, "🔒", "Privacy", "What KeyKii stores on this device", v -> showPrivacy());
-        addRow(page, "ⓘ", "About", "Version and keyboard information", v -> showAbout());
-        addRow(page, "?", "Help & feedback", "Quick troubleshooting", v -> showHelp());
+        addSection(page, "More");
+        addRow(
+                page,
+                "🔒",
+                "Privacy",
+                "What KeyKii stores on this device",
+                v -> showPrivacy()
+        );
+        addRow(
+                page,
+                "ⓘ",
+                "About KeyKii",
+                "Version "+appVersion(),
+                v -> showAbout()
+        );
+        addRow(
+                page,
+                "?",
+                "Help & feedback",
+                "Troubleshooting and app help",
+                v -> showHelp()
+        );
 
         setContentView(wrap(page));
     }
+
+
+    private void addHomeHero(
+            LinearLayout page
+    ) {
+        LinearLayout hero =
+                new LinearLayout(this);
+
+        hero.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        hero.setPadding(
+                dp(20),
+                dp(19),
+                dp(20),
+                dp(18)
+        );
+
+        GradientDrawable bg =
+                new GradientDrawable(
+                        GradientDrawable.Orientation.TL_BR,
+                        new int[]{
+                            Color.rgb(245,225,255),
+                            Color.rgb(255,230,242),
+                            Color.rgb(226,241,255)
+                        }
+                );
+
+        bg.setCornerRadius(dp(28));
+        hero.setBackground(bg);
+        hero.setElevation(dp(2));
+
+        TextView badge =
+                new TextView(this);
+
+        badge.setText("  ✦  NEW IN KEYKII  ");
+        badge.setTextColor(
+                Color.rgb(123,77,151)
+        );
+        badge.setTextSize(11);
+        badge.setGravity(Gravity.CENTER);
+        badge.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        GradientDrawable badgeBg =
+                round(
+                        Color.argb(160,255,255,255),
+                        14
+                );
+
+        badge.setBackground(badgeBg);
+
+        LinearLayout.LayoutParams badgeParams =
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        dp(28)
+                );
+
+        hero.addView(
+                badge,
+                badgeParams
+        );
+
+        TextView title =
+                new TextView(this);
+
+        title.setText(
+                "Make your keyboard yours ✨"
+        );
+
+        title.setTextColor(TEXT);
+        title.setTextSize(24);
+        title.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        title.setPadding(
+                0,
+                dp(13),
+                0,
+                dp(5)
+        );
+
+        hero.addView(title);
+
+        TextView sub =
+                new TextView(this);
+
+        sub.setText(
+                "Mix beautiful themes with cute fonts, then keep all your smart typing tools."
+        );
+
+        sub.setTextColor(
+                Color.rgb(92,78,100)
+        );
+
+        sub.setTextSize(13);
+
+        hero.addView(sub);
+
+        LinearLayout pills =
+                new LinearLayout(this);
+
+        pills.setPadding(
+                0,
+                dp(13),
+                0,
+                0
+        );
+
+        pills.addView(
+                homeHeroPill(
+                        "🎨 Themes",
+                        v -> showTheme()
+                ),
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(42),
+                        1f
+                )
+        );
+
+        LinearLayout.LayoutParams fp =
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(42),
+                        1f
+                );
+
+        fp.setMargins(
+                dp(8),0,0,0
+        );
+
+        pills.addView(
+                homeHeroPill(
+                        "Aa  Fonts",
+                        v -> showFonts()
+                ),
+                fp
+        );
+
+        hero.addView(pills);
+
+        LinearLayout.LayoutParams hp =
+                new LinearLayout.LayoutParams(
+                        -1,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+
+        hp.setMargins(
+                0,
+                dp(2),
+                0,
+                dp(9)
+        );
+
+        page.addView(hero,hp);
+    }
+
+
+    private TextView homeHeroPill(
+            String text,
+            View.OnClickListener listener
+    ) {
+        TextView pill =
+                new TextView(this);
+
+        pill.setText(text);
+        pill.setTextColor(TEXT);
+        pill.setTextSize(13);
+        pill.setGravity(Gravity.CENTER);
+        pill.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        GradientDrawable bg =
+                round(
+                        Color.argb(205,255,255,255),
+                        16
+                );
+
+        bg.setStroke(
+                dp(1),
+                Color.argb(
+                        75,
+                        130,95,150
+                )
+        );
+
+        pill.setBackground(bg);
+        pill.setOnClickListener(listener);
+
+        return pill;
+    }
+
+
+    private void addHomeCustomizeCards(
+            LinearLayout page
+    ) {
+        LinearLayout row =
+                new LinearLayout(this);
+
+        row.setOrientation(
+                LinearLayout.HORIZONTAL
+        );
+
+        LinearLayout themes =
+                homeFeatureCard(
+                        "🎨",
+                        "Themes",
+                        "Pastel, dark, gaming & more",
+                        PASTEL_PINK,
+                        v -> showTheme()
+                );
+
+        LinearLayout fonts =
+                homeFeatureCard(
+                        "Aa",
+                        "Fonts",
+                        "Cute, script, bubble & retro",
+                        PASTEL_BLUE,
+                        v -> showFonts()
+                );
+
+        LinearLayout.LayoutParams p =
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(146),
+                        1f
+                );
+
+        p.setMargins(
+                0,
+                dp(4),
+                dp(5),
+                dp(4)
+        );
+
+        row.addView(themes,p);
+
+        LinearLayout.LayoutParams p2 =
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(146),
+                        1f
+                );
+
+        p2.setMargins(
+                dp(5),
+                dp(4),
+                0,
+                dp(4)
+        );
+
+        row.addView(fonts,p2);
+
+        page.addView(row);
+    }
+
+
+    private LinearLayout homeFeatureCard(
+            String icon,
+            String title,
+            String subtitle,
+            int color,
+            View.OnClickListener listener
+    ) {
+        LinearLayout card =
+                new LinearLayout(this);
+
+        card.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        card.setGravity(
+                Gravity.CENTER_HORIZONTAL
+        );
+
+        card.setPadding(
+                dp(13),
+                dp(15),
+                dp(13),
+                dp(12)
+        );
+
+        GradientDrawable bg =
+                round(color,24);
+
+        bg.setStroke(
+                dp(1),
+                Color.argb(
+                        55,
+                        130,105,145
+                )
+        );
+
+        card.setBackground(bg);
+        card.setOnClickListener(listener);
+
+        TextView iconView =
+                new TextView(this);
+
+        iconView.setText(icon);
+        iconView.setTextSize(
+                "Aa".equals(icon)
+                        ? 22
+                        : 27
+        );
+
+        iconView.setTextColor(TEXT);
+        iconView.setGravity(Gravity.CENTER);
+        iconView.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        iconView.setBackground(
+                round(
+                        Color.argb(
+                                205,
+                                255,255,255
+                        ),
+                        18
+                )
+        );
+
+        card.addView(
+                iconView,
+                new LinearLayout.LayoutParams(
+                        dp(54),
+                        dp(54)
+                )
+        );
+
+        TextView titleView =
+                new TextView(this);
+
+        titleView.setText(title);
+        titleView.setTextColor(TEXT);
+        titleView.setTextSize(17);
+        titleView.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        titleView.setGravity(
+                Gravity.CENTER
+        );
+
+        titleView.setPadding(
+                0,
+                dp(7),
+                0,
+                dp(2)
+        );
+
+        card.addView(titleView);
+
+        TextView subView =
+                new TextView(this);
+
+        subView.setText(subtitle);
+        subView.setTextColor(MUTED);
+        subView.setTextSize(10);
+        subView.setGravity(
+                Gravity.CENTER
+        );
+
+        card.addView(subView);
+
+        return card;
+    }
+
+
+    private void addHomeProBanner(
+            LinearLayout page
+    ) {
+        LinearLayout banner =
+                new LinearLayout(this);
+
+        banner.setGravity(
+                Gravity.CENTER_VERTICAL
+        );
+
+        banner.setPadding(
+                dp(16),
+                dp(15),
+                dp(14),
+                dp(15)
+        );
+
+        GradientDrawable bg =
+                new GradientDrawable(
+                        GradientDrawable.Orientation.LEFT_RIGHT,
+                        new int[]{
+                            Color.rgb(246,218,255),
+                            Color.rgb(255,223,236),
+                            Color.rgb(255,237,210)
+                        }
+                );
+
+        bg.setCornerRadius(dp(24));
+        banner.setBackground(bg);
+
+        TextView star =
+                new TextView(this);
+
+        star.setText("✦");
+        star.setTextSize(26);
+        star.setTextColor(
+                Color.rgb(151,83,171)
+        );
+        star.setGravity(Gravity.CENTER);
+
+        banner.addView(
+                star,
+                new LinearLayout.LayoutParams(
+                        dp(48),
+                        dp(48)
+                )
+        );
+
+        LinearLayout words =
+                new LinearLayout(this);
+
+        words.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        TextView title =
+                new TextView(this);
+
+        title.setText(
+                "KeyKii Pro Preview"
+        );
+
+        title.setTextColor(TEXT);
+        title.setTextSize(16);
+        title.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        TextView sub =
+                new TextView(this);
+
+        sub.setText(
+                "Premium themes + expressive fonts"
+        );
+
+        sub.setTextColor(MUTED);
+        sub.setTextSize(11);
+
+        words.addView(title);
+        words.addView(sub);
+
+        banner.addView(
+                words,
+                new LinearLayout.LayoutParams(
+                        0,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        1f
+                )
+        );
+
+        TextView arrow =
+                new TextView(this);
+
+        arrow.setText("›");
+        arrow.setTextSize(28);
+        arrow.setTextColor(
+                Color.rgb(129,96,140)
+        );
+        arrow.setGravity(Gravity.CENTER);
+
+        banner.addView(
+                arrow,
+                new LinearLayout.LayoutParams(
+                        dp(32),
+                        dp(48)
+                )
+        );
+
+        banner.setOnClickListener(
+                v -> showFonts()
+        );
+
+        LinearLayout.LayoutParams p =
+                new LinearLayout.LayoutParams(
+                        -1,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+
+        p.setMargins(
+                0,
+                dp(7),
+                0,
+                dp(6)
+        );
+
+        page.addView(banner,p);
+    }
+
+
+    private void addHomeSetupButtons(
+            LinearLayout page
+    ) {
+        LinearLayout row =
+                new LinearLayout(this);
+
+        TextView enable =
+                homeSetupButton(
+                        "✓  Enable KeyKii",
+                        PASTEL_MINT,
+                        v -> {
+                            try {
+                                startActivity(
+                                        new Intent(
+                                                Settings.ACTION_INPUT_METHOD_SETTINGS
+                                        )
+                                );
+                            } catch(Exception e) {
+                                toast(
+                                        "Android keyboard settings are unavailable on this device."
+                                );
+                            }
+                        }
+                );
+
+        TextView choose =
+                homeSetupButton(
+                        "⌨  Choose Keyboard",
+                        PASTEL_PEACH,
+                        v -> {
+                            InputMethodManager imm =
+                                    (InputMethodManager)
+                                            getSystemService(
+                                                    INPUT_METHOD_SERVICE
+                                            );
+
+                            if(imm!=null)
+                                imm.showInputMethodPicker();
+                        }
+                );
+
+        LinearLayout.LayoutParams p =
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(54),
+                        1f
+                );
+
+        p.setMargins(
+                0,
+                dp(4),
+                dp(5),
+                dp(4)
+        );
+
+        row.addView(enable,p);
+
+        LinearLayout.LayoutParams p2 =
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(54),
+                        1f
+                );
+
+        p2.setMargins(
+                dp(5),
+                dp(4),
+                0,
+                dp(4)
+        );
+
+        row.addView(choose,p2);
+
+        page.addView(row);
+    }
+
+
+    private TextView homeSetupButton(
+            String text,
+            int color,
+            View.OnClickListener listener
+    ) {
+        TextView button =
+                new TextView(this);
+
+        button.setText(text);
+        button.setTextColor(TEXT);
+        button.setTextSize(12);
+        button.setGravity(Gravity.CENTER);
+        button.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        GradientDrawable bg =
+                round(color,18);
+
+        bg.setStroke(
+                dp(1),
+                BORDER
+        );
+
+        button.setBackground(bg);
+        button.setOnClickListener(listener);
+
+        return button;
+    }
+
 
     private final String[] keyboardLanguageCodes = {
             "en-US","en-GB","fil","ceb","es",
@@ -1775,25 +2464,34 @@ public class SettingsActivity extends Activity {
         dialog.setContentView(sheet);
         dialog.setCancelable(true);
 
-        dialog.setOnShowListener(d -> {
-            android.view.Window w=dialog.getWindow();
-            if(w!=null) {
-                w.setBackgroundDrawable(
-                        new android.graphics.drawable.ColorDrawable(
-                                Color.TRANSPARENT
-                        )
-                );
-                w.setDimAmount(.35f);
-                w.addFlags(
-                        android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND
-                );
-                w.setGravity(Gravity.BOTTOM);
-                w.setLayout(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                );
-            }
-        });
+        android.view.Window window=
+                dialog.getWindow();
+
+        if(window!=null) {
+            window.setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(
+                            Color.TRANSPARENT
+                    )
+            );
+
+            window.setDimAmount(.35f);
+            window.addFlags(
+                    android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND
+            );
+
+            android.view.WindowManager.LayoutParams lp=
+                    window.getAttributes();
+
+            lp.width=
+                    ViewGroup.LayoutParams.MATCH_PARENT;
+
+            lp.height=
+                    ViewGroup.LayoutParams.WRAP_CONTENT;
+
+            lp.gravity=Gravity.BOTTOM;
+
+            window.setAttributes(lp);
+        }
 
         dialog.show();
     }
@@ -2147,25 +2845,34 @@ public class SettingsActivity extends Activity {
         dialog.setContentView(sheet);
         dialog.setCancelable(true);
 
-        dialog.setOnShowListener(d -> {
-            android.view.Window w=dialog.getWindow();
-            if(w!=null) {
-                w.setBackgroundDrawable(
-                        new android.graphics.drawable.ColorDrawable(
-                                Color.TRANSPARENT
-                        )
-                );
-                w.setDimAmount(.35f);
-                w.addFlags(
-                        android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND
-                );
-                w.setGravity(Gravity.BOTTOM);
-                w.setLayout(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                );
-            }
-        });
+        android.view.Window window=
+                dialog.getWindow();
+
+        if(window!=null) {
+            window.setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(
+                            Color.TRANSPARENT
+                    )
+            );
+
+            window.setDimAmount(.35f);
+            window.addFlags(
+                    android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND
+            );
+
+            android.view.WindowManager.LayoutParams lp=
+                    window.getAttributes();
+
+            lp.width=
+                    ViewGroup.LayoutParams.MATCH_PARENT;
+
+            lp.height=
+                    ViewGroup.LayoutParams.WRAP_CONTENT;
+
+            lp.gravity=Gravity.BOTTOM;
+
+            window.setAttributes(lp);
+        }
 
         dialog.show();
     }
@@ -3137,11 +3844,11 @@ public class SettingsActivity extends Activity {
 
     private void addSection(LinearLayout page, String text) {
         TextView t = new TextView(this);
-        t.setText(text.toUpperCase());
-        t.setTextColor(MUTED);
-        t.setTextSize(12);
+        t.setText(text);
+        t.setTextColor(TEXT);
+        t.setTextSize(15);
         t.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        t.setPadding(dp(8), dp(16), dp(8), dp(7));
+        t.setPadding(dp(6), dp(19), dp(6), dp(8));
         page.addView(t);
     }
 
@@ -3155,10 +3862,29 @@ public class SettingsActivity extends Activity {
 
         TextView i = new TextView(this);
         i.setText(icon);
-        i.setTextSize(24);
+        i.setTextSize(22);
         i.setGravity(Gravity.CENTER);
         i.setTextColor(TEXT);
-        row.addView(i, new LinearLayout.LayoutParams(dp(44), dp(44)));
+
+        i.setBackground(
+                round(
+                        iconBubbleColor(title),
+                        15
+                )
+        );
+
+        LinearLayout.LayoutParams iconParams =
+                new LinearLayout.LayoutParams(
+                        dp(44),
+                        dp(44)
+                );
+
+        iconParams.setMargins(
+                0,0,
+                dp(2),0
+        );
+
+        row.addView(i,iconParams);
 
         LinearLayout words = new LinearLayout(this);
         words.setOrientation(LinearLayout.VERTICAL);
@@ -5154,14 +5880,40 @@ public class SettingsActivity extends Activity {
         page.addView(b, p);
     }
 
+    private int iconBubbleColor(
+            String title
+    ) {
+        if(title==null)
+            return PASTEL_PURPLE;
+
+        int bucket=
+                Math.abs(
+                        title.hashCode()
+                ) % 5;
+
+        switch(bucket) {
+            case 0:
+                return PASTEL_PINK;
+            case 1:
+                return PASTEL_PURPLE;
+            case 2:
+                return PASTEL_BLUE;
+            case 3:
+                return PASTEL_MINT;
+            default:
+                return PASTEL_PEACH;
+        }
+    }
+
+
     private LinearLayout card() {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
 
-        GradientDrawable bg = round(CARD, 20);
+        GradientDrawable bg = round(CARD, 22);
         bg.setStroke(dp(1), BORDER);
         row.setBackground(bg);
-        row.setElevation(dp(1));
+        row.setElevation(dp(2));
 
         return row;
     }
