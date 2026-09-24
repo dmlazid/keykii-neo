@@ -15011,6 +15011,11 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    android.graphics.Typeface cachedKeyboardTypeface=null;
+    int cachedKeyboardTypefaceStyle=
+        Integer.MIN_VALUE;
+
+
     android.graphics.Typeface keyboardTypeface() {
         int style=
             getSharedPreferences(
@@ -15021,48 +15026,137 @@ public class KeyKiiService extends InputMethodService {
                 0
             );
 
+        if(
+            cachedKeyboardTypeface!=null &&
+            cachedKeyboardTypefaceStyle==style
+        ) {
+            return cachedKeyboardTypeface;
+        }
+
+        android.graphics.Typeface result;
+
         switch(style) {
             case 1:
-                return android.graphics.Typeface.create(
-                    "sans-serif-rounded",
-                    android.graphics.Typeface.NORMAL
-                );
+                result=
+                    android.graphics.Typeface.create(
+                        "sans-serif-rounded",
+                        android.graphics.Typeface.NORMAL
+                    );
+                break;
 
             case 2:
-                return android.graphics.Typeface.create(
-                    "serif",
-                    android.graphics.Typeface.NORMAL
-                );
+                result=
+                    android.graphics.Typeface.create(
+                        "serif",
+                        android.graphics.Typeface.NORMAL
+                    );
+                break;
 
             case 3:
-                return android.graphics.Typeface.create(
-                    "monospace",
-                    android.graphics.Typeface.NORMAL
-                );
+                result=
+                    android.graphics.Typeface.create(
+                        "monospace",
+                        android.graphics.Typeface.NORMAL
+                    );
+                break;
 
             case 4:
-                return android.graphics.Typeface.create(
-                    "sans-serif-condensed",
-                    android.graphics.Typeface.NORMAL
-                );
+                result=
+                    android.graphics.Typeface.create(
+                        "sans-serif-condensed",
+                        android.graphics.Typeface.NORMAL
+                    );
+                break;
 
             case 5:
-                return android.graphics.Typeface.create(
-                    "cursive",
-                    android.graphics.Typeface.NORMAL
-                );
+                result=
+                    android.graphics.Typeface.create(
+                        "cursive",
+                        android.graphics.Typeface.NORMAL
+                    );
+                break;
 
             case 6:
-                return android.graphics.Typeface.create(
-                    "sans-serif-medium",
-                    android.graphics.Typeface.NORMAL
+                result=
+                    android.graphics.Typeface.create(
+                        "sans-serif-medium",
+                        android.graphics.Typeface.NORMAL
+                    );
+                break;
+
+            case 100:
+                result=assetKeyboardTypeface(
+                    "fonts/fredoka.ttf"
                 );
+                break;
+
+            case 101:
+                result=assetKeyboardTypeface(
+                    "fonts/dynapuff.ttf"
+                );
+                break;
+
+            case 102:
+                result=assetKeyboardTypeface(
+                    "fonts/rubik_bubbles.ttf"
+                );
+                break;
+
+            case 103:
+                result=assetKeyboardTypeface(
+                    "fonts/patrick_hand.ttf"
+                );
+                break;
+
+            case 104:
+                result=assetKeyboardTypeface(
+                    "fonts/lobster.ttf"
+                );
+                break;
+
+            case 105:
+                result=assetKeyboardTypeface(
+                    "fonts/bungee.ttf"
+                );
+                break;
+
+            case 106:
+                result=assetKeyboardTypeface(
+                    "fonts/press_start_2p.ttf"
+                );
+                break;
+
+            case 107:
+                result=assetKeyboardTypeface(
+                    "fonts/cinzel_decorative.ttf"
+                );
+                break;
 
             default:
-                return android.graphics.Typeface.create(
-                    "sans-serif",
-                    android.graphics.Typeface.NORMAL
-                );
+                result=
+                    android.graphics.Typeface.create(
+                        "sans-serif",
+                        android.graphics.Typeface.NORMAL
+                    );
+                break;
+        }
+
+        cachedKeyboardTypefaceStyle=style;
+        cachedKeyboardTypeface=result;
+        return result;
+    }
+
+
+    android.graphics.Typeface assetKeyboardTypeface(
+        String assetPath
+    ) {
+        try {
+            return android.graphics.Typeface.createFromAsset(
+                getAssets(),
+                assetPath
+            );
+        } catch(Exception ignored) {
+            return android.graphics.Typeface.DEFAULT;
         }
     }
 
