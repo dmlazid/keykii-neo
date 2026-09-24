@@ -60,3 +60,5 @@ dependencies {
     implementation 'com.google.mlkit:translate:17.0.3'
     implementation 'com.google.mlkit:language-id:17.0.6'
 }
+
+// AndroidX is enabled in gradle.properties for ML Kit.
