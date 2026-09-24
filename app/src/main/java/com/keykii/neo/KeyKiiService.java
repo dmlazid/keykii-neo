@@ -1015,6 +1015,10 @@ public class KeyKiiService extends InputMethodService {
             } else if(
                 id.equals("voice") &&
                 toolbarPrefs.getBoolean(
+                    "voice_typing_enabled",
+                    true
+                ) &&
+                toolbarPrefs.getBoolean(
                     "toolbar_voice",
                     true
                 )
@@ -1282,6 +1286,22 @@ public class KeyKiiService extends InputMethodService {
 
 
     void toggleVoiceTyping() {
+
+        if(
+            !getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            ).getBoolean(
+                "voice_typing_enabled",
+                true
+            )
+        ) {
+            cancelVoiceTyping();
+            voiceToast(
+                "Voice typing is turned off in KeyKii settings."
+            );
+            return;
+        }
 
         if(voiceListening) {
             try {
