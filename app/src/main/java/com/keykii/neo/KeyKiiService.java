@@ -6881,6 +6881,66 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    java.util.ArrayList<String> loadFavoriteKaomoji() {
+        SharedPreferences sp=
+            getSharedPreferences(
+                "keykii_kaomoji_favorites",
+                MODE_PRIVATE
+            );
+
+        java.util.ArrayList<String> out=
+            new java.util.ArrayList<>();
+
+        for(int i=0;i<30;i++) {
+            String value=sp.getString("f"+i,"");
+
+            if(
+                value!=null &&
+                !value.isEmpty() &&
+                !out.contains(value)
+            ) {
+                out.add(value);
+            }
+        }
+
+        return out;
+    }
+
+
+    boolean toggleFavoriteKaomoji(String value) {
+        if(value==null || value.isEmpty())
+            return false;
+
+        SharedPreferences sp=
+            getSharedPreferences(
+                "keykii_kaomoji_favorites",
+                MODE_PRIVATE
+            );
+
+        java.util.ArrayList<String> favorites=
+            loadFavoriteKaomoji();
+
+        boolean added=!favorites.remove(value);
+
+        if(added)
+            favorites.add(0,value);
+
+        while(favorites.size()>30)
+            favorites.remove(favorites.size()-1);
+
+        SharedPreferences.Editor e=sp.edit();
+
+        for(int i=0;i<30;i++)
+            e.remove("f"+i);
+
+        for(int i=0;i<favorites.size();i++)
+            e.putString("f"+i,favorites.get(i));
+
+        e.apply();
+        return added;
+    }
+
+
     void buildKaomojiPanel() {
 
         loadFullKaomoji();
@@ -6891,18 +6951,33 @@ public class KeyKiiService extends InputMethodService {
         )
             return;
 
-        // 2.36.0: show recently used kaomoji first without changing
-        // the existing asset-backed categories or keyboard dimensions.
+        // Dynamic sections stay separate from the asset-backed library.
+        // 2.36.0 added Recents; 2.36.1 adds user-controlled Favorites.
         fullKaomoji.remove("Recent");
+        fullKaomoji.remove("Favorites");
         fullKaomojiCategories.remove("Recent");
+        fullKaomojiCategories.remove("Favorites");
 
         java.util.ArrayList<String> recentKaomoji=
             loadRecentKaomoji();
 
+        java.util.ArrayList<String> favoriteKaomoji=
+            loadFavoriteKaomoji();
+
+        int dynamicIndex=0;
+
         if(!recentKaomoji.isEmpty()) {
             fullKaomoji.put("Recent",recentKaomoji);
-            fullKaomojiCategories.add(0,"Recent");
+            fullKaomojiCategories.add(dynamicIndex++,"Recent");
         }
+
+        if(!favoriteKaomoji.isEmpty()) {
+            fullKaomoji.put("Favorites",favoriteKaomoji);
+            fullKaomojiCategories.add(dynamicIndex,"Favorites");
+        }
+
+        final java.util.HashSet<String> favoriteKaomojiSet=
+            new java.util.HashSet<>(favoriteKaomoji);
 
         if(
             kaomojiCategory<0 ||
@@ -7130,6 +7205,44 @@ public class KeyKiiService extends InputMethodService {
 
                                 rememberKaomoji(value);
                             });
+
+                            // Long-press only manages favorites; it does not
+                            // type the kaomoji or interfere with normal taps.
+                            face.setOnLongClickListener(v -> {
+                                boolean added=
+                                    toggleFavoriteKaomoji(value);
+
+                                voiceToast(
+                                    added
+                                    ? "Added to Kaomoji Favorites"
+                                    : "Removed from Kaomoji Favorites"
+                                );
+
+                                java.util.ArrayList<String> favorites=
+                                    loadFavoriteKaomoji();
+
+                                if(!favorites.isEmpty()) {
+                                    kaomojiCategory=
+                                        loadRecentKaomoji().isEmpty()
+                                        ? 0
+                                        : 1;
+                                } else {
+                                    kaomojiCategory=0;
+                                }
+
+                                showPage();
+                                return true;
+                            });
+
+                            if(favoriteKaomojiSet.contains(value)) {
+                                face.setBackground(
+                                    round(
+                                        accentFillColor(),
+                                        14,
+                                        borderColor()
+                                    )
+                                );
+                            }
                         }
 
 
