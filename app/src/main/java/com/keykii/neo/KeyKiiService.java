@@ -14638,6 +14638,49 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    int themeKeyStyle() {
+        return getSharedPreferences(
+            "keykii_prefs",
+            MODE_PRIVATE
+        ).getInt(
+            "theme_key_style",
+            0
+        );
+    }
+
+
+    int blendThemeColor(
+        int a,
+        int b,
+        int bPercent
+    ) {
+        int p=Math.max(
+            0,
+            Math.min(
+                100,
+                bPercent
+            )
+        );
+
+        int ap=100-p;
+
+        return Color.rgb(
+            (
+                Color.red(a)*ap +
+                Color.red(b)*p
+            )/100,
+            (
+                Color.green(a)*ap +
+                Color.green(b)*p
+            )/100,
+            (
+                Color.blue(a)*ap +
+                Color.blue(b)*p
+            )/100
+        );
+    }
+
+
     void applyPanelThemeBackground() {
         if(panel==null) return;
 
@@ -15625,6 +15668,18 @@ public class KeyKiiService extends InputMethodService {
         boolean borders=
             themeKeyBorders();
 
+        int keyStyle=
+            themeKeyStyle();
+
+        if(keyStyle>0) {
+            return styledThemeKeyBackground(
+                keyStyle,
+                special,
+                space,
+                borders
+            );
+        }
+
         int normalColor;
 
         if(
@@ -15670,6 +15725,452 @@ public class KeyKiiService extends InputMethodService {
                 keyCornerRadius(),
                 stroke
             );
+
+        StateListDrawable state=
+            new StateListDrawable();
+
+        state.addState(
+            new int[]{
+                android.R.attr.state_pressed
+            },
+            pressed
+        );
+
+        state.addState(
+            new int[]{},
+            normal
+        );
+
+        return state;
+    }
+
+
+    StateListDrawable styledThemeKeyBackground(
+        int style,
+        boolean special,
+        boolean space,
+        boolean borders
+    ) {
+        int accent=
+            accentColor();
+
+        int white=
+            Color.rgb(
+                255,255,255
+            );
+
+        int black=
+            Color.rgb(
+                10,10,14
+            );
+
+        int normalStart;
+        int normalEnd;
+        int pressedStart;
+        int pressedEnd;
+        int stroke;
+        int strokeWidth=1;
+
+        switch(style) {
+            // Neon glow / cyber.
+            case 1:
+                normalStart=
+                    Color.argb(
+                        145,
+                        12,14,28
+                    );
+
+                normalEnd=
+                    Color.argb(
+                        115,
+                        Color.red(accent),
+                        Color.green(accent),
+                        Color.blue(accent)
+                    );
+
+                pressedStart=
+                    Color.argb(
+                        205,
+                        Color.red(accent),
+                        Color.green(accent),
+                        Color.blue(accent)
+                    );
+
+                pressedEnd=
+                    Color.argb(
+                        185,
+                        18,20,34
+                    );
+
+                stroke=accent;
+                strokeWidth=2;
+                break;
+
+            // Frosted glass / crystal.
+            case 2:
+                normalStart=
+                    Color.argb(
+                        special || space
+                            ? 155
+                            : 92,
+                        255,255,255
+                    );
+
+                normalEnd=
+                    Color.argb(
+                        special || space
+                            ? 110
+                            : 58,
+                        Color.red(accent),
+                        Color.green(accent),
+                        Color.blue(accent)
+                    );
+
+                pressedStart=
+                    Color.argb(
+                        190,
+                        255,255,255
+                    );
+
+                pressedEnd=
+                    Color.argb(
+                        125,
+                        Color.red(accent),
+                        Color.green(accent),
+                        Color.blue(accent)
+                    );
+
+                stroke=
+                    Color.argb(
+                        190,
+                        255,255,255
+                    );
+
+                strokeWidth=1;
+                break;
+
+            // Kawaii candy / pastel.
+            case 3:
+                normalStart=
+                    blendThemeColor(
+                        accent,
+                        white,
+                        special || space
+                            ? 42
+                            : 72
+                    );
+
+                normalEnd=
+                    blendThemeColor(
+                        accent,
+                        white,
+                        special || space
+                            ? 22
+                            : 58
+                    );
+
+                pressedStart=
+                    blendThemeColor(
+                        accent,
+                        white,
+                        28
+                    );
+
+                pressedEnd=
+                    blendThemeColor(
+                        accent,
+                        white,
+                        48
+                    );
+
+                stroke=
+                    Color.argb(
+                        220,
+                        255,255,255
+                    );
+
+                strokeWidth=2;
+                break;
+
+            // Black-red / RGB gamer.
+            case 4:
+                normalStart=
+                    special || space
+                        ? Color.argb(
+                            205,
+                            Color.red(accent),
+                            Color.green(accent),
+                            Color.blue(accent)
+                        )
+                        : Color.argb(
+                            228,
+                            15,15,20
+                        );
+
+                normalEnd=
+                    Color.argb(
+                        190,
+                        2,2,5
+                    );
+
+                pressedStart=
+                    Color.argb(
+                        230,
+                        Color.red(accent),
+                        Color.green(accent),
+                        Color.blue(accent)
+                    );
+
+                pressedEnd=
+                    Color.argb(
+                        225,
+                        10,10,14
+                    );
+
+                stroke=accent;
+                strokeWidth=2;
+                break;
+
+            // Luxury black + gold / rose.
+            case 5:
+                normalStart=
+                    special || space
+                        ? blendThemeColor(
+                            accent,
+                            black,
+                            35
+                        )
+                        : Color.rgb(
+                            24,21,24
+                        );
+
+                normalEnd=
+                    Color.rgb(
+                        5,5,8
+                    );
+
+                pressedStart=
+                    blendThemeColor(
+                        accent,
+                        white,
+                        12
+                    );
+
+                pressedEnd=
+                    Color.rgb(
+                        18,16,20
+                    );
+
+                stroke=accent;
+                strokeWidth=2;
+                break;
+
+            // Ice / water keys.
+            case 6:
+                normalStart=
+                    Color.argb(
+                        225,
+                        235,249,255
+                    );
+
+                normalEnd=
+                    Color.argb(
+                        205,
+                        Color.red(
+                            blendThemeColor(
+                                accent,
+                                white,
+                                58
+                            )
+                        ),
+                        Color.green(
+                            blendThemeColor(
+                                accent,
+                                white,
+                                58
+                            )
+                        ),
+                        Color.blue(
+                            blendThemeColor(
+                                accent,
+                                white,
+                                58
+                            )
+                        )
+                    );
+
+                pressedStart=
+                    blendThemeColor(
+                        accent,
+                        white,
+                        45
+                    );
+
+                pressedEnd=
+                    Color.rgb(
+                        236,248,255
+                    );
+
+                stroke=
+                    Color.argb(
+                        235,
+                        255,255,255
+                    );
+
+                strokeWidth=2;
+                break;
+
+            // Galaxy glow.
+            case 7:
+                normalStart=
+                    Color.argb(
+                        special || space
+                            ? 195
+                            : 150,
+                        20,15,47
+                    );
+
+                normalEnd=
+                    Color.argb(
+                        145,
+                        Color.red(accent),
+                        Color.green(accent),
+                        Color.blue(accent)
+                    );
+
+                pressedStart=
+                    Color.argb(
+                        225,
+                        Color.red(accent),
+                        Color.green(accent),
+                        Color.blue(accent)
+                    );
+
+                pressedEnd=
+                    Color.argb(
+                        215,
+                        25,15,60
+                    );
+
+                stroke=
+                    Color.argb(
+                        240,
+                        Color.red(accent),
+                        Color.green(accent),
+                        Color.blue(accent)
+                    );
+
+                strokeWidth=2;
+                break;
+
+            // Love / glossy pink.
+            case 8:
+                normalStart=
+                    blendThemeColor(
+                        accent,
+                        white,
+                        special || space
+                            ? 35
+                            : 68
+                    );
+
+                normalEnd=
+                    blendThemeColor(
+                        accent,
+                        Color.rgb(
+                            255,210,232
+                        ),
+                        special || space
+                            ? 20
+                            : 55
+                    );
+
+                pressedStart=
+                    blendThemeColor(
+                        accent,
+                        white,
+                        22
+                    );
+
+                pressedEnd=
+                    blendThemeColor(
+                        accent,
+                        white,
+                        45
+                    );
+
+                stroke=
+                    Color.argb(
+                        220,
+                        255,255,255
+                    );
+
+                strokeWidth=2;
+                break;
+
+            default:
+                normalStart=
+                    keyColor(special);
+
+                normalEnd=
+                    keyColor(special);
+
+                pressedStart=
+                    accentFillColor();
+
+                pressedEnd=
+                    accentFillColor();
+
+                stroke=
+                    borders
+                        ? borderColor()
+                        : Color.TRANSPARENT;
+                break;
+        }
+
+        GradientDrawable normal=
+            new GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                new int[]{
+                    normalStart,
+                    normalEnd
+                }
+            );
+
+        normal.setCornerRadius(
+            dp(
+                keyCornerRadius()
+            )
+        );
+
+        if(stroke!=Color.TRANSPARENT) {
+            normal.setStroke(
+                dp(strokeWidth),
+                stroke
+            );
+        }
+
+        GradientDrawable pressed=
+            new GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                new int[]{
+                    pressedStart,
+                    pressedEnd
+                }
+            );
+
+        pressed.setCornerRadius(
+            dp(
+                keyCornerRadius()
+            )
+        );
+
+        if(stroke!=Color.TRANSPARENT) {
+            pressed.setStroke(
+                dp(strokeWidth),
+                stroke
+            );
+        }
 
         StateListDrawable state=
             new StateListDrawable();
