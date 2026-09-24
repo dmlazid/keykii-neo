@@ -19,8 +19,8 @@ android {
         applicationId 'com.keykii.neo'
         minSdk 23
         targetSdk 35
-        versionCode 128
-        versionName '2.39.0'
+        versionCode 129
+        versionName '2.40.0'
     }
 
     signingConfigs {
@@ -53,6 +53,89 @@ android {
             minifyEnabled false
         }
     }
+}
+
+
+def keykiiGeneratedFontAssets =
+        file("$buildDir/generated/keykii-font-assets")
+
+def keykiiFontDownloads = [
+        "fonts/fredoka.ttf":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/fredoka/Fredoka%5Bwdth%2Cwght%5D.ttf",
+        "fonts/dynapuff.ttf":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/dynapuff/DynaPuff%5Bwdth%2Cwght%5D.ttf",
+        "fonts/rubik_bubbles.ttf":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/rubikbubbles/RubikBubbles-Regular.ttf",
+        "fonts/patrick_hand.ttf":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/patrickhand/PatrickHand-Regular.ttf",
+        "fonts/lobster.ttf":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/lobster/Lobster-Regular.ttf",
+        "fonts/bungee.ttf":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/bungee/Bungee-Regular.ttf",
+        "fonts/press_start_2p.ttf":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/pressstart2p/PressStart2P-Regular.ttf",
+        "fonts/cinzel_decorative.ttf":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/cinzeldecorative/CinzelDecorative-Regular.ttf",
+        "font_licenses/fredoka-OFL.txt":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/fredoka/OFL.txt",
+        "font_licenses/dynapuff-OFL.txt":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/dynapuff/OFL.txt",
+        "font_licenses/rubik-bubbles-OFL.txt":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/rubikbubbles/OFL.txt",
+        "font_licenses/patrick-hand-OFL.txt":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/patrickhand/OFL.txt",
+        "font_licenses/lobster-OFL.txt":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/lobster/OFL.txt",
+        "font_licenses/bungee-OFL.txt":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/bungee/OFL.txt",
+        "font_licenses/press-start-2p-OFL.txt":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/pressstart2p/OFL.txt",
+        "font_licenses/cinzel-decorative-OFL.txt":
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/cinzeldecorative/OFL.txt"
+]
+
+tasks.register("prepareKeyKiiFonts") {
+    outputs.dir(keykiiGeneratedFontAssets)
+
+    doLast {
+        keykiiFontDownloads.each { relativePath, sourceUrl ->
+            File target =
+                    new File(
+                            keykiiGeneratedFontAssets,
+                            relativePath
+                    )
+
+            if(
+                    target.exists() &&
+                    target.length()>256
+            ) {
+                return
+            }
+
+            target.parentFile.mkdirs()
+
+            java.net.URLConnection connection =
+                    new java.net.URL(sourceUrl)
+                            .openConnection()
+
+            connection.setConnectTimeout(20000)
+            connection.setReadTimeout(30000)
+
+            connection.getInputStream().withCloseable { input ->
+                target.withOutputStream { output ->
+                    output << input
+                }
+            }
+        }
+    }
+}
+
+android.sourceSets.main.assets.srcDir(
+        keykiiGeneratedFontAssets
+)
+
+tasks.named("preBuild").configure {
+    dependsOn("prepareKeyKiiFonts")
 }
 
 
