@@ -1589,7 +1589,7 @@ public class SettingsActivity extends Activity {
 
         addInfoCard(page,
                 "Network",
-                "The current keyboard engine does not need a network connection for normal typing, emoji or kaomoji.");
+                "Normal typing, emoji, kaomoji, calculator and text case work without internet. Translator uses an online translation service only when you tap Translate, and the selected text is sent for translation.");
 
         setContentView(wrap(page));
     }
