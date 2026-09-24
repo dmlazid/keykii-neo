@@ -4765,13 +4765,20 @@ public class KeyKiiService extends InputMethodService {
             )
         );
 
-        drawMotifAsset(
-            canvas,
-            drawable,
-            x,
-            y,
-            size
+        int left=
+            Math.round(x);
+
+        int top=
+            Math.round(y);
+
+        drawable.setBounds(
+            left,
+            top,
+            left+size,
+            top+size
         );
+
+        drawable.draw(canvas);
     }
 
 
