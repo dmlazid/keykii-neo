@@ -94,6 +94,30 @@ public class KeyKiiService extends InputMethodService {
     boolean keyPreviewEnabled=true;
     boolean swipeDeleteWord=true;
     boolean quickPunctuation=true;
+
+    // 2.29.0 Glide typing. Off by default so normal tap typing keeps the
+    // exact lightweight path used by the stable 2.27.4 keyboard.
+    boolean glideTyping=false;
+    boolean glideTrailEnabled=true;
+    boolean glideTracking=false;
+    boolean glideActive=false;
+    boolean glideStartShift=false;
+    float glideDownX=0f;
+    float glideDownY=0f;
+    long lastGlideEndTime=0L;
+    int glideDecodeSession=0;
+    StringBuilder glideGestureLetters=
+        new StringBuilder();
+    java.util.ArrayList<View> glideLetterViews=
+        new java.util.ArrayList<>();
+    java.util.ArrayList<String> glideLetterActions=
+        new java.util.ArrayList<>();
+    java.util.ArrayList<String> glideDictionary=null;
+    final Object glideDictionaryLock=
+        new Object();
+    PopupWindow glideTrailPopup=null;
+    TextView glideTrailText=null;
+
     long lastSpaceTap=0L;
 
     float backspaceGestureStartX=0f;
@@ -255,6 +279,8 @@ public class KeyKiiService extends InputMethodService {
             voicePermissionReceiver=null;
         }
 
+        hideGlideTrail();
+
         super.onDestroy();
     }
 
@@ -336,6 +362,19 @@ public class KeyKiiService extends InputMethodService {
             "quick_punctuation",
             true
         );
+
+        glideTyping=keykiiPrefs.getBoolean(
+            "glide_typing",
+            false
+        );
+
+        glideTrailEnabled=keykiiPrefs.getBoolean(
+            "glide_trail",
+            true
+        );
+
+        if(glideTyping)
+            ensureGlideDictionaryAsync();
 
         numberRow=keykiiPrefs.getBoolean(
             "number_row",
@@ -419,6 +458,19 @@ public class KeyKiiService extends InputMethodService {
             "quick_punctuation",
             true
         );
+
+        glideTyping=p.getBoolean(
+            "glide_typing",
+            false
+        );
+
+        glideTrailEnabled=p.getBoolean(
+            "glide_trail",
+            true
+        );
+
+        if(glideTyping)
+            ensureGlideDictionaryAsync();
 
         wideMode=p.getBoolean(
             "wide_default",
@@ -1667,7 +1719,607 @@ public class KeyKiiService extends InputMethodService {
             buildKeyboard();
     }
 
+    void ensureGlideDictionaryAsync() {
+        if(!glideTyping || glideDictionary!=null)
+            return;
+
+        new Thread(
+            () -> loadGlideDictionaryBlocking(),
+            "KeyKii-Glide-Dictionary"
+        ).start();
+    }
+
+
+    java.util.ArrayList<String> loadGlideDictionaryBlocking() {
+        synchronized(glideDictionaryLock) {
+            if(glideDictionary!=null)
+                return glideDictionary;
+
+            java.util.ArrayList<String> words=
+                new java.util.ArrayList<>();
+
+            try {
+                java.io.BufferedReader reader=
+                    new java.io.BufferedReader(
+                        new java.io.InputStreamReader(
+                            getAssets().open(
+                                "keykii-english-10000.txt"
+                            ),
+                            "UTF-8"
+                        )
+                    );
+
+                String line;
+
+                while((line=reader.readLine())!=null) {
+                    String word=
+                        line.trim()
+                            .toLowerCase(
+                                java.util.Locale.ROOT
+                            );
+
+                    if(
+                        word.length()<2 ||
+                        word.length()>24
+                    ) {
+                        continue;
+                    }
+
+                    boolean valid=true;
+
+                    for(int i=0;i<word.length();i++) {
+                        if(!Character.isLetter(word.charAt(i))) {
+                            valid=false;
+                            break;
+                        }
+                    }
+
+                    if(valid)
+                        words.add(word);
+                }
+
+                reader.close();
+
+            } catch(Exception ignored) {
+            }
+
+            glideDictionary=words;
+            return glideDictionary;
+        }
+    }
+
+
+    boolean isGlideLetterAction(String action) {
+        return
+            glideTyping &&
+            page==0 &&
+            !symbols &&
+            action!=null &&
+            action.length()==1 &&
+            Character.isLetter(
+                action.charAt(0)
+            );
+    }
+
+
+    String glideLetterAt(
+        float rawX,
+        float rawY
+    ) {
+        int[] location=
+            new int[2];
+
+        for(int i=0;i<glideLetterViews.size();i++) {
+            View key=
+                glideLetterViews.get(i);
+
+            if(
+                key==null ||
+                key.getVisibility()!=View.VISIBLE
+            ) {
+                continue;
+            }
+
+            key.getLocationOnScreen(location);
+
+            if(
+                rawX>=location[0] &&
+                rawX<=location[0]+key.getWidth() &&
+                rawY>=location[1] &&
+                rawY<=location[1]+key.getHeight()
+            ) {
+                return glideLetterActions.get(i);
+            }
+        }
+
+        return "";
+    }
+
+
+    void appendGlideLetter(String letter) {
+        if(
+            letter==null ||
+            letter.length()!=1
+        ) {
+            return;
+        }
+
+        String lower=
+            letter.toLowerCase(
+                java.util.Locale.ROOT
+            );
+
+        int length=
+            glideGestureLetters.length();
+
+        if(
+            length==0 ||
+            glideGestureLetters.charAt(length-1)!=
+                lower.charAt(0)
+        ) {
+            glideGestureLetters.append(lower);
+            updateGlideTrail();
+        }
+    }
+
+
+    void showGlideTrail() {
+        if(
+            !glideTrailEnabled ||
+            root==null
+        ) {
+            return;
+        }
+
+        hideGlideTrail();
+
+        glideTrailText=
+            new TextView(this);
+
+        glideTrailText.setTextSize(15);
+        glideTrailText.setTextColor(textColor());
+        glideTrailText.setGravity(Gravity.CENTER);
+        glideTrailText.setPadding(
+            dp(16),
+            dp(6),
+            dp(16),
+            dp(6)
+        );
+
+        glideTrailText.setBackground(
+            round(
+                keyColor(false),
+                18,
+                borderColor()
+            )
+        );
+
+        glideTrailPopup=
+            new PopupWindow(
+                glideTrailText,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                dp(38),
+                false
+            );
+
+        glideTrailPopup.setClippingEnabled(false);
+        glideTrailPopup.setOutsideTouchable(false);
+
+        try {
+            glideTrailPopup.showAtLocation(
+                root,
+                Gravity.TOP |
+                Gravity.CENTER_HORIZONTAL,
+                0,
+                dp(46)
+            );
+        } catch(Exception ignored) {
+        }
+
+        updateGlideTrail();
+    }
+
+
+    void updateGlideTrail() {
+        if(
+            glideTrailText==null ||
+            glideGestureLetters.length()==0
+        ) {
+            return;
+        }
+
+        String value=
+            glideGestureLetters.toString();
+
+        if(glideStartShift && value.length()>0) {
+            value=
+                value.substring(0,1)
+                    .toUpperCase(
+                        java.util.Locale.ROOT
+                    ) +
+                value.substring(1);
+        }
+
+        glideTrailText.setText(
+            "〰  " + value
+        );
+    }
+
+
+    void hideGlideTrail() {
+        if(glideTrailPopup!=null) {
+            try {
+                glideTrailPopup.dismiss();
+            } catch(Exception ignored) {
+            }
+        }
+
+        glideTrailPopup=null;
+        glideTrailText=null;
+    }
+
+
+    String glideWordSignature(String word) {
+        if(word==null || word.isEmpty())
+            return "";
+
+        String lower=
+            word.toLowerCase(
+                java.util.Locale.ROOT
+            );
+
+        StringBuilder out=
+            new StringBuilder();
+
+        char last=0;
+
+        for(int i=0;i<lower.length();i++) {
+            char ch=lower.charAt(i);
+
+            if(!Character.isLetter(ch))
+                continue;
+
+            if(out.length()==0 || ch!=last) {
+                out.append(ch);
+                last=ch;
+            }
+        }
+
+        return out.toString();
+    }
+
+
+    int glideEditDistance(
+        String a,
+        String b
+    ) {
+        int la=a.length();
+        int lb=b.length();
+
+        int[] prev=
+            new int[lb+1];
+        int[] curr=
+            new int[lb+1];
+
+        for(int j=0;j<=lb;j++)
+            prev[j]=j;
+
+        for(int i=1;i<=la;i++) {
+            curr[0]=i;
+
+            for(int j=1;j<=lb;j++) {
+                int cost=
+                    a.charAt(i-1)==b.charAt(j-1)
+                    ? 0
+                    : 1;
+
+                curr[j]=Math.min(
+                    Math.min(
+                        curr[j-1]+1,
+                        prev[j]+1
+                    ),
+                    prev[j-1]+cost
+                );
+            }
+
+            int[] swap=prev;
+            prev=curr;
+            curr=swap;
+        }
+
+        return prev[lb];
+    }
+
+
+    String decodeGlideWord(String gesture) {
+        if(
+            gesture==null ||
+            gesture.length()<2
+        ) {
+            return gesture==null
+                ? ""
+                : gesture;
+        }
+
+        java.util.ArrayList<String> dictionary=
+            loadGlideDictionaryBlocking();
+
+        if(
+            dictionary==null ||
+            dictionary.isEmpty()
+        ) {
+            return gesture;
+        }
+
+        String best="";
+        int bestScore=Integer.MAX_VALUE;
+
+        char first=
+            gesture.charAt(0);
+        char last=
+            gesture.charAt(
+                gesture.length()-1
+            );
+
+        for(int index=0;index<dictionary.size();index++) {
+            String word=
+                dictionary.get(index);
+
+            if(
+                word.isEmpty() ||
+                word.charAt(0)!=first
+            ) {
+                continue;
+            }
+
+            String signature=
+                glideWordSignature(word);
+
+            if(signature.isEmpty())
+                continue;
+
+            int distance=
+                glideEditDistance(
+                    gesture,
+                    signature
+                );
+
+            // Prefer the same ending key, but do not require it because a
+            // finger can lift close to a neighboring key.
+            int endPenalty=
+                signature.charAt(
+                    signature.length()-1
+                )==last
+                ? 0
+                : 4;
+
+            int lengthPenalty=
+                Math.abs(
+                    signature.length()-
+                    gesture.length()
+                );
+
+            // The bundled dictionary is frequency ordered, so a tiny rank
+            // penalty breaks ties toward common English words.
+            int rankPenalty=
+                index/1800;
+
+            int score=
+                distance*10 +
+                endPenalty +
+                lengthPenalty +
+                rankPenalty;
+
+            if(score<bestScore) {
+                bestScore=score;
+                best=word;
+
+                if(
+                    distance==0 &&
+                    endPenalty==0 &&
+                    rankPenalty==0
+                ) {
+                    break;
+                }
+            }
+        }
+
+        if(best.isEmpty())
+            return gesture;
+
+        return best;
+    }
+
+
+    void finishGlideGesture(
+        String gesture,
+        boolean capitalize
+    ) {
+        if(
+            gesture==null ||
+            gesture.length()<2
+        ) {
+            return;
+        }
+
+        final int session=
+            ++glideDecodeSession;
+
+        new Thread(
+            () -> {
+                String decoded=
+                    decodeGlideWord(
+                        gesture
+                    );
+
+                if(
+                    decoded==null ||
+                    decoded.isEmpty()
+                ) {
+                    return;
+                }
+
+                final String result=
+                    capitalize
+                    ? decoded.substring(0,1)
+                        .toUpperCase(
+                            java.util.Locale.ROOT
+                        ) +
+                      decoded.substring(1)
+                    : decoded;
+
+                new android.os.Handler(
+                    android.os.Looper.getMainLooper()
+                ).post(() -> {
+                    if(session!=glideDecodeSession)
+                        return;
+
+                    InputConnection ic=
+                        getCurrentInputConnection();
+
+                    if(ic==null)
+                        return;
+
+                    ic.commitText(
+                        result + " ",
+                        1
+                    );
+
+                    if(
+                        shift &&
+                        !capsLock
+                    ) {
+                        shift=false;
+                        lastShiftTap=0L;
+                        showPage();
+                    }
+                });
+            },
+            "KeyKii-Glide-Decode"
+        ).start();
+    }
+
+
+    boolean handleGlideKeyTouch(
+        View keyView,
+        MotionEvent event,
+        String action
+    ) {
+        if(!isGlideLetterAction(action))
+            return false;
+
+        int type=
+            event.getActionMasked();
+
+        if(type==MotionEvent.ACTION_DOWN) {
+            glideTracking=true;
+            glideActive=false;
+            glideStartShift=
+                shift &&
+                !capsLock;
+            glideDownX=event.getRawX();
+            glideDownY=event.getRawY();
+            glideGestureLetters.setLength(0);
+            appendGlideLetter(action);
+            return false;
+        }
+
+        if(
+            type==MotionEvent.ACTION_MOVE &&
+            glideTracking
+        ) {
+            float dx=
+                event.getRawX()-
+                glideDownX;
+            float dy=
+                event.getRawY()-
+                glideDownY;
+
+            if(
+                !glideActive &&
+                (
+                    Math.abs(dx)>dp(16) ||
+                    Math.abs(dy)>dp(16)
+                )
+            ) {
+                glideActive=true;
+                keyView.cancelLongPress();
+                dismissKeyPreview();
+                showGlideTrail();
+            }
+
+            if(glideActive) {
+                String letter=
+                    glideLetterAt(
+                        event.getRawX(),
+                        event.getRawY()
+                    );
+
+                if(!letter.isEmpty())
+                    appendGlideLetter(letter);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        if(
+            type==MotionEvent.ACTION_UP ||
+            type==MotionEvent.ACTION_CANCEL
+        ) {
+            boolean wasActive=
+                glideActive;
+
+            if(wasActive) {
+                String letter=
+                    glideLetterAt(
+                        event.getRawX(),
+                        event.getRawY()
+                    );
+
+                if(!letter.isEmpty())
+                    appendGlideLetter(letter);
+            }
+
+            String gesture=
+                glideGestureLetters.toString();
+
+            boolean capitalize=
+                glideStartShift;
+
+            glideTracking=false;
+            glideActive=false;
+            glideGestureLetters.setLength(0);
+            hideGlideTrail();
+
+            if(
+                wasActive &&
+                type==MotionEvent.ACTION_UP
+            ) {
+                lastGlideEndTime=
+                    android.os.SystemClock
+                        .uptimeMillis();
+
+                finishGlideGesture(
+                    gesture,
+                    capitalize
+                );
+
+                return true;
+            }
+
+            return wasActive;
+        }
+
+        return false;
+    }
+
+
     void buildKeyboard() {
+
+        glideLetterViews.clear();
+        glideLetterActions.clear();
 
         if(!symbols) {
 
@@ -2121,10 +2773,39 @@ public class KeyKiiService extends InputMethodService {
             return true;
         });
 
+        if(
+            page==0 &&
+            !symbols &&
+            action!=null &&
+            action.length()==1 &&
+            Character.isLetter(
+                action.charAt(0)
+            )
+        ) {
+            glideLetterViews.add(box);
+            glideLetterActions.add(
+                action.toLowerCase(
+                    java.util.Locale.ROOT
+                )
+            );
+        }
+
         box.setOnTouchListener((v,e)->{
 
             if(action.equals("SPACE"))
                 return handleSpacebarTouch(v,e);
+
+            if(isGlideLetterAction(action)) {
+                boolean glideConsumed=
+                    handleGlideKeyTouch(
+                        v,
+                        e,
+                        action
+                    );
+
+                if(glideConsumed)
+                    return true;
+            }
 
             if(dragChoiceActive) {
                 int a=e.getActionMasked();
@@ -2273,6 +2954,14 @@ public class KeyKiiService extends InputMethodService {
         });
 
         box.setOnClickListener(v -> {
+
+            if(
+                isGlideLetterAction(action) &&
+                android.os.SystemClock.uptimeMillis()-
+                    lastGlideEndTime<180
+            ) {
+                return;
+            }
 
             if(
                 action.equals("BACK") &&
@@ -7498,6 +8187,8 @@ public class KeyKiiService extends InputMethodService {
 
 
     void press(String action) {
+
+        glideDecodeSession++;
 
         if(handleEmojiSearchKey(action))
             return;
