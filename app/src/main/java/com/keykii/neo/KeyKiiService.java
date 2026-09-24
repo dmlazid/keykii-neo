@@ -4548,139 +4548,103 @@ public class KeyKiiService extends InputMethodService {
             action.equals("SPACE") ||
             action.equals("5");
 
-        boolean midLeft=
-            action.equals("e") ||
-            action.equals("a") ||
-            action.equals("z");
-
-        boolean midRight=
-            action.equals("i") ||
-            action.equals("l") ||
-            action.equals("m");
-
         if(
             !left &&
             !right &&
-            !center &&
-            !midLeft &&
-            !midRight
+            !center
         ) {
             return 0;
         }
 
-        int primary=
-            themeDecorPrimaryAssetRes(pack);
-
-        int secondary=
-            themeDecorSecondaryAssetRes(pack);
-
-        int tertiary=
-            themeDecorTertiaryAssetRes(pack);
-
         switch(pack) {
             case 100:
-                if(right || midRight) return R.drawable.theme_motif_cherry;
+                if(right) return R.drawable.theme_motif_cherry;
                 if(center) return R.drawable.theme_motif_heart;
                 return R.drawable.theme_motif_flower;
 
             case 101:
+                if(right) return R.drawable.theme_motif_cloud;
                 if(center) return R.drawable.theme_motif_moonstar;
-                if(right || midRight) return R.drawable.theme_motif_cloud;
                 return R.drawable.theme_motif_star;
 
             case 102:
+                if(right) return R.drawable.theme_motif_leaf;
                 if(center) return R.drawable.theme_motif_cup;
-                if(midLeft || midRight) return R.drawable.theme_motif_leaf;
                 return R.drawable.theme_motif_bunny;
 
             case 103:
-                if(right || midRight) return R.drawable.theme_motif_cake;
+                if(right) return R.drawable.theme_motif_cake;
                 if(center) return R.drawable.theme_motif_heart;
                 return R.drawable.theme_motif_bear;
 
             case 104:
                 if(center) return R.drawable.theme_motif_bow;
-                if(midLeft || midRight) return R.drawable.theme_motif_flower;
                 return R.drawable.theme_motif_butterfly;
 
             case 105:
-                if(center) return R.drawable.theme_motif_bubble;
-                if(midLeft || midRight) return R.drawable.theme_motif_moonstar;
                 return R.drawable.theme_motif_star;
 
             case 106:
-                if(center) return R.drawable.theme_motif_heart;
-                if(right || midRight) return R.drawable.theme_motif_bow;
-                return R.drawable.theme_motif_strawberry;
+                if(left) return R.drawable.theme_motif_strawberry;
+                if(right) return R.drawable.theme_motif_bow;
+                return R.drawable.theme_motif_heart;
 
             case 107:
                 if(center) return R.drawable.theme_motif_moonstar;
-                if(midLeft || midRight) return R.drawable.theme_motif_star;
                 return R.drawable.theme_motif_cloud;
 
             case 108:
+                if(right) return R.drawable.theme_motif_leaf;
                 if(center) return R.drawable.theme_motif_flower;
-                if(midLeft || midRight) return R.drawable.theme_motif_leaf;
                 return R.drawable.theme_motif_frog;
 
             case 109:
                 if(center) return R.drawable.theme_motif_heart;
-                if(right || midRight) return R.drawable.theme_motif_bow;
                 return R.drawable.theme_motif_bear;
 
             case 110:
                 if(center) return R.drawable.theme_motif_bow;
-                if(midLeft || midRight) return R.drawable.theme_motif_flower;
                 return R.drawable.theme_motif_butterfly;
 
             case 111:
-                if(center) return R.drawable.theme_motif_cup;
-                if(right || midRight) return R.drawable.theme_motif_cherry;
+                if(right) return R.drawable.theme_motif_cherry;
                 return R.drawable.theme_motif_flower;
 
             case 112:
                 if(center) return R.drawable.theme_motif_star;
-                if(midLeft || midRight) return R.drawable.theme_motif_moonstar;
                 return R.drawable.theme_motif_bubble;
 
             case 113:
-                if(center) return R.drawable.theme_motif_cup;
-                if(right || midRight) return R.drawable.theme_motif_bear;
-                return R.drawable.theme_motif_bunny;
+                if(left) return R.drawable.theme_motif_bunny;
+                if(right) return R.drawable.theme_motif_cup;
+                return R.drawable.theme_motif_bear;
 
             case 114:
                 if(center) return R.drawable.theme_motif_heart;
-                if(right || midRight) return R.drawable.theme_motif_cat;
+                if(right) return R.drawable.theme_motif_cat;
                 return R.drawable.theme_motif_bow;
 
             case 115:
-                if(center) return R.drawable.theme_motif_lotus;
-                if(midLeft || midRight) return R.drawable.theme_motif_flower;
-                return R.drawable.theme_motif_star;
+                return R.drawable.theme_motif_flower;
 
             case 116:
-                if(right || midRight) return R.drawable.theme_motif_butterfly;
+                if(right) return R.drawable.theme_motif_butterfly;
                 return R.drawable.theme_motif_lotus;
 
             case 117:
-                if(center || midLeft) return R.drawable.theme_motif_heart;
-                if(right || midRight) return R.drawable.theme_motif_bow;
-                return R.drawable.theme_motif_flower;
+                if(right) return R.drawable.theme_motif_bow;
+                return R.drawable.theme_motif_heart;
 
             case 118:
-                if(center) return R.drawable.theme_motif_heart;
-                if(midLeft || midRight) return R.drawable.theme_motif_star;
                 return R.drawable.theme_motif_butterfly;
 
             case 119:
-                if(center) return R.drawable.theme_motif_bow;
-                if(right || midRight) return R.drawable.theme_motif_gift;
-                return R.drawable.theme_motif_snow;
+                if(left) return R.drawable.theme_motif_snow;
+                if(right) return R.drawable.theme_motif_gift;
+                return R.drawable.theme_motif_bow;
         }
 
-        if(center) return tertiary;
-        if(right || midRight) return secondary;
-        return primary;
+        return 0;
     }
 
 
@@ -15395,11 +15359,118 @@ public class KeyKiiService extends InputMethodService {
                 style>=20 &&
                 style<=39
             ) {
-                drawAestheticPackComposition(
+                if(pack==116) {
+                    int res=
+                        R.drawable.theme_motif_lotus;
+
+                    android.graphics.drawable.Drawable motif=
+                        getDrawable(res);
+
+                    if(motif!=null) {
+                        motif=motif.mutate();
+                        motif.setTint(accent);
+                        motif.setAlpha(
+                            theme==1
+                                ? 155
+                                : 175
+                        );
+
+                        drawMotifAsset(canvas,motif,w*.08f,h*.10f,dp(34));
+                        drawMotifAsset(canvas,motif,w*.83f,h*.10f,dp(42));
+                        drawMotifAsset(canvas,motif,w*.72f,h*.72f,dp(36));
+                        drawMotifAsset(canvas,motif,w*.14f,h*.72f,dp(30));
+
+                        return;
+                    }
+                }
+
+                int primary=
+                    themeDecorPrimaryAssetRes(pack);
+
+                int secondary=
+                    themeDecorSecondaryAssetRes(pack);
+
+                int tertiary=
+                    themeDecorTertiaryAssetRes(pack);
+
+                if(primary!=0) {
+                    drawTintedThemeAsset(
+                        canvas,
+                        primary,
+                        accent,
+                        theme==1 ? 160 : 185,
+                        w*.04f,
+                        h*.08f,
+                        dp(38)
+                    );
+
+                    drawTintedThemeAsset(
+                        canvas,
+                        primary,
+                        accent,
+                        theme==1 ? 135 : 160,
+                        w*.76f,
+                        h*.70f,
+                        dp(42)
+                    );
+                }
+
+                if(secondary!=0) {
+                    int secondaryTint=
+                        blendThemeColor(
+                            accent,
+                            Color.WHITE,
+                            theme==1 ? 58 : 38
+                        );
+
+                    drawTintedThemeAsset(
+                        canvas,
+                        secondary,
+                        secondaryTint,
+                        theme==1 ? 175 : 200,
+                        w*.79f,
+                        h*.06f,
+                        dp(46)
+                    );
+
+                    drawTintedThemeAsset(
+                        canvas,
+                        secondary,
+                        secondaryTint,
+                        theme==1 ? 130 : 155,
+                        w*.12f,
+                        h*.72f,
+                        dp(31)
+                    );
+                }
+
+                if(tertiary!=0) {
+                    int tertiaryTint=
+                        blendThemeColor(
+                            accent,
+                            Color.WHITE,
+                            theme==1 ? 35 : 22
+                        );
+
+                    drawTintedThemeAsset(
+                        canvas,
+                        tertiary,
+                        tertiaryTint,
+                        theme==1 ? 150 : 180,
+                        w*.46f,
+                        h*.10f,
+                        dp(26)
+                    );
+                }
+
+                // 2.44.4: keep the stable 2.44.2 theme layout,
+                // then add only a light per-theme accent.
+                drawSmallThemeAccent(
                     canvas,
                     w,
                     h
                 );
+
                 return;
             }
 
@@ -15808,6 +15879,120 @@ public class KeyKiiService extends InputMethodService {
         }
 
 
+        void drawSmallThemeAccent(
+            android.graphics.Canvas canvas,
+            float w,
+            float h
+        ) {
+            if(pack==116)
+                return;
+
+            int soft=
+                blendThemeColor(
+                    accent,
+                    Color.WHITE,
+                    theme==1 ? 58 : 42
+                );
+
+            switch(pack) {
+                case 100:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_flower,soft,135,w*.28f,h*.03f,dp(22));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cherry,accent,145,w*.62f,h*.78f,dp(24));
+                    break;
+
+                case 101:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_star,soft,150,w*.30f,h*.04f,dp(18));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_star,soft,120,w*.58f,h*.77f,dp(15));
+                    break;
+
+                case 102:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_leaf,accent,135,w*.31f,h*.03f,dp(22));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_leaf,soft,120,w*.63f,h*.78f,dp(20));
+                    break;
+
+                case 103:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_heart,soft,135,w*.30f,h*.04f,dp(20));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cake,accent,135,w*.62f,h*.76f,dp(24));
+                    break;
+
+                case 104:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_flower,soft,130,w*.30f,h*.03f,dp(20));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_butterfly,accent,145,w*.61f,h*.77f,dp(23));
+                    break;
+
+                case 105:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_star,Color.CYAN,150,w*.30f,h*.04f,dp(18));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bubble,Color.MAGENTA,125,w*.61f,h*.77f,dp(23));
+                    break;
+
+                case 106:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_heart,soft,140,w*.29f,h*.04f,dp(18));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_strawberry,accent,145,w*.61f,h*.76f,dp(23));
+                    break;
+
+                case 107:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_star,soft,145,w*.30f,h*.04f,dp(18));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cloud,Color.WHITE,125,w*.59f,h*.77f,dp(26));
+                    break;
+
+                case 108:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_leaf,soft,135,w*.29f,h*.03f,dp(20));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_flower,Color.WHITE,130,w*.62f,h*.77f,dp(20));
+                    break;
+
+                case 109:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bow,soft,135,w*.30f,h*.03f,dp(21));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_heart,accent,125,w*.61f,h*.77f,dp(19));
+                    break;
+
+                case 110:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_flower,soft,130,w*.30f,h*.03f,dp(20));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bow,accent,140,w*.61f,h*.77f,dp(22));
+                    break;
+
+                case 111:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cherry,accent,145,w*.30f,h*.03f,dp(21));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cup,soft,135,w*.61f,h*.76f,dp(23));
+                    break;
+
+                case 112:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_star,Color.WHITE,145,w*.30f,h*.04f,dp(18));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bubble,soft,135,w*.60f,h*.76f,dp(23));
+                    break;
+
+                case 113:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_heart,soft,125,w*.30f,h*.04f,dp(18));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cup,accent,140,w*.61f,h*.76f,dp(23));
+                    break;
+
+                case 114:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bow,soft,145,w*.30f,h*.03f,dp(22));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_heart,accent,130,w*.61f,h*.77f,dp(19));
+                    break;
+
+                case 115:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_flower,accent,145,w*.29f,h*.03f,dp(22));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_lotus,soft,130,w*.61f,h*.76f,dp(24));
+                    break;
+
+                case 117:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_heart,accent,120,w*.30f,h*.04f,dp(18));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bow,soft,120,w*.61f,h*.77f,dp(20));
+                    break;
+
+                case 118:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_star,accent,125,w*.30f,h*.04f,dp(17));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_butterfly,soft,145,w*.61f,h*.76f,dp(23));
+                    break;
+
+                case 119:
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_snow,Color.WHITE,145,w*.30f,h*.03f,dp(20));
+                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_gift,accent,145,w*.61f,h*.76f,dp(23));
+                    break;
+            }
+        }
+
+
         void drawMotifAsset(
             android.graphics.Canvas canvas,
             android.graphics.drawable.Drawable drawable,
@@ -15829,447 +16014,6 @@ public class KeyKiiService extends InputMethodService {
             );
 
             drawable.draw(canvas);
-        }
-
-
-        void drawAestheticPackComposition(
-            android.graphics.Canvas canvas,
-            float w,
-            float h
-        ) {
-            int soft=
-                blendThemeColor(
-                    accent,
-                    Color.WHITE,
-                    theme==1 ? 30 : 55
-                );
-
-            int deep=
-                blendThemeColor(
-                    accent,
-                    Color.BLACK,
-                    theme==1 ? 8 : 18
-                );
-
-            switch(pack) {
-                case 100: // Cherry Blossom Love
-                    drawThemeGarland(
-                        canvas,w,h,
-                        R.drawable.theme_motif_flower,
-                        R.drawable.theme_motif_cherry,
-                        soft
-                    );
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_heart,accent,185,w*.47f,h*.08f,dp(24));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_flower,accent,210,w*.02f,h*.68f,dp(46));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_flower,soft,205,w*.84f,h*.66f,dp(52));
-                    break;
-
-                case 101: // Blueberry Jelly Sky
-                    drawThemeStars(canvas,w,h,soft);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_moonstar,soft,220,w*.03f,h*.05f,dp(58));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cloud,Color.WHITE,185,w*.72f,h*.08f,dp(68));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cloud,soft,150,w*.16f,h*.72f,dp(54));
-                    break;
-
-                case 102: // Matcha Bunny Cafe
-                    drawThemeLeafBorder(canvas,w,h,soft);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bunny,accent,215,w*.03f,h*.62f,dp(58));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cup,deep,205,w*.76f,h*.66f,dp(52));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_leaf,accent,175,w*.45f,h*.06f,dp(28));
-                    break;
-
-                case 103: // Peach Teddy Dessert
-                    drawThemeGrid(canvas,w,h,accent,34,30,30);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bear,deep,220,w*.76f,h*.03f,dp(66));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cake,accent,215,w*.03f,h*.66f,dp(54));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_heart,soft,170,w*.45f,h*.08f,dp(24));
-                    break;
-
-                case 104: // Lilac Butterfly Diary
-                    drawThemeScallops(canvas,w,h,soft);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_butterfly,accent,220,w*.02f,h*.06f,dp(50));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_butterfly,soft,205,w*.80f,h*.09f,dp(48));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bow,accent,190,w*.43f,h*.70f,dp(40));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_flower,soft,185,w*.77f,h*.66f,dp(38));
-                    break;
-
-                case 105: // Midnight Neon Arcade
-                    drawThemeNeonGrid(canvas,w,h,accent);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_star,accent,230,w*.03f,h*.08f,dp(36));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bubble,Color.MAGENTA,185,w*.77f,h*.05f,dp(54));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_moonstar,Color.CYAN,190,w*.76f,h*.68f,dp(42));
-                    break;
-
-                case 106: // Strawberry Ribbon Milk
-                    drawThemeDots(canvas,w,h,accent,26,20);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_strawberry,accent,220,w*.02f,h*.06f,dp(48));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bow,soft,230,w*.78f,h*.05f,dp(58));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_heart,accent,175,w*.46f,h*.08f,dp(24));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_strawberry,soft,200,w*.80f,h*.68f,dp(40));
-                    break;
-
-                case 107: // Cloudy Moon Sleep
-                    drawThemeStars(canvas,w,h,soft);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_moonstar,soft,230,w*.03f,h*.03f,dp(68));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cloud,Color.WHITE,185,w*.60f,h*.09f,dp(78));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cloud,soft,150,w*.12f,h*.72f,dp(62));
-                    break;
-
-                case 108: // Mint Frog Garden
-                    drawThemeLeafBorder(canvas,w,h,accent);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_frog,accent,220,w*.02f,h*.62f,dp(58));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_frog,soft,205,w*.78f,h*.05f,dp(54));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_flower,Color.WHITE,190,w*.46f,h*.06f,dp(34));
-                    break;
-
-                case 109: // Rosy Bear Picnic
-                    drawThemeGrid(canvas,w,h,deep,38,32,34);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bear,deep,220,w*.74f,h*.04f,dp(66));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bow,accent,210,w*.03f,h*.07f,dp(44));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_heart,soft,180,w*.08f,h*.70f,dp(34));
-                    break;
-
-                case 110: // Lavender Lace Dream
-                    drawThemeScallops(canvas,w,h,soft);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_butterfly,accent,220,w*.03f,h*.05f,dp(48));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_butterfly,soft,200,w*.80f,h*.07f,dp(52));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_flower,accent,185,w*.05f,h*.69f,dp(40));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bow,soft,190,w*.76f,h*.70f,dp(42));
-                    break;
-
-                case 111: // Sakura Cherry Soda
-                    drawThemeGarland(canvas,w,h,R.drawable.theme_motif_flower,R.drawable.theme_motif_cherry,soft);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cup,accent,205,w*.77f,h*.66f,dp(50));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cherry,deep,190,w*.06f,h*.68f,dp(38));
-                    break;
-
-                case 112: // Ocean Jelly Star
-                    drawThemeWaves(canvas,w,h,soft);
-                    drawThemeBubbles(canvas,w,h,Color.WHITE);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_star,soft,220,w*.03f,h*.06f,dp(40));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_moonstar,accent,180,w*.78f,h*.68f,dp(42));
-                    break;
-
-                case 113: // Cozy Cocoa Bunny
-                    drawThemeChecker(canvas,w,h,deep,soft);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bunny,soft,220,w*.03f,h*.05f,dp(52));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bear,accent,215,w*.78f,h*.05f,dp(56));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cup,deep,205,w*.76f,h*.68f,dp(46));
-                    break;
-
-                case 114: // Pink Kitty Bow
-                    drawThemeDots(canvas,w,h,soft,28,18);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_cat,accent,220,w*.75f,h*.03f,dp(64));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bow,soft,225,w*.02f,h*.05f,dp(50));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_heart,accent,185,w*.08f,h*.70f,dp(34));
-                    break;
-
-                case 115: // Blue Porcelain Bloom
-                    drawThemeFrame(canvas,w,h,accent,2);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_flower,accent,220,w*.00f,h*.02f,dp(58));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_lotus,deep,190,w*.78f,h*.04f,dp(58));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_flower,soft,205,w*.78f,h*.68f,dp(48));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_flower,accent,180,w*.02f,h*.70f,dp(42));
-                    break;
-
-                case 116: // Purple Lotus Watercolor
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_lotus,accent,215,w*.02f,h*.04f,dp(58));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_lotus,soft,205,w*.78f,h*.04f,dp(64));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_butterfly,accent,185,w*.72f,h*.68f,dp(44));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_lotus,soft,165,w*.08f,h*.70f,dp(40));
-                    break;
-
-                case 117: // Cream Heart Minimal
-                    drawThemeFrame(canvas,w,h,accent,1);
-                    for(int i=0;i<5;i++)
-                        drawTintedThemeAsset(canvas,R.drawable.theme_motif_heart,accent,120,w*(.09f+i*.19f),h*.06f,dp(24));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bow,accent,165,w*.76f,h*.70f,dp(42));
-                    break;
-
-                case 118: // Brown Butterfly Noir
-                    drawThemeFrame(canvas,w,h,accent,3);
-                    drawThemeStars(canvas,w,h,accent);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_butterfly,accent,230,w*.02f,h*.04f,dp(52));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_butterfly,soft,205,w*.78f,h*.07f,dp(50));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_butterfly,accent,180,w*.74f,h*.68f,dp(40));
-                    break;
-
-                case 119: // Snowy Pastel Christmas
-                    drawThemeSnow(canvas,w,h,Color.WHITE);
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_snow,Color.WHITE,230,w*.03f,h*.04f,dp(48));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_gift,accent,220,w*.78f,h*.05f,dp(54));
-                    drawTintedThemeAsset(canvas,R.drawable.theme_motif_bow,soft,200,w*.07f,h*.68f,dp(42));
-                    break;
-            }
-        }
-
-
-        void drawThemeGarland(
-            android.graphics.Canvas canvas,
-            float w,
-            float h,
-            int a,
-            int b,
-            int tint
-        ) {
-            for(int i=0;i<6;i++) {
-                int res=i%2==0 ? a : b;
-                drawTintedThemeAsset(
-                    canvas,res,tint,165,
-                    w*(.02f+i*.17f),
-                    h*.03f,
-                    dp(i%2==0 ? 30 : 26)
-                );
-            }
-        }
-
-
-        void drawThemeGrid(
-            android.graphics.Canvas canvas,
-            float w,
-            float h,
-            int color,
-            int stepX,
-            int stepY,
-            int alpha
-        ) {
-            paint.setStyle(android.graphics.Paint.Style.STROKE);
-            paint.setStrokeWidth(dp(1));
-            paint.setColor(
-                Color.argb(
-                    alpha,
-                    Color.red(color),
-                    Color.green(color),
-                    Color.blue(color)
-                )
-            );
-            for(float x=0;x<w;x+=dp(stepX))
-                canvas.drawLine(x,0,x,h,paint);
-            for(float y=0;y<h;y+=dp(stepY))
-                canvas.drawLine(0,y,w,y,paint);
-            paint.setStyle(android.graphics.Paint.Style.FILL);
-        }
-
-
-        void drawThemeDots(
-            android.graphics.Canvas canvas,
-            float w,
-            float h,
-            int color,
-            int step,
-            int alpha
-        ) {
-            paint.setColor(
-                Color.argb(
-                    alpha,
-                    Color.red(color),
-                    Color.green(color),
-                    Color.blue(color)
-                )
-            );
-            for(float y=dp(12);y<h;y+=dp(step))
-                for(float x=dp(12);x<w;x+=dp(step))
-                    canvas.drawCircle(x,y,dp(2),paint);
-        }
-
-
-        void drawThemeStars(
-            android.graphics.Canvas canvas,
-            float w,
-            float h,
-            int color
-        ) {
-            int[] xs={12,28,51,69,88,38,82};
-            int[] ys={16,28,11,25,14,78,72};
-            for(int i=0;i<xs.length;i++)
-                drawTintedThemeAsset(
-                    canvas,
-                    R.drawable.theme_motif_star,
-                    color,
-                    135,
-                    w*xs[i]/100f,
-                    h*ys[i]/100f,
-                    dp(i%3==0 ? 18 : 13)
-                );
-        }
-
-
-        void drawThemeLeafBorder(
-            android.graphics.Canvas canvas,
-            float w,
-            float h,
-            int color
-        ) {
-            for(int i=0;i<7;i++) {
-                drawTintedThemeAsset(
-                    canvas,
-                    R.drawable.theme_motif_leaf,
-                    color,
-                    160,
-                    w*(.01f+i*.15f),
-                    h*.02f,
-                    dp(24)
-                );
-                drawTintedThemeAsset(
-                    canvas,
-                    R.drawable.theme_motif_leaf,
-                    color,
-                    120,
-                    w*(.06f+i*.14f),
-                    h*.82f,
-                    dp(20)
-                );
-            }
-        }
-
-
-        void drawThemeScallops(
-            android.graphics.Canvas canvas,
-            float w,
-            float h,
-            int color
-        ) {
-            paint.setStyle(android.graphics.Paint.Style.STROKE);
-            paint.setStrokeWidth(dp(1));
-            paint.setColor(
-                Color.argb(
-                    90,
-                    Color.red(color),
-                    Color.green(color),
-                    Color.blue(color)
-                )
-            );
-            for(float x=dp(8);x<w;x+=dp(18)) {
-                canvas.drawCircle(x,dp(10),dp(8),paint);
-                canvas.drawCircle(x,h-dp(10),dp(8),paint);
-            }
-            paint.setStyle(android.graphics.Paint.Style.FILL);
-        }
-
-
-        void drawThemeNeonGrid(
-            android.graphics.Canvas canvas,
-            float w,
-            float h,
-            int color
-        ) {
-            drawThemeGrid(canvas,w,h,color,28,24,70);
-            paint.setStrokeWidth(dp(2));
-            paint.setColor(
-                Color.argb(
-                    150,
-                    Color.red(color),
-                    Color.green(color),
-                    Color.blue(color)
-                )
-            );
-            canvas.drawLine(0,h*.22f,w,h*.12f,paint);
-            canvas.drawLine(0,h*.82f,w,h*.68f,paint);
-        }
-
-
-        void drawThemeWaves(
-            android.graphics.Canvas canvas,
-            float w,
-            float h,
-            int color
-        ) {
-            paint.setStyle(android.graphics.Paint.Style.STROKE);
-            paint.setStrokeWidth(dp(2));
-            paint.setColor(
-                Color.argb(
-                    90,
-                    Color.red(color),
-                    Color.green(color),
-                    Color.blue(color)
-                )
-            );
-            for(int band=0;band<3;band++) {
-                android.graphics.Path path=new android.graphics.Path();
-                float y=h*(.14f+band*.33f);
-                path.moveTo(0,y);
-                for(int i=1;i<=8;i++) {
-                    float x=w*i/8f;
-                    float yy=y+(i%2==0 ? -dp(6) : dp(6));
-                    path.lineTo(x,yy);
-                }
-                canvas.drawPath(path,paint);
-            }
-            paint.setStyle(android.graphics.Paint.Style.FILL);
-        }
-
-
-        void drawThemeBubbles(
-            android.graphics.Canvas canvas,
-            float w,
-            float h,
-            int color
-        ) {
-            paint.setStyle(android.graphics.Paint.Style.STROKE);
-            paint.setStrokeWidth(dp(1));
-            paint.setColor(Color.argb(90,Color.red(color),Color.green(color),Color.blue(color)));
-            int[] xs={10,23,44,68,87,78,32};
-            int[] ys={20,72,13,22,63,82,84};
-            for(int i=0;i<xs.length;i++)
-                canvas.drawCircle(w*xs[i]/100f,h*ys[i]/100f,dp(4+i%3*2),paint);
-            paint.setStyle(android.graphics.Paint.Style.FILL);
-        }
-
-
-        void drawThemeChecker(
-            android.graphics.Canvas canvas,
-            float w,
-            float h,
-            int a,
-            int b
-        ) {
-            float size=dp(24);
-            for(int r=0;r*size<h;r++) {
-                for(int c=0;c*size<w;c++) {
-                    int color=(r+c)%2==0 ? a : b;
-                    paint.setColor(Color.argb(24,Color.red(color),Color.green(color),Color.blue(color)));
-                    canvas.drawRect(c*size,r*size,(c+1)*size,(r+1)*size,paint);
-                }
-            }
-        }
-
-
-        void drawThemeFrame(
-            android.graphics.Canvas canvas,
-            float w,
-            float h,
-            int color,
-            int width
-        ) {
-            paint.setStyle(android.graphics.Paint.Style.STROKE);
-            paint.setStrokeWidth(dp(width));
-            paint.setColor(Color.argb(150,Color.red(color),Color.green(color),Color.blue(color)));
-            canvas.drawRoundRect(
-                new android.graphics.RectF(dp(4),dp(4),w-dp(4),h-dp(4)),
-                dp(16),dp(16),paint
-            );
-            paint.setStyle(android.graphics.Paint.Style.FILL);
-        }
-
-
-        void drawThemeSnow(
-            android.graphics.Canvas canvas,
-            float w,
-            float h,
-            int color
-        ) {
-            int[] xs={8,19,31,45,58,72,86,94,25,67};
-            int[] ys={12,28,9,22,14,31,10,25,76,80};
-            for(int i=0;i<xs.length;i++)
-                drawTintedThemeAsset(
-                    canvas,
-                    R.drawable.theme_motif_snow,
-                    color,
-                    135,
-                    w*xs[i]/100f,
-                    h*ys[i]/100f,
-                    dp(i%3==0 ? 20 : 14)
-                );
         }
 
 
@@ -17819,111 +17563,6 @@ public class KeyKiiService extends InputMethodService {
                         255,255,255
                     );
 
-                strokeWidth=2;
-                break;
-
-            // Porcelain / floral ceramic.
-            case 9:
-                normalStart=
-                    special || space
-                        ? blendThemeColor(accent,white,76)
-                        : Color.rgb(250,252,255);
-                normalEnd=
-                    blendThemeColor(accent,white,90);
-                pressedStart=
-                    blendThemeColor(accent,white,60);
-                pressedEnd=
-                    Color.rgb(255,255,255);
-                stroke=
-                    blendThemeColor(accent,black,12);
-                strokeWidth=1;
-                break;
-
-            // Cafe / teddy / warm stitched.
-            case 10:
-                normalStart=
-                    special || space
-                        ? blendThemeColor(accent,white,38)
-                        : blendThemeColor(accent,white,68);
-                normalEnd=
-                    blendThemeColor(accent,white,54);
-                pressedStart=
-                    blendThemeColor(accent,white,28);
-                pressedEnd=
-                    blendThemeColor(accent,white,50);
-                stroke=
-                    blendThemeColor(accent,black,28);
-                strokeWidth=1;
-                break;
-
-            // Jelly / sky / ocean translucent.
-            case 11:
-                normalStart=
-                    Color.argb(
-                        special || space ? 220 : 170,
-                        Color.red(blendThemeColor(accent,white,45)),
-                        Color.green(blendThemeColor(accent,white,45)),
-                        Color.blue(blendThemeColor(accent,white,45))
-                    );
-                normalEnd=
-                    Color.argb(
-                        special || space ? 205 : 145,
-                        255,255,255
-                    );
-                pressedStart=
-                    Color.argb(
-                        235,
-                        Color.red(accent),
-                        Color.green(accent),
-                        Color.blue(accent)
-                    );
-                pressedEnd=
-                    Color.argb(220,255,255,255);
-                stroke=Color.WHITE;
-                strokeWidth=2;
-                break;
-
-            // Lace / diary / soft floral.
-            case 12:
-                normalStart=
-                    blendThemeColor(accent,white,82);
-                normalEnd=
-                    blendThemeColor(accent,white,67);
-                pressedStart=
-                    blendThemeColor(accent,white,48);
-                pressedEnd=
-                    blendThemeColor(accent,white,68);
-                stroke=
-                    blendThemeColor(accent,white,22);
-                strokeWidth=1;
-                break;
-
-            // Candy / ribbon / kitty glossy.
-            case 13:
-                normalStart=
-                    blendThemeColor(accent,white,74);
-                normalEnd=
-                    blendThemeColor(accent,Color.rgb(255,224,240),45);
-                pressedStart=
-                    blendThemeColor(accent,white,35);
-                pressedEnd=
-                    blendThemeColor(accent,white,60);
-                stroke=Color.WHITE;
-                strokeWidth=2;
-                break;
-
-            // Winter / frosted snow.
-            case 14:
-                normalStart=
-                    Color.rgb(250,253,255);
-                normalEnd=
-                    blendThemeColor(accent,white,82);
-                pressedStart=
-                    blendThemeColor(accent,white,60);
-                pressedEnd=
-                    Color.rgb(236,248,255);
-                stroke=
-                    blendThemeColor(accent,white,42);
                 strokeWidth=2;
                 break;
 
