@@ -3879,28 +3879,130 @@ public class SettingsActivity extends Activity {
                 value.equals("KeyKii") ||
                 value.equals("5");
 
+        boolean midLeft=
+                value.equals("e") ||
+                value.equals("a") ||
+                value.equals("z");
+
+        boolean midRight=
+                value.equals("i") ||
+                value.equals("l") ||
+                value.equals("m");
+
         if(
                 !left &&
                 !right &&
-                !center
+                !center &&
+                !midLeft &&
+                !midRight
         ) {
             return 0;
         }
 
-        if(pack==116) {
-            if(right)
+        switch(pack) {
+            case 100:
+                if(right || midRight) return R.drawable.theme_motif_cherry;
+                if(center) return R.drawable.theme_motif_heart;
+                return R.drawable.theme_motif_flower;
+
+            case 101:
+                if(center) return R.drawable.theme_motif_moonstar;
+                if(right || midRight) return R.drawable.theme_motif_cloud;
+                return R.drawable.theme_motif_star;
+
+            case 102:
+                if(center) return R.drawable.theme_motif_cup;
+                if(midLeft || midRight) return R.drawable.theme_motif_leaf;
+                return R.drawable.theme_motif_bunny;
+
+            case 103:
+                if(right || midRight) return R.drawable.theme_motif_cake;
+                if(center) return R.drawable.theme_motif_heart;
+                return R.drawable.theme_motif_bear;
+
+            case 104:
+                if(center) return R.drawable.theme_motif_bow;
+                if(midLeft || midRight) return R.drawable.theme_motif_flower;
                 return R.drawable.theme_motif_butterfly;
 
-            return R.drawable.theme_motif_lotus;
+            case 105:
+                if(center) return R.drawable.theme_motif_bubble;
+                if(midLeft || midRight) return R.drawable.theme_motif_moonstar;
+                return R.drawable.theme_motif_star;
+
+            case 106:
+                if(center) return R.drawable.theme_motif_heart;
+                if(right || midRight) return R.drawable.theme_motif_bow;
+                return R.drawable.theme_motif_strawberry;
+
+            case 107:
+                if(center) return R.drawable.theme_motif_moonstar;
+                if(midLeft || midRight) return R.drawable.theme_motif_star;
+                return R.drawable.theme_motif_cloud;
+
+            case 108:
+                if(center) return R.drawable.theme_motif_flower;
+                if(midLeft || midRight) return R.drawable.theme_motif_leaf;
+                return R.drawable.theme_motif_frog;
+
+            case 109:
+                if(center) return R.drawable.theme_motif_heart;
+                if(right || midRight) return R.drawable.theme_motif_bow;
+                return R.drawable.theme_motif_bear;
+
+            case 110:
+                if(center) return R.drawable.theme_motif_bow;
+                if(midLeft || midRight) return R.drawable.theme_motif_flower;
+                return R.drawable.theme_motif_butterfly;
+
+            case 111:
+                if(center) return R.drawable.theme_motif_cup;
+                if(right || midRight) return R.drawable.theme_motif_cherry;
+                return R.drawable.theme_motif_flower;
+
+            case 112:
+                if(center) return R.drawable.theme_motif_star;
+                if(midLeft || midRight) return R.drawable.theme_motif_moonstar;
+                return R.drawable.theme_motif_bubble;
+
+            case 113:
+                if(center) return R.drawable.theme_motif_cup;
+                if(right || midRight) return R.drawable.theme_motif_bear;
+                return R.drawable.theme_motif_bunny;
+
+            case 114:
+                if(center) return R.drawable.theme_motif_heart;
+                if(right || midRight) return R.drawable.theme_motif_cat;
+                return R.drawable.theme_motif_bow;
+
+            case 115:
+                if(center) return R.drawable.theme_motif_lotus;
+                if(midLeft || midRight) return R.drawable.theme_motif_flower;
+                return R.drawable.theme_motif_star;
+
+            case 116:
+                if(right || midRight) return R.drawable.theme_motif_butterfly;
+                return R.drawable.theme_motif_lotus;
+
+            case 117:
+                if(center || midLeft) return R.drawable.theme_motif_heart;
+                if(right || midRight) return R.drawable.theme_motif_bow;
+                return R.drawable.theme_motif_flower;
+
+            case 118:
+                if(center) return R.drawable.theme_motif_heart;
+                if(midLeft || midRight) return R.drawable.theme_motif_star;
+                return R.drawable.theme_motif_butterfly;
+
+            case 119:
+                if(center) return R.drawable.theme_motif_bow;
+                if(right || midRight) return R.drawable.theme_motif_gift;
+                return R.drawable.theme_motif_snow;
         }
 
-        if(left)
-            return previewThemePrimaryAssetRes(pack);
-
-        if(right)
-            return previewThemeSecondaryAssetRes(pack);
-
-        return previewThemeTertiaryAssetRes(pack);
+        if(center) return previewThemeTertiaryAssetRes(pack);
+        if(right || midRight) return previewThemeSecondaryAssetRes(pack);
+        return previewThemePrimaryAssetRes(pack);
     }
 
 
