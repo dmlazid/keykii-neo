@@ -1984,28 +1984,22 @@ public class SettingsActivity extends Activity {
 
         addThemeStoreHero(page);
 
-        addThemeSection(page, "🌸 New illustrated • Cute & Sweet");
+        addThemeSection(page, "🎀 New asset packs • Kawaii & Sweet");
         addStylePackGrid(
                 page,
-                new int[]{120,122,123,126,129,134}
+                new int[]{120,122,123,127,131,134,136,137}
         );
 
-        addThemeSection(page, "☁ New illustrated • Dream & Nature");
+        addThemeSection(page, "☁ New asset packs • Dream & Nature");
         addStylePackGrid(
                 page,
-                new int[]{121,124,127,128,130,131,132,135,136}
+                new int[]{121,124,125,126,129,130,133,135,138}
         );
 
-        addThemeSection(page, "🖤 New illustrated • Night & Boutique");
+        addThemeSection(page, "🌙 New asset packs • Cozy, Dark & Seasonal");
         addStylePackGrid(
                 page,
-                new int[]{125,133,138}
-        );
-
-        addThemeSection(page, "❄ New illustrated • Soft & Seasonal");
-        addStylePackGrid(
-                page,
-                new int[]{137,139}
+                new int[]{128,132,139}
         );
 
         addThemeSection(page, "✨ Current aesthetic collection");
@@ -2813,7 +2807,27 @@ public class SettingsActivity extends Activity {
         android.graphics.drawable.Drawable background=
                 panelBg;
 
-        if(decor>0) {
+        if(IllustratedThemeAssets.isNewPack(pack)) {
+            int bgRes=
+                    IllustratedThemeAssets.background(pack);
+
+            if(bgRes!=0) {
+                android.graphics.drawable.Drawable assetBg=
+                        getDrawable(bgRes);
+
+                if(assetBg!=null) {
+                    assetBg=assetBg.mutate();
+
+                    background=
+                            new android.graphics.drawable.LayerDrawable(
+                                    new android.graphics.drawable.Drawable[]{
+                                        panelBg,
+                                        assetBg
+                                    }
+                            );
+                }
+            }
+        } else if(decor>0) {
             android.graphics.drawable.Drawable themeArt=
                     pack==116
                             ? new ThemePreviewDecorDrawable(
@@ -3012,22 +3026,10 @@ public class SettingsActivity extends Activity {
             );
         }
 
-        if(IllustratedThemeAssets.isNewPack(pack)) {
-            int artRes=
-                    IllustratedThemeAssets.art(pack);
-
-            if(artRes!=0) {
-                android.graphics.drawable.Drawable art=
-                        getDrawable(artRes);
-
-                if(art!=null) {
-                    art=art.mutate();
-                    art.setAlpha(235);
-                    keyboard.setForeground(art);
-                    keyboard.setForegroundGravity(Gravity.FILL);
-                }
-            }
-        }
+        // Asset-pack artwork is deliberately behind the keys. This keeps
+        // labels readable while still giving the board a full wallpaper /
+        // sticker-kit look like the reference keyboards.
+        keyboard.setForeground(null);
 
         return keyboard;
     }
@@ -3732,26 +3734,26 @@ public class SettingsActivity extends Activity {
                         10,55,1,1,39,6
                 };
 
-            case 120: return new int[]{Color.rgb(255,208,226),Color.rgb(255,244,250),Color.rgb(231,90,155),12,55,1,1,0,8};
-            case 121: return new int[]{Color.rgb(124,141,255),Color.rgb(221,229,255),Color.rgb(82,107,222),12,55,1,1,0,6};
-            case 122: return new int[]{Color.rgb(221,240,185),Color.rgb(246,244,217),Color.rgb(94,155,85),13,55,1,1,0,3};
-            case 123: return new int[]{Color.rgb(255,198,180),Color.rgb(255,240,231),Color.rgb(217,126,102),12,55,1,1,0,3};
-            case 124: return new int[]{Color.rgb(221,200,255),Color.rgb(247,238,255),Color.rgb(135,91,195),12,55,1,1,0,2};
-            case 125: return new int[]{Color.rgb(21,5,34),Color.rgb(3,8,21),Color.rgb(240,59,255),8,55,1,0,0,1};
-            case 126: return new int[]{Color.rgb(255,182,208),Color.rgb(255,240,247),Color.rgb(230,80,136),13,55,1,1,0,8};
-            case 127: return new int[]{Color.rgb(94,114,201),Color.rgb(217,228,255),Color.rgb(122,135,217),12,55,1,1,0,6};
-            case 128: return new int[]{Color.rgb(189,231,186),Color.rgb(239,248,223),Color.rgb(75,152,85),13,55,1,1,0,3};
-            case 129: return new int[]{Color.rgb(230,192,182),Color.rgb(251,233,228),Color.rgb(173,110,93),12,55,1,1,0,3};
-            case 130: return new int[]{Color.rgb(214,196,245),Color.rgb(250,240,255),Color.rgb(141,99,193),12,55,1,1,0,2};
-            case 131: return new int[]{Color.rgb(255,189,210),Color.rgb(255,235,221),Color.rgb(230,87,131),12,55,1,1,0,8};
-            case 132: return new int[]{Color.rgb(88,184,242),Color.rgb(199,240,255),Color.rgb(37,143,214),12,55,1,1,0,6};
-            case 133: return new int[]{Color.rgb(154,104,77),Color.rgb(217,179,139),Color.rgb(193,131,85),11,55,1,0,0,5};
-            case 134: return new int[]{Color.rgb(255,176,210),Color.rgb(255,240,248),Color.rgb(228,81,154),13,55,1,1,0,8};
-            case 135: return new int[]{Color.rgb(214,228,255),Color.rgb(251,253,255),Color.rgb(53,106,184),10,55,1,1,0,2};
-            case 136: return new int[]{Color.rgb(215,197,241),Color.rgb(249,240,255),Color.rgb(125,86,172),10,55,1,1,0,2};
-            case 137: return new int[]{Color.rgb(244,232,216),Color.rgb(255,249,241),Color.rgb(180,135,105),10,55,1,1,0,2};
-            case 138: return new int[]{Color.rgb(45,26,19),Color.rgb(8,7,7),Color.rgb(208,154,93),9,55,1,0,0,5};
-            case 139: return new int[]{Color.rgb(207,234,255),Color.rgb(246,238,255),Color.rgb(224,91,128),10,55,1,1,0,6};
+            case 120: return new int[]{Color.rgb(255,212,229),Color.rgb(255,247,251),Color.rgb(228,93,149),14,55,1,1,0,8};
+            case 121: return new int[]{Color.rgb(111,130,232),Color.rgb(221,230,255),Color.rgb(86,110,217),16,55,1,1,0,6};
+            case 122: return new int[]{Color.rgb(220,239,185),Color.rgb(247,245,220),Color.rgb(101,155,85),18,55,1,1,0,3};
+            case 123: return new int[]{Color.rgb(255,202,182),Color.rgb(255,241,232),Color.rgb(217,125,103),20,55,1,1,0,3};
+            case 124: return new int[]{Color.rgb(220,199,244),Color.rgb(250,242,255),Color.rgb(138,98,190),10,55,1,1,0,2};
+            case 125: return new int[]{Color.rgb(52,77,152),Color.rgb(184,200,247),Color.rgb(111,114,217),18,55,1,0,0,7};
+            case 126: return new int[]{Color.rgb(191,232,189),Color.rgb(238,248,222),Color.rgb(85,151,91),14,55,1,1,0,3};
+            case 127: return new int[]{Color.rgb(231,192,188),Color.rgb(249,231,226),Color.rgb(173,108,104),16,55,1,1,0,3};
+            case 128: return new int[]{Color.rgb(207,234,255),Color.rgb(249,242,255),Color.rgb(216,90,131),14,55,1,1,0,6};
+            case 129: return new int[]{Color.rgb(103,191,229),Color.rgb(215,244,255),Color.rgb(51,143,192),16,55,1,1,0,6};
+            case 130: return new int[]{Color.rgb(241,235,216),Color.rgb(251,248,238),Color.rgb(139,159,114),11,55,1,1,0,2};
+            case 131: return new int[]{Color.rgb(255,192,212),Color.rgb(255,240,246),Color.rgb(227,83,130),14,55,1,1,0,8};
+            case 132: return new int[]{Color.rgb(142,96,72),Color.rgb(213,174,137),Color.rgb(181,122,82),16,55,1,1,0,3};
+            case 133: return new int[]{Color.rgb(216,198,241),Color.rgb(248,240,255),Color.rgb(137,96,185),10,55,1,1,0,2};
+            case 134: return new int[]{Color.rgb(255,183,208),Color.rgb(255,240,247),Color.rgb(232,94,141),18,55,1,1,0,8};
+            case 135: return new int[]{Color.rgb(215,229,248),Color.rgb(252,254,255),Color.rgb(69,111,175),9,55,1,1,0,2};
+            case 136: return new int[]{Color.rgb(255,208,226),Color.rgb(255,244,248),Color.rgb(229,94,154),20,55,1,1,0,8};
+            case 137: return new int[]{Color.rgb(217,179,143),Color.rgb(242,220,197),Color.rgb(155,105,70),16,55,1,1,0,3};
+            case 138: return new int[]{Color.rgb(185,162,230),Color.rgb(238,231,255),Color.rgb(122,99,182),14,55,1,1,0,2};
+            case 139: return new int[]{Color.rgb(46,32,25),Color.rgb(10,9,9),Color.rgb(209,160,94),10,55,1,0,0,5};
 
             default:
                 return stylePackSpec(100);
@@ -3783,26 +3785,26 @@ public class SettingsActivity extends Activity {
             case 117: return "Cream Heart Minimal";
             case 118: return "Brown Butterfly Noir";
             case 119: return "Snowy Pastel Christmas";
-            case 120: return "Pink Blossom Paradise";
-            case 121: return "Dreamy Blueberry Galaxy";
-            case 122: return "Matcha Rabbit Bakery";
-            case 123: return "Peach Bear Patisserie";
-            case 124: return "Violet Butterfly Garden";
-            case 125: return "Cyber Neon Night";
-            case 126: return "Strawberry Bow Party";
-            case 127: return "Moonlight Cloud Kingdom";
-            case 128: return "Frog Forest Picnic";
-            case 129: return "Teddy Ribbon Cottage";
-            case 130: return "Lavender Fairy Lace";
-            case 131: return "Sakura Soda Festival";
-            case 132: return "Ocean Star Aquarium";
-            case 133: return "Cocoa Bunny Bakery";
-            case 134: return "Kitty Candy Boutique";
-            case 135: return "Porcelain Flower Garden";
-            case 136: return "Lotus Fairy Lagoon";
-            case 137: return "Vanilla Heart Boutique";
-            case 138: return "Golden Butterfly Midnight";
-            case 139: return "Pastel Winter Wonderland";
+            case 120: return "Sakura Ribbon Picnic";
+            case 121: return "Blueberry Dream Clouds";
+            case 122: return "Bunny Matcha Garden";
+            case 123: return "Peach Cream Pudding";
+            case 124: return "Violet Lace Letter";
+            case 125: return "Moonlight Jelly Sleep";
+            case 126: return "Mint Frog Forest";
+            case 127: return "Rosy Teddy Bakery";
+            case 128: return "Snow Gift Wonderland";
+            case 129: return "Ocean Pearl Jelly";
+            case 130: return "Daisy Milk Garden";
+            case 131: return "Cherry Soda Bow";
+            case 132: return "Cozy Cocoa Bunny";
+            case 133: return "Butterfly Diary Bloom";
+            case 134: return "Strawberry Candy Milk";
+            case 135: return "Porcelain Blossom Blue";
+            case 136: return "Pastel Kitty Dessert";
+            case 137: return "Caramel Bear Café";
+            case 138: return "Lilac Star Pajama";
+            case 139: return "Golden Noir Butterfly";
             default: return "Aesthetic Theme";
         }
     }
@@ -3832,26 +3834,26 @@ public class SettingsActivity extends Activity {
             case 117: return "Cream minimal keyboard with hearts and bows";
             case 118: return "Dark brown noir with gold butterfly details";
             case 119: return "Snowy pastel holiday keyboard with winter details";
-            case 120: return "Full-board blossom garden with bows, hearts and layered flower art";
-            case 121: return "Blueberry-night galaxy with clouds, moonlight, stars and dreamy bows";
-            case 122: return "Illustrated rabbit bakery with matcha cups, cake and leafy café scenery";
-            case 123: return "Peach patisserie scene with teddy art, cake, berries and dessert accents";
-            case 124: return "Violet garden scene with large butterflies, flowers and soft fairy details";
-            case 125: return "Cyber arcade scene with neon game art, electric stars and night overlays";
-            case 126: return "Strawberry party scene with oversized berries, ribbons and candy hearts";
-            case 127: return "Moon kingdom with layered clouds, stars and soft night-sky illustration";
-            case 128: return "Frog forest picnic with character art, leaves and garden flowers";
-            case 129: return "Cozy teddy cottage with ribbon art, warm hearts and illustrated bears";
-            case 130: return "Lavender fairy lace with butterflies, blooms and decorative edge details";
-            case 131: return "Sakura soda festival with blossoms, drink art and berry decorations";
-            case 132: return "Ocean aquarium scene with jellyfish, bubbles and bright star accents";
-            case 133: return "Cocoa bakery with bunny art, steaming cup, cookies and warm café mood";
-            case 134: return "Pink candy boutique with kitty illustrations, bows and heart decorations";
-            case 135: return "Blue porcelain garden with painted florals, lotus art and butterflies";
-            case 136: return "Lotus lagoon with large floral art, butterflies and water-line details";
-            case 137: return "Vanilla boutique with elegant hearts, ribbons and light floral artwork";
-            case 138: return "Dark luxury scene with large golden butterflies, moon and star details";
-            case 139: return "Winter wonderland with snowman, gifts and large snowflake illustrations";
+            case 120: return "Sakura wallpaper with striped picnic texture, blossoms, bows and falling petals";
+            case 121: return "Dreamy blue sky wallpaper with clouds, moon, stars and blueberry clusters";
+            case 122: return "Matcha garden wallpaper with bunny stickers, café cups, leaves and soft checks";
+            case 123: return "Peach pudding palette with teddy, cake, strawberry and tiny heart details";
+            case 124: return "Lilac diary-paper theme with lace edges, ribbons, flowers and sticker-tape details";
+            case 125: return "Sleepy blue night with moon, clouds, tiny stars and floating jellyfish";
+            case 126: return "Mint forest grid with frog characters, leaves and small daisy accents";
+            case 127: return "Rosy bakery checks with teddy stickers, ribbons and cookie details";
+            case 128: return "Pastel winter wallpaper with snow, gifts and soft snowflake decoration";
+            case 129: return "Ocean wallpaper with waves, jellyfish, bubbles, shells and pearl tones";
+            case 130: return "Cream-and-mint garden with daisies, milk-carton stickers and light plaid";
+            case 131: return "Cherry soda stripes with bows, cherries, bubbles and café drink details";
+            case 132: return "Warm cocoa café wallpaper with bunny, cup, cookies and chocolate checks";
+            case 133: return "Lilac scrapbook grid with sticker tape, butterflies, bows and flower stamps";
+            case 134: return "Strawberry milk wallpaper with candy stripes, berries, bows and milk details";
+            case 135: return "Blue porcelain paper with painted floral branches and fine tile lines";
+            case 136: return "Cute original kitty dessert wallpaper with paws, cake, bows and pink checks";
+            case 137: return "Caramel café wallpaper with bear stickers, coffee, cookies and warm plaid";
+            case 138: return "Lilac sleepover wallpaper with stars, moon, clouds and pajama-check details";
+            case 139: return "Dark boutique wallpaper with thin gold framing, stars, moon and butterfly bows";
             default: return "Illustrated KeyKii aesthetic theme";
         }
     }

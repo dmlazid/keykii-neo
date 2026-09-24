@@ -15397,23 +15397,32 @@ public class KeyKiiService extends InputMethodService {
         panel.setForeground(null);
 
         if(IllustratedThemeAssets.isNewPack(stylePack)) {
-            panel.setBackground(bg);
+            int bgRes=
+                IllustratedThemeAssets.background(stylePack);
 
-            int artRes=
-                IllustratedThemeAssets.art(stylePack);
+            if(bgRes!=0) {
+                android.graphics.drawable.Drawable assetBg=
+                    getDrawable(bgRes);
 
-            if(artRes!=0) {
-                android.graphics.drawable.Drawable art=
-                    getDrawable(artRes);
+                if(assetBg!=null) {
+                    assetBg=assetBg.mutate();
 
-                if(art!=null) {
-                    art=art.mutate();
-                    art.setAlpha(235);
-                    panel.setForeground(art);
-                    panel.setForegroundGravity(Gravity.FILL);
+                    panel.setBackground(
+                        new android.graphics.drawable.LayerDrawable(
+                            new android.graphics.drawable.Drawable[]{
+                                bg,
+                                assetBg
+                            }
+                        )
+                    );
+                } else {
+                    panel.setBackground(bg);
                 }
+            } else {
+                panel.setBackground(bg);
             }
 
+            panel.setForeground(null);
             return;
         }
 

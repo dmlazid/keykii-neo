@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'app/src/**'
+      - 'scripts/**'
       - 'app/build.gradle'
       - 'build.gradle'
       - 'settings.gradle'
@@ -52,6 +53,11 @@ jobs:
       - name: Install Android SDK
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
 
+      - name: Generate illustrated theme assets
+        run: |
+          python3 -m pip install --disable-pip-version-check pillow
+          python3 scripts/generate_theme_assets_247.py
+
       - name: Build APK
         run: |
           chmod +x gradlew
@@ -85,12 +91,12 @@ jobs:
             fi
           done
 
-          git add -A old-versions "$APK_NAME"
+          git add -A old-versions "$APK_NAME" app/src/main/res/drawable-nodpi/theme_ill_bg_*.webp
 
           if git diff --cached --quiet; then
             echo "Latest APK is already current and older builds are already archived."
           else
-            git commit -m "Build KeyKii Neo ${{ steps.package.outputs.version }} APK"
+            git commit -m "Build KeyKii Neo ${{ steps.package.outputs.version }} APK [skip ci]"
             git push
           fi
 
