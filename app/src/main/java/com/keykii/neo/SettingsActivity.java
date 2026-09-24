@@ -292,7 +292,7 @@ public class SettingsActivity extends Activity {
                 page,
                 "Aa",
                 "Dictionary",
-                "Open Android personal dictionary",
+                "Manage words used by KeyKii suggestions",
                 v -> showDictionary()
         );
         addRow(
@@ -5036,13 +5036,61 @@ public class SettingsActivity extends Activity {
 
     private void showDictionary() {
         screen = "dictionary";
-        LinearLayout page = page("Dictionary", "Personal words are managed by Android", true);
 
-        addInfoCard(page,
-                "Personal dictionary",
-                "KeyKii does not have a separate dictionary database yet. You can manage Android's personal dictionary from here.");
+        java.util.ArrayList<String> words =
+                PersonalDictionary.load(this);
 
-        addActionButton(page, "Open personal dictionary", v -> {
+        LinearLayout page = page(
+                "Dictionary",
+                "Personal words used by KeyKii suggestions",
+                true
+        );
+
+        addInfoCard(
+                page,
+                "KeyKii personal dictionary",
+                words.size() +
+                        (words.size() == 1 ? " word is" : " words are") +
+                        " saved locally. Personal words are checked before KeyKii's built-in English dictionary."
+        );
+
+        addActionButton(
+                page,
+                "Add personal word",
+                v -> showPersonalWordEditor(null)
+        );
+
+        if (words.isEmpty()) {
+            addInfoCard(
+                    page,
+                    "No personal words yet",
+                    "Add names, places, slang, brand names or other words you type often. They will appear in KeyKii's suggestion strip when they match what you type."
+            );
+        } else {
+            addSection(page, "Saved words");
+
+            for (String savedWord : words) {
+                final String word = savedWord;
+
+                addRow(
+                        page,
+                        "Aa",
+                        word,
+                        "Tap to edit or delete",
+                        v -> showPersonalWordEditor(word)
+                );
+            }
+        }
+
+        addSection(page, "Android dictionary");
+
+        addInfoCard(
+                page,
+                "System personal dictionary",
+                "Android's own personal dictionary stays separate. KeyKii's saved words are stored only inside KeyKii."
+        );
+
+        addActionButton(page, "Open Android personal dictionary", v -> {
             try {
                 startActivity(new Intent(Settings.ACTION_USER_DICTIONARY_SETTINGS));
             } catch (Exception e) {
@@ -5051,6 +5099,116 @@ public class SettingsActivity extends Activity {
         });
 
         setContentView(wrap(page));
+    }
+
+
+    private void showPersonalWordEditor(String existingWord) {
+        java.util.ArrayList<String> current =
+                PersonalDictionary.load(this);
+
+        if (
+                existingWord == null &&
+                current.size() >= PersonalDictionary.MAX_WORDS
+        ) {
+            toast("Personal dictionary limit reached");
+            return;
+        }
+
+        EditText input = new EditText(this);
+        input.setSingleLine(true);
+        input.setHint("Word");
+        input.setText(existingWord == null ? "" : existingWord);
+        input.setSelection(input.getText().length());
+
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(22), dp(8), dp(22), 0);
+        box.addView(input);
+
+        AlertDialog.Builder builder =
+                new AlertDialog.Builder(this)
+                        .setTitle(
+                                existingWord == null
+                                        ? "Add personal word"
+                                        : "Edit personal word"
+                        )
+                        .setView(box)
+                        .setNegativeButton("Cancel", null)
+                        .setPositiveButton("Save", null);
+
+        if (existingWord != null) {
+            builder.setNeutralButton(
+                    "Delete",
+                    (dialog, which) -> {
+                        PersonalDictionary.remove(
+                                this,
+                                existingWord
+                        );
+                        toast("Personal word deleted");
+                        showDictionary();
+                    }
+            );
+        }
+
+        AlertDialog dialog = builder.create();
+
+        dialog.setOnShowListener(d ->
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                        .setOnClickListener(v -> {
+                            String cleaned =
+                                    PersonalDictionary.normalize(
+                                            input.getText().toString()
+                                    );
+
+                            if (cleaned.isEmpty()) {
+                                input.setError(
+                                        "Use letters and apostrophes only"
+                                );
+                                return;
+                            }
+
+                            java.util.ArrayList<String> saved =
+                                    PersonalDictionary.load(this);
+
+                            for (String other : saved) {
+                                if (
+                                        other.equalsIgnoreCase(cleaned) &&
+                                        (
+                                                existingWord == null ||
+                                                !other.equalsIgnoreCase(existingWord)
+                                        )
+                                ) {
+                                    input.setError(
+                                            "This word is already saved"
+                                    );
+                                    return;
+                                }
+                            }
+
+                            boolean ok =
+                                    existingWord == null
+                                            ? PersonalDictionary.add(
+                                                    this,
+                                                    cleaned
+                                            )
+                                            : PersonalDictionary.replace(
+                                                    this,
+                                                    existingWord,
+                                                    cleaned
+                                            );
+
+                            if (!ok) {
+                                toast("Could not save personal word");
+                                return;
+                            }
+
+                            dialog.dismiss();
+                            toast("Personal word saved");
+                            showDictionary();
+                        })
+        );
+
+        dialog.show();
     }
 
     private void showEmoji() {

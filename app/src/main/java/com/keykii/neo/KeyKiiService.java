@@ -3406,6 +3406,26 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    boolean predictionContainsIgnoreCase(
+        java.util.ArrayList<String> words,
+        String candidate
+    ) {
+        if(words==null || candidate==null)
+            return false;
+
+        for(String word:words) {
+            if(
+                word!=null &&
+                word.equalsIgnoreCase(candidate)
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
     boolean predictionNearMatch(
         String a,
         String b
@@ -3546,18 +3566,55 @@ public class KeyKiiService extends InputMethodService {
             }
 
         } else {
-            if(glideDictionary==null) {
-                ensurePredictionDictionaryAsync();
-            } else {
-                String prefix=
-                    typed.toLowerCase(
+            String prefix=
+                typed.toLowerCase(
+                    java.util.Locale.ROOT
+                );
+
+            java.util.ArrayList<String> personalWords=
+                PersonalDictionary.load(this);
+
+            for(String word:personalWords) {
+                if(word==null || word.isEmpty())
+                    continue;
+
+                String lower=
+                    word.toLowerCase(
                         java.util.Locale.ROOT
                     );
 
+                if(
+                    lower.startsWith(prefix) &&
+                    !predictionContainsIgnoreCase(
+                        result,
+                        word
+                    )
+                ) {
+                    result.add(word);
+
+                    if(result.size()>=3)
+                        break;
+                }
+            }
+
+            if(
+                result.size()<3 &&
+                glideDictionary==null
+            ) {
+                ensurePredictionDictionaryAsync();
+            }
+
+            if(
+                result.size()<3 &&
+                glideDictionary!=null
+            ) {
                 for(String word:glideDictionary) {
                     if(
                         word.startsWith(prefix) &&
-                        !result.contains(word)
+                        !predictionContainsIgnoreCase(
+                            result,
+                            word
+                        )
                     ) {
                         result.add(word);
 
@@ -3565,35 +3622,76 @@ public class KeyKiiService extends InputMethodService {
                             break;
                     }
                 }
+            }
 
-                if(
-                    result.size()<3 &&
-                    prefix.length()>=3
-                ) {
-                    int checked=0;
+            if(
+                result.size()<3 &&
+                prefix.length()>=3
+            ) {
+                for(String word:personalWords) {
+                    if(word==null || word.isEmpty())
+                        continue;
 
-                    for(String word:glideDictionary) {
-                        if(checked++>=7000)
+                    String lower=
+                        word.toLowerCase(
+                            java.util.Locale.ROOT
+                        );
+
+                    if(
+                        lower.startsWith(prefix) ||
+                        predictionContainsIgnoreCase(
+                            result,
+                            word
+                        )
+                    ) {
+                        continue;
+                    }
+
+                    if(
+                        predictionNearMatch(
+                            prefix,
+                            lower
+                        )
+                    ) {
+                        result.add(word);
+
+                        if(result.size()>=3)
                             break;
+                    }
+                }
+            }
 
-                        if(
-                            result.contains(word) ||
-                            word.startsWith(prefix)
-                        ) {
-                            continue;
-                        }
+            if(
+                result.size()<3 &&
+                prefix.length()>=3 &&
+                glideDictionary!=null
+            ) {
+                int checked=0;
 
-                        if(
-                            predictionNearMatch(
-                                prefix,
-                                word
-                            )
-                        ) {
-                            result.add(word);
+                for(String word:glideDictionary) {
+                    if(checked++>=7000)
+                        break;
 
-                            if(result.size()>=3)
-                                break;
-                        }
+                    if(
+                        word.startsWith(prefix) ||
+                        predictionContainsIgnoreCase(
+                            result,
+                            word
+                        )
+                    ) {
+                        continue;
+                    }
+
+                    if(
+                        predictionNearMatch(
+                            prefix,
+                            word
+                        )
+                    ) {
+                        result.add(word);
+
+                        if(result.size()>=3)
+                            break;
                     }
                 }
             }
