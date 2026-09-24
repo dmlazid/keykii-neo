@@ -314,6 +314,14 @@ public class SettingsActivity extends Activity {
 
         addSwitchRow(
                 page,
+                "🕶  Incognito",
+                "Show the privacy mode button",
+                "toolbar_incognito",
+                true
+        );
+
+        addSwitchRow(
+                page,
                 "◐  Theme",
                 "Show the quick theme switch button",
                 "toolbar_theme",
@@ -365,12 +373,13 @@ public class SettingsActivity extends Activity {
                             .putBoolean("toolbar_clipboard", true)
                             .putBoolean("toolbar_actions", true)
                             .putBoolean("toolbar_voice", true)
+                            .putBoolean("toolbar_incognito", true)
                             .putBoolean("toolbar_theme", true)
                             .putBoolean("toolbar_width", false)
                             .putBoolean("toolbar_hand", false)
                             .putString(
                                     "toolbar_order",
-                                    "emoji,clipboard,actions,voice,theme,width,hand"
+                                    "emoji,clipboard,actions,voice,incognito,theme,width,hand"
                             )
                             .apply();
 
@@ -408,6 +417,7 @@ public class SettingsActivity extends Activity {
                     item.equals("clipboard") ||
                     item.equals("actions") ||
                     item.equals("voice") ||
+                    item.equals("incognito") ||
                     item.equals("theme") ||
                     item.equals("width") ||
                     item.equals("hand")
@@ -421,6 +431,7 @@ public class SettingsActivity extends Activity {
         clean.add("clipboard");
         clean.add("actions");
         clean.add("voice");
+        clean.add("incognito");
         clean.add("theme");
         clean.add("width");
         clean.add("hand");
@@ -656,6 +667,9 @@ public class SettingsActivity extends Activity {
         if(id.equals("voice"))
             return "🎙";
 
+        if(id.equals("incognito"))
+            return "🕶";
+
         if(id.equals("theme"))
             return "◐";
 
@@ -683,6 +697,9 @@ public class SettingsActivity extends Activity {
 
         if(id.equals("voice"))
             return "Voice typing";
+
+        if(id.equals("incognito"))
+            return "Incognito";
 
         if(id.equals("theme"))
             return "Theme";
@@ -1547,13 +1564,37 @@ public class SettingsActivity extends Activity {
         screen = "privacy";
         LinearLayout page = page("Privacy", "Local KeyKii data controls", true);
 
+        addSection(
+                page,
+                "Private typing"
+        );
+
+        addSwitchRow(
+                page,
+                "Incognito mode",
+                "Pause clipboard history and emoji recents while typing privately",
+                "incognito_mode",
+                false
+        );
+
+        addInfoCard(
+                page,
+                "When Incognito is on",
+                "KeyKii stops adding new clipboard-history items and emoji recents. Existing pinned clips, favorites, text shortcuts and keyboard preferences stay saved."
+        );
+
+        addSection(
+                page,
+                "Stored on this device"
+        );
+
         addInfoCard(page,
                 "Keyboard preferences",
                 "Theme, keyboard size, haptics and width preferences are stored in KeyKii's local app data.");
 
         addInfoCard(page,
                 "Clipboard",
-                "KeyKii's clipboard panel stores recent and pinned copied text locally so it can be pasted again. You can clear it from Clipboard settings.");
+                "KeyKii's clipboard panel stores recent and pinned copied text locally so it can be pasted again. Incognito mode pauses new clipboard-history saves.");
 
         addInfoCard(page,
                 "Text shortcuts",
@@ -1561,7 +1602,7 @@ public class SettingsActivity extends Activity {
 
         addInfoCard(page,
                 "Emoji recents",
-                "Recently used emoji are stored locally to build the Recent Emoji section. You can clear them from Emoji & kaomoji settings.");
+                "Recently used emoji are stored locally to build the Recent Emoji section. Incognito mode pauses new emoji recents.");
 
         addInfoCard(page,
                 "Network",
