@@ -7862,21 +7862,6 @@ public class KeyKiiService extends InputMethodService {
         toolsSlideRow(
             mainSlide,
             new String[]{
-                "↕  Resize",
-                "⛶  Full / wide"
-            },
-            new Runnable[]{
-                () -> {
-                    page=5;
-                    buildShell();
-                },
-                () -> toggleWideFromTools()
-            }
-        );
-
-        toolsSlideRow(
-            mainSlide,
-            new String[]{
                 "🧮  Calculator",
                 "🌐  Translator"
             },
@@ -7928,6 +7913,21 @@ public class KeyKiiService extends InputMethodService {
 
         moreSlide.setOrientation(
             LinearLayout.VERTICAL
+        );
+
+        toolsSlideRow(
+            moreSlide,
+            new String[]{
+                "↕  Resize",
+                "⛶  Full / wide"
+            },
+            new Runnable[]{
+                () -> {
+                    page=5;
+                    buildShell();
+                },
+                () -> toggleWideFromTools()
+            }
         );
 
         toolsSlideRow(
