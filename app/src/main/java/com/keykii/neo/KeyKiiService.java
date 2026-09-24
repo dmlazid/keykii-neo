@@ -125,18 +125,25 @@ public class KeyKiiService extends InputMethodService {
     TextView calculatorExpressionView=null;
     TextView calculatorResultView=null;
 
-    // Online translator runs only when the user opens the tool and taps Translate.
+    // Gboard-style translator: searchable languages + direct typing inside KeyKii.
+    // Translation only runs after Translate is tapped, so normal typing stays lightweight.
     final String[] translatorLanguageNames={
-        "English","Filipino","Cebuano","Spanish",
-        "Japanese","Korean","Chinese","French",
-        "German","Italian","Portuguese","Arabic"
+        "English","Filipino","Cebuano","Spanish","French","German",
+        "Italian","Portuguese","Turkish","Chinese (Simplified)",
+        "Chinese (Traditional)","Japanese","Korean","Arabic","Russian",
+        "Ukrainian","Dutch","Polish","Romanian","Greek","Hindi",
+        "Indonesian","Malay","Thai","Vietnamese","Swedish","Danish",
+        "Norwegian","Finnish","Czech","Hungarian","Hebrew"
     };
     final String[] translatorLanguageCodes={
-        "en","tl","ceb","es",
-        "ja","ko","zh-CN","fr",
-        "de","it","pt","ar"
+        "en","tl","ceb","es","fr","de",
+        "it","pt","tr","zh-CN",
+        "zh-TW","ja","ko","ar","ru",
+        "uk","nl","pl","ro","el","hi",
+        "id","ms","th","vi","sv","da",
+        "no","fi","cs","hu","he"
     };
-    int translatorSourceLanguage=0;
+    int translatorSourceLanguage=-1; // -1 = Detect language
     int translatorTargetLanguage=1;
     String translatorSourceText="";
     String translatorResult="";
@@ -146,6 +153,10 @@ public class KeyKiiService extends InputMethodService {
     TextView translatorSourceView=null;
     TextView translatorResultView=null;
     TextView translatorStatusView=null;
+    LinearLayout translatorLanguageList=null;
+    boolean translatorLanguageChooser=false;
+    boolean translatorChoosingSource=true;
+    String translatorLanguageSearch="";
     int translatorRequestId=0;
 
     long lastSpaceTap=0L;
@@ -170,6 +181,8 @@ public class KeyKiiService extends InputMethodService {
                 if(page==1 && emojiSearchMode) {
                     eraseEmojiSearchChar();
                     refreshEmojiSearchResults();
+                } else if(page==8) {
+                    translatorBackspace();
                 } else {
                     InputConnection ic=
                         getCurrentInputConnection();
@@ -3025,6 +3038,9 @@ public class KeyKiiService extends InputMethodService {
         // a compact shortcut bubble above the key; the center smiley opens emoji.
         box.setOnLongClickListener(v -> {
 
+            if(page==8)
+                return false;
+
             // SPACE gestures are handled entirely in onTouch:
             // tap = space, slide = cursor, stationary hold = keyboard picker.
             if(action.equals("SPACE"))
@@ -3086,7 +3102,10 @@ public class KeyKiiService extends InputMethodService {
 
         box.setOnTouchListener((v,e)->{
 
-            if(action.equals("SPACE"))
+            if(
+                action.equals("SPACE") &&
+                page!=8
+            )
                 return handleSpacebarTouch(v,e);
 
             // Long-press alternative selection owns the gesture once its
@@ -3122,7 +3141,10 @@ public class KeyKiiService extends InputMethodService {
                 }
             }
 
-            if(isGlideLetterAction(action)) {
+            if(
+                page==0 &&
+                isGlideLetterAction(action)
+            ) {
                 boolean glideConsumed=
                     handleGlideKeyTouch(
                         v,
@@ -3195,7 +3217,8 @@ public class KeyKiiService extends InputMethodService {
             if(
                 action.equals("BACK") &&
                 e.getAction()==MotionEvent.ACTION_MOVE &&
-                swipeDeleteWord
+                swipeDeleteWord &&
+                page!=8
             ){
                 float dx=
                     e.getRawX()-
@@ -7535,6 +7558,12 @@ public class KeyKiiService extends InputMethodService {
                     translatorSourceText="";
                     translatorResult="";
                     translatorStatus="";
+                    translatorLanguageChooser=false;
+                    translatorLanguageSearch="";
+                    translatorRequestId++;
+                    symbols=false;
+                    symbolPage=1;
+                    shift=false;
                     page=8;
                     buildShell();
                 }
@@ -8022,19 +8051,10 @@ public class KeyKiiService extends InputMethodService {
 
     void buildTranslatorPanel() {
 
-        TextView heading=
-            title("Translator");
-
-        heading.setTextSize(12);
-        heading.setAlpha(.62f);
-
-        body.addView(
-            heading,
-            new LinearLayout.LayoutParams(
-                -1,
-                dp(24)
-            )
-        );
+        if(translatorLanguageChooser) {
+            buildTranslatorLanguageChooser();
+            return;
+        }
 
         if(
             translatorSourceText==null ||
@@ -8043,16 +8063,30 @@ public class KeyKiiService extends InputMethodService {
             captureSelectedTextForTranslator();
         }
 
-        LinearLayout languageRow=
+        LinearLayout top=
             new LinearLayout(this);
 
-        languageRow.setGravity(
+        top.setGravity(
             Gravity.CENTER
+        );
+
+        TextView back=
+            translatorLanguageButton("←");
+
+        back.setOnClickListener(
+            v -> {
+                translatorLanguageChooser=false;
+                translatorLanguageSearch="";
+                page=4;
+                buildShell();
+            }
         );
 
         translatorSourceLanguageView=
             translatorLanguageButton(
-                translatorLanguageNames[
+                translatorSourceLanguage<0
+                ? "Detect language"
+                : translatorLanguageNames[
                     translatorSourceLanguage
                 ]
             );
@@ -8068,84 +8102,71 @@ public class KeyKiiService extends InputMethodService {
             );
 
         translatorSourceLanguageView.setOnClickListener(
-            v -> {
-                translatorSourceLanguage=
-                    (translatorSourceLanguage+1)%
-                    translatorLanguageNames.length;
-
-                translatorResult="";
-                translatorStatus="";
-                updateTranslatorPanel();
-            }
+            v -> openTranslatorLanguageChooser(
+                true
+            )
         );
 
         translatorTargetLanguageView.setOnClickListener(
-            v -> {
-                translatorTargetLanguage=
-                    (translatorTargetLanguage+1)%
-                    translatorLanguageNames.length;
-
-                translatorResult="";
-                translatorStatus="";
-                updateTranslatorPanel();
-            }
+            v -> openTranslatorLanguageChooser(
+                false
+            )
         );
 
         swap.setOnClickListener(
-            v -> {
-                int old=
-                    translatorSourceLanguage;
-
-                translatorSourceLanguage=
-                    translatorTargetLanguage;
-
-                translatorTargetLanguage=
-                    old;
-
-                translatorResult="";
-                translatorStatus="";
-                updateTranslatorPanel();
-            }
+            v -> swapTranslatorLanguages()
         );
 
-        languageRow.addView(
-            translatorSourceLanguageView,
+        top.addView(
+            back,
             new LinearLayout.LayoutParams(
-                0,
-                dp(44),
-                1f
+                dp(46),
+                dp(44)
             )
         );
 
-        LinearLayout.LayoutParams swapParams=
+        LinearLayout.LayoutParams sourceParams=
+            new LinearLayout.LayoutParams(
+                0,
+                dp(44),
+                1.35f
+            );
+
+        sourceParams.setMargins(
+            dp(4),0,dp(4),0
+        );
+
+        top.addView(
+            translatorSourceLanguageView,
+            sourceParams
+        );
+
+        top.addView(
+            swap,
             new LinearLayout.LayoutParams(
                 dp(50),
                 dp(44)
-            );
-
-        swapParams.setMargins(
-            dp(5),
-            0,
-            dp(5),
-            0
+            )
         );
 
-        languageRow.addView(
-            swap,
-            swapParams
-        );
-
-        languageRow.addView(
-            translatorTargetLanguageView,
+        LinearLayout.LayoutParams targetParams=
             new LinearLayout.LayoutParams(
                 0,
                 dp(44),
                 1f
-            )
+            );
+
+        targetParams.setMargins(
+            dp(4),0,0,0
+        );
+
+        top.addView(
+            translatorTargetLanguageView,
+            targetParams
         );
 
         body.addView(
-            languageRow,
+            top,
             new LinearLayout.LayoutParams(
                 -1,
                 dp(48)
@@ -8154,49 +8175,112 @@ public class KeyKiiService extends InputMethodService {
 
         translatorSourceView=
             translatorTextBox(
-                "Select text in the app first"
+                "Type here to translate"
             );
 
-        translatorResultView=
-            translatorTextBox(
-                "Translation will appear here"
-            );
+        translatorSourceView.setTextSize(15);
+        translatorSourceView.setMinLines(2);
 
         body.addView(
             translatorSourceView,
-            translatorBoxParams()
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(66)
+            )
+        );
+
+        translatorResultView=
+            new TextView(this);
+
+        translatorResultView.setTextColor(
+            textColor()
+        );
+
+        translatorResultView.setTextSize(12);
+        translatorResultView.setAlpha(.72f);
+        translatorResultView.setGravity(
+            Gravity.CENTER_VERTICAL
+        );
+
+        translatorResultView.setPadding(
+            dp(12),0,dp(12),0
         );
 
         body.addView(
             translatorResultView,
-            translatorBoxParams()
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(30)
+            )
         );
 
-        toolsRow(
-            new String[]{
-                "↻  Use selected text",
-                "🌐  Translate"
-            },
-            new Runnable[]{
-                () -> {
-                    captureSelectedTextForTranslator();
-                    translatorResult="";
-                    translatorStatus="";
-                    updateTranslatorPanel();
-                },
-                () -> translateSelectedTextOnline()
+        LinearLayout actions=
+            new LinearLayout(this);
+
+        actions.setGravity(
+            Gravity.CENTER
+        );
+
+        TextView clear=
+            translatorLanguageButton("Clear");
+
+        TextView translate=
+            translatorLanguageButton(
+                "Translate"
+            );
+
+        translate.setBackground(
+            round(
+                accentFillColor(),
+                18,
+                accentColor()
+            )
+        );
+
+        clear.setOnClickListener(
+            v -> {
+                translatorSourceText="";
+                translatorResult="";
+                translatorStatus="";
+                updateTranslatorPanel();
             }
         );
 
-        toolsRow(
-            new String[]{
-                "✓  Replace selected",
-                "＋  Insert translation"
-            },
-            new Runnable[]{
-                () -> insertTranslatorResult(true),
-                () -> insertTranslatorResult(false)
-            }
+        translate.setOnClickListener(
+            v -> translateSelectedTextOnline()
+        );
+
+        LinearLayout.LayoutParams actionParams=
+            new LinearLayout.LayoutParams(
+                0,
+                dp(42),
+                1f
+            );
+
+        actionParams.setMargins(
+            dp(3),dp(2),dp(3),dp(2)
+        );
+
+        actions.addView(
+            clear,
+            actionParams
+        );
+
+        actions.addView(
+            translate,
+            new LinearLayout.LayoutParams(
+                0,
+                dp(42),
+                1f
+            )
+        );
+
+        body.addView(
+            actions,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(46)
+            )
         );
 
         translatorStatusView=
@@ -8206,8 +8290,8 @@ public class KeyKiiService extends InputMethodService {
             textColor()
         );
 
-        translatorStatusView.setTextSize(10);
-        translatorStatusView.setAlpha(.56f);
+        translatorStatusView.setTextSize(9);
+        translatorStatusView.setAlpha(.52f);
         translatorStatusView.setGravity(
             Gravity.CENTER
         );
@@ -8216,11 +8300,682 @@ public class KeyKiiService extends InputMethodService {
             translatorStatusView,
             new LinearLayout.LayoutParams(
                 -1,
-                dp(28)
+                dp(22)
             )
         );
 
         updateTranslatorPanel();
+
+        // The normal KeyKii keys become the translator input keyboard.
+        // press() is intercepted by handleTranslatorKey(), so these keys do
+        // not write into the app until translation is finished.
+        buildKeyboard();
+    }
+
+
+    void buildTranslatorLanguageChooser() {
+
+        LinearLayout header=
+            new LinearLayout(this);
+
+        header.setGravity(
+            Gravity.CENTER_VERTICAL
+        );
+
+        TextView back=
+            translatorLanguageButton("←");
+
+        back.setOnClickListener(
+            v -> {
+                translatorLanguageChooser=false;
+                translatorLanguageSearch="";
+                showPage();
+            }
+        );
+
+        TextView title=
+            new TextView(this);
+
+        title.setText(
+            translatorChoosingSource
+            ? "Translate from"
+            : "Translate to"
+        );
+
+        title.setTextColor(
+            textColor()
+        );
+
+        title.setTextSize(16);
+        title.setGravity(
+            Gravity.CENTER
+        );
+
+        header.addView(
+            back,
+            new LinearLayout.LayoutParams(
+                dp(48),
+                dp(42)
+            )
+        );
+
+        header.addView(
+            title,
+            new LinearLayout.LayoutParams(
+                0,
+                dp(42),
+                1f
+            )
+        );
+
+        body.addView(
+            header,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(46)
+            )
+        );
+
+        TextView search=
+            translatorTextBox(
+                "🔍  Search languages"
+            );
+
+        search.setText(
+            translatorLanguageSearch==null ||
+            translatorLanguageSearch.isEmpty()
+            ? "🔍  Search languages"
+            : "🔍  "+translatorLanguageSearch
+        );
+
+        search.setTextSize(13);
+        search.setGravity(
+            Gravity.CENTER_VERTICAL
+        );
+
+        body.addView(
+            search,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(46)
+            )
+        );
+
+        android.widget.ScrollView scroll=
+            new android.widget.ScrollView(this);
+
+        translatorLanguageList=
+            new LinearLayout(this);
+
+        translatorLanguageList.setOrientation(
+            LinearLayout.VERTICAL
+        );
+
+        scroll.addView(
+            translatorLanguageList,
+            new android.widget.ScrollView.LayoutParams(
+                -1,
+                -2
+            )
+        );
+
+        body.addView(
+            scroll,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(150)
+            )
+        );
+
+        refreshTranslatorLanguageList();
+
+        buildKeyboard();
+    }
+
+
+    void openTranslatorLanguageChooser(
+        boolean source
+    ) {
+        translatorLanguageChooser=true;
+        translatorChoosingSource=source;
+        translatorLanguageSearch="";
+        translatorResult="";
+        translatorStatus="";
+        symbols=false;
+        symbolPage=1;
+        shift=false;
+        showPage();
+    }
+
+
+    void refreshTranslatorLanguageList() {
+        if(translatorLanguageList==null)
+            return;
+
+        translatorLanguageList.removeAllViews();
+
+        String q=
+            translatorLanguageSearch==null
+            ? ""
+            : translatorLanguageSearch
+                .trim()
+                .toLowerCase(
+                    java.util.Locale.ROOT
+                );
+
+        if(
+            translatorChoosingSource &&
+            (
+                q.isEmpty() ||
+                "detect language".contains(q) ||
+                "detect".contains(q)
+            )
+        ) {
+            addTranslatorLanguageChoice(
+                "Detect language",
+                -1
+            );
+        }
+
+        for(
+            int index=0;
+            index<translatorLanguageNames.length;
+            index++
+        ) {
+            String name=
+                translatorLanguageNames[index];
+
+            if(
+                !q.isEmpty() &&
+                !name.toLowerCase(
+                    java.util.Locale.ROOT
+                ).contains(q)
+            ) {
+                continue;
+            }
+
+            addTranslatorLanguageChoice(
+                name,
+                index
+            );
+        }
+
+        if(
+            translatorLanguageList.getChildCount()==0
+        ) {
+            TextView none=
+                new TextView(this);
+
+            none.setText(
+                "No language found"
+            );
+
+            none.setTextColor(
+                textColor()
+            );
+
+            none.setAlpha(.52f);
+            none.setTextSize(12);
+            none.setGravity(
+                Gravity.CENTER
+            );
+
+            translatorLanguageList.addView(
+                none,
+                new LinearLayout.LayoutParams(
+                    -1,
+                    dp(46)
+                )
+            );
+        }
+    }
+
+
+    void addTranslatorLanguageChoice(
+        String name,
+        int index
+    ) {
+        TextView item=
+            new TextView(this);
+
+        boolean selected=
+            translatorChoosingSource
+            ? translatorSourceLanguage==index
+            : translatorTargetLanguage==index;
+
+        item.setText(
+            selected
+            ? "✓  "+name
+            : "    "+name
+        );
+
+        item.setTextColor(
+            textColor()
+        );
+
+        item.setTextSize(14);
+        item.setGravity(
+            Gravity.CENTER_VERTICAL
+        );
+
+        item.setPadding(
+            dp(16),0,dp(12),0
+        );
+
+        if(selected) {
+            item.setBackground(
+                round(
+                    accentFillColor(),
+                    16,
+                    accentColor()
+                )
+            );
+        }
+
+        item.setOnClickListener(
+            v -> {
+                if(translatorChoosingSource)
+                    translatorSourceLanguage=index;
+                else
+                    translatorTargetLanguage=index;
+
+                translatorLanguageChooser=false;
+                translatorLanguageSearch="";
+                translatorResult="";
+                translatorStatus="";
+                symbols=false;
+                symbolPage=1;
+                shift=false;
+                showPage();
+            }
+        );
+
+        LinearLayout.LayoutParams p=
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(46)
+            );
+
+        p.setMargins(
+            dp(3),dp(2),dp(3),dp(2)
+        );
+
+        translatorLanguageList.addView(
+            item,
+            p
+        );
+    }
+
+
+    boolean handleTranslatorKey(
+        String action
+    ) {
+        if(page!=8)
+            return false;
+
+        if(action==null)
+            return true;
+
+        if(
+            action.equals("123") ||
+            action.equals("ABC") ||
+            action.equals("SYM1") ||
+            action.equals("SYM2") ||
+            action.equals("SHIFT")
+        ) {
+            return false;
+        }
+
+        if(action.equals("KEYS")) {
+            translatorLanguageChooser=false;
+            translatorLanguageSearch="";
+            page=0;
+            buildShell();
+            return true;
+        }
+
+        if(action.equals("BACK")) {
+            translatorBackspace();
+            return true;
+        }
+
+        if(action.equals("ENTER")) {
+            if(!translatorLanguageChooser)
+                translateSelectedTextOnline();
+
+            return true;
+        }
+
+        String value=
+            action.equals("SPACE")
+            ? " "
+            : action;
+
+        if(
+            value.length()>2 ||
+            action.equals("EMOJI") ||
+            action.equals("CLIPBOARD") ||
+            action.equals("SHORTCUTS")
+        ) {
+            return true;
+        }
+
+        if(
+            shift &&
+            !symbols &&
+            value.length()==1
+        ) {
+            value=
+                value.toUpperCase(
+                    java.util.Locale.getDefault()
+                );
+
+            if(!capsLock)
+                shift=false;
+        }
+
+        if(translatorLanguageChooser) {
+            if(
+                value.equals(" ") ||
+                Character.isLetterOrDigit(
+                    value.charAt(0)
+                )
+            ) {
+                translatorLanguageSearch+=value;
+                showPage();
+            }
+
+            return true;
+        }
+
+        if(translatorSourceText==null)
+            translatorSourceText="";
+
+        if(translatorSourceText.length()<450) {
+            translatorSourceText+=value;
+            translatorResult="";
+            translatorStatus="";
+            updateTranslatorPanel();
+        }
+
+        return true;
+    }
+
+
+    void translatorBackspace() {
+        if(translatorLanguageChooser) {
+            if(
+                translatorLanguageSearch!=null &&
+                !translatorLanguageSearch.isEmpty()
+            ) {
+                int end=
+                    translatorLanguageSearch.length();
+
+                int start=
+                    translatorLanguageSearch.offsetByCodePoints(
+                        end,
+                        -1
+                    );
+
+                translatorLanguageSearch=
+                    translatorLanguageSearch.substring(
+                        0,
+                        start
+                    );
+
+                showPage();
+            }
+
+            return;
+        }
+
+        if(
+            translatorSourceText!=null &&
+            !translatorSourceText.isEmpty()
+        ) {
+            int end=
+                translatorSourceText.length();
+
+            int start=
+                translatorSourceText.offsetByCodePoints(
+                    end,
+                    -1
+                );
+
+            translatorSourceText=
+                translatorSourceText.substring(
+                    0,
+                    start
+                );
+
+            translatorResult="";
+            translatorStatus="";
+            updateTranslatorPanel();
+        }
+    }
+
+
+    void swapTranslatorLanguages() {
+        int source=
+            translatorSourceLanguage;
+
+        if(source<0) {
+            source=
+                translatorIndexForCode(
+                    detectTranslatorLanguageCode(
+                        translatorSourceText
+                    )
+                );
+
+            if(source<0)
+                source=0;
+        }
+
+        int target=
+            translatorTargetLanguage;
+
+        translatorSourceLanguage=target;
+        translatorTargetLanguage=source;
+
+        if(
+            translatorResult!=null &&
+            !translatorResult.isEmpty()
+        ) {
+            String oldSource=
+                translatorSourceText;
+
+            translatorSourceText=
+                translatorResult;
+
+            translatorResult=
+                oldSource==null
+                ? ""
+                : oldSource;
+        }
+
+        translatorStatus="";
+        updateTranslatorPanel();
+    }
+
+
+    int translatorIndexForCode(
+        String code
+    ) {
+        if(code==null)
+            return -1;
+
+        for(
+            int i=0;
+            i<translatorLanguageCodes.length;
+            i++
+        ) {
+            if(
+                translatorLanguageCodes[i]
+                    .equalsIgnoreCase(code)
+            ) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+
+    String detectTranslatorLanguageCode(
+        String text
+    ) {
+        if(text==null)
+            return "en";
+
+        String lower=
+            text.toLowerCase(
+                java.util.Locale.ROOT
+            );
+
+        int arabic=0;
+        int cjk=0;
+        int hiragana=0;
+        int katakana=0;
+        int hangul=0;
+        int cyrillic=0;
+        int greek=0;
+        int hebrew=0;
+        int thai=0;
+        int devanagari=0;
+
+        for(
+            int offset=0;
+            offset<text.length();
+        ) {
+            int cp=
+                text.codePointAt(offset);
+
+            if(cp>=0x0600 && cp<=0x06FF)
+                arabic++;
+            else if(cp>=0x4E00 && cp<=0x9FFF)
+                cjk++;
+            else if(cp>=0x3040 && cp<=0x309F)
+                hiragana++;
+            else if(cp>=0x30A0 && cp<=0x30FF)
+                katakana++;
+            else if(cp>=0xAC00 && cp<=0xD7AF)
+                hangul++;
+            else if(cp>=0x0400 && cp<=0x04FF)
+                cyrillic++;
+            else if(cp>=0x0370 && cp<=0x03FF)
+                greek++;
+            else if(cp>=0x0590 && cp<=0x05FF)
+                hebrew++;
+            else if(cp>=0x0E00 && cp<=0x0E7F)
+                thai++;
+            else if(cp>=0x0900 && cp<=0x097F)
+                devanagari++;
+
+            offset+=
+                Character.charCount(cp);
+        }
+
+        if(hiragana+katakana>0)
+            return "ja";
+
+        if(hangul>0)
+            return "ko";
+
+        if(cjk>0)
+            return "zh-CN";
+
+        if(arabic>0)
+            return "ar";
+
+        if(greek>0)
+            return "el";
+
+        if(hebrew>0)
+            return "he";
+
+        if(thai>0)
+            return "th";
+
+        if(devanagari>0)
+            return "hi";
+
+        if(cyrillic>0) {
+            if(
+                lower.contains("і") ||
+                lower.contains("ї") ||
+                lower.contains("є")
+            )
+                return "uk";
+
+            return "ru";
+        }
+
+        if(
+            lower.matches(
+                ".*\\b(ang|mga|ako|ikaw|hindi|salamat|ito|iyon|para|naman|po|opo)\\b.*"
+            )
+        )
+            return "tl";
+
+        if(
+            lower.matches(
+                ".*\\b(ang|mga|ako|ikaw|dili|salamat|unsa|mao|para|kaayo|ug|sa)\\b.*"
+            )
+        )
+            return "ceb";
+
+        if(
+            lower.contains("ñ") ||
+            lower.contains("¿") ||
+            lower.contains("¡") ||
+            lower.matches(
+                ".*\\b(el|la|los|las|que|para|gracias|hola)\\b.*"
+            )
+        )
+            return "es";
+
+        if(
+            lower.contains("ç") ||
+            lower.contains("ã") ||
+            lower.contains("õ") ||
+            lower.matches(
+                ".*\\b(obrigado|você|não|para|uma|que)\\b.*"
+            )
+        )
+            return "pt";
+
+        if(
+            lower.contains("ğ") ||
+            lower.contains("ş") ||
+            lower.contains("ı") ||
+            lower.matches(
+                ".*\\b(ve|bir|bu|için|değil|merhaba)\\b.*"
+            )
+        )
+            return "tr";
+
+        if(
+            lower.matches(
+                ".*\\b(le|la|les|une|des|merci|bonjour|pour)\\b.*"
+            )
+        )
+            return "fr";
+
+        if(
+            lower.matches(
+                ".*\\b(der|die|das|und|ist|für|danke|hallo)\\b.*"
+            )
+        )
+            return "de";
+
+        if(
+            lower.matches(
+                ".*\\b(il|lo|la|gli|che|per|grazie|ciao)\\b.*"
+            )
+        )
+            return "it";
+
+        return "en";
     }
 
 
@@ -8238,6 +8993,10 @@ public class KeyKiiService extends InputMethodService {
         button.setTextSize(13);
         button.setGravity(
             Gravity.CENTER
+        );
+
+        button.setSingleLine(
+            true
         );
 
         button.setBackground(
@@ -8290,32 +9049,12 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
-    LinearLayout.LayoutParams translatorBoxParams() {
-        LinearLayout.LayoutParams p=
-            new LinearLayout.LayoutParams(
-                -1,
-                dp(72)
-            );
-
-        p.setMargins(
-            dp(3),
-            dp(4),
-            dp(3),
-            dp(4)
-        );
-
-        return p;
-    }
-
-
     void captureSelectedTextForTranslator() {
         InputConnection ic=
             getCurrentInputConnection();
 
-        if(ic==null) {
-            translatorSourceText="";
+        if(ic==null)
             return;
-        }
 
         try {
             CharSequence selected=
@@ -8330,14 +9069,10 @@ public class KeyKiiService extends InputMethodService {
                         selected.toString(),
                         450
                     );
-
-                return;
             }
 
         } catch(Exception ignored) {
         }
-
-        translatorSourceText="";
     }
 
 
@@ -8390,7 +9125,9 @@ public class KeyKiiService extends InputMethodService {
     void updateTranslatorPanel() {
         if(translatorSourceLanguageView!=null) {
             translatorSourceLanguageView.setText(
-                translatorLanguageNames[
+                translatorSourceLanguage<0
+                ? "Detect language"
+                : translatorLanguageNames[
                     translatorSourceLanguage
                 ]
             );
@@ -8408,8 +9145,15 @@ public class KeyKiiService extends InputMethodService {
             translatorSourceView.setText(
                 translatorSourceText==null ||
                 translatorSourceText.isEmpty()
-                ? "Select text in the app first"
+                ? "Type here to translate"
                 : translatorSourceText
+            );
+
+            translatorSourceView.setAlpha(
+                translatorSourceText==null ||
+                translatorSourceText.isEmpty()
+                ? .58f
+                : 1f
             );
         }
 
@@ -8417,7 +9161,7 @@ public class KeyKiiService extends InputMethodService {
             translatorResultView.setText(
                 translatorResult==null ||
                 translatorResult.isEmpty()
-                ? "Translation will appear here"
+                ? " "
                 : translatorResult
             );
         }
@@ -8430,7 +9174,7 @@ public class KeyKiiService extends InputMethodService {
 
             if(status.isEmpty()) {
                 status=
-                    "Online tool • selected text is sent only when Translate is tapped";
+                    "Translation is sent online only when you tap Translate";
             }
 
             translatorStatusView.setText(
@@ -8445,42 +9189,25 @@ public class KeyKiiService extends InputMethodService {
             translatorSourceText==null ||
             translatorSourceText.trim().isEmpty()
         ) {
-            captureSelectedTextForTranslator();
-        }
-
-        if(
-            translatorSourceText==null ||
-            translatorSourceText.trim().isEmpty()
-        ) {
             translatorStatus=
-                "Select text first";
+                "Type text to translate";
 
             updateTranslatorPanel();
             return;
         }
-
-        if(
-            translatorSourceLanguage==
-            translatorTargetLanguage
-        ) {
-            translatorResult=
-                translatorSourceText;
-
-            translatorStatus=
-                "Source and target are the same";
-
-            updateTranslatorPanel();
-            return;
-        }
-
-        final int request=
-            ++translatorRequestId;
 
         final String sourceText=
-            translatorSourceText;
+            trimTranslatorUtf8(
+                translatorSourceText,
+                450
+            );
 
         final String sourceCode=
-            translatorLanguageCodes[
+            translatorSourceLanguage<0
+            ? detectTranslatorLanguageCode(
+                sourceText
+            )
+            : translatorLanguageCodes[
                 translatorSourceLanguage
             ];
 
@@ -8488,6 +9215,33 @@ public class KeyKiiService extends InputMethodService {
             translatorLanguageCodes[
                 translatorTargetLanguage
             ];
+
+        if(
+            sourceCode.equalsIgnoreCase(
+                targetCode
+            )
+        ) {
+            translatorResult=
+                sourceText;
+
+            translatorStatus=
+                "Inserted";
+
+            InputConnection ic=
+                getCurrentInputConnection();
+
+            if(ic!=null)
+                ic.commitText(
+                    translatorResult,
+                    1
+                );
+
+            updateTranslatorPanel();
+            return;
+        }
+
+        final int request=
+            ++translatorRequestId;
 
         translatorStatus=
             "Translating…";
@@ -8549,7 +9303,7 @@ public class KeyKiiService extends InputMethodService {
 
                     connection.setRequestProperty(
                         "User-Agent",
-                        "KeyKii-Neo/2.33"
+                        "KeyKii-Neo/2.33.1"
                     );
 
                     int code=
@@ -8617,7 +9371,7 @@ public class KeyKiiService extends InputMethodService {
                                     android.text.Html.FROM_HTML_MODE_LEGACY
                                 ).toString();
 
-                            status="Ready";
+                            status="Inserted";
                         }
                     }
 
@@ -8669,65 +9423,27 @@ public class KeyKiiService extends InputMethodService {
                         translatorStatus=
                             finalStatus;
 
+                        if(
+                            finalResult!=null &&
+                            !finalResult.trim().isEmpty()
+                        ) {
+                            InputConnection ic=
+                                getCurrentInputConnection();
+
+                            if(ic!=null) {
+                                ic.commitText(
+                                    finalResult,
+                                    1
+                                );
+                            }
+                        }
+
                         updateTranslatorPanel();
                     }
                 );
             },
             "KeyKii-Translator"
         ).start();
-    }
-
-
-    void insertTranslatorResult(
-        boolean replaceSelection
-    ) {
-        if(
-            translatorResult==null ||
-            translatorResult.trim().isEmpty()
-        ) {
-            voiceToast(
-                "Translate text first"
-            );
-            return;
-        }
-
-        InputConnection ic=
-            getCurrentInputConnection();
-
-        if(ic==null)
-            return;
-
-        if(replaceSelection) {
-            try {
-                CharSequence selected=
-                    ic.getSelectedText(0);
-
-                if(
-                    selected==null ||
-                    selected.length()==0
-                ) {
-                    voiceToast(
-                        "Selection is no longer active"
-                    );
-
-                    return;
-                }
-            } catch(Exception e) {
-                voiceToast(
-                    "Selection is no longer active"
-                );
-
-                return;
-            }
-        }
-
-        ic.commitText(
-            translatorResult,
-            1
-        );
-
-        page=0;
-        buildShell();
     }
 
 
@@ -10403,6 +11119,9 @@ public class KeyKiiService extends InputMethodService {
         glideDecodeSession++;
 
         if(handleEmojiSearchKey(action))
+            return;
+
+        if(handleTranslatorKey(action))
             return;
 
         InputConnection i=
