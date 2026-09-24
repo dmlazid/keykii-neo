@@ -1589,7 +1589,7 @@ public class SettingsActivity extends Activity {
 
         addInfoCard(page,
                 "Network",
-                "Normal typing, emoji, kaomoji, calculator and text case work without internet. Translator uses Google ML Kit on-device translation for supported languages. Language models may download when first used. Cebuano uses an online translation fallback, so Cebuano text is sent online only when you tap Translate.");
+                "Normal typing, emoji, kaomoji, calculator and text case work without internet. Translator uses Google ML Kit on-device translation for supported languages; Cebuano uses an online fallback when you tap Translate. Grammar Fix sends only the text in its box to the LanguageTool grammar service when you tap Check grammar.");
 
         setContentView(wrap(page));
     }
