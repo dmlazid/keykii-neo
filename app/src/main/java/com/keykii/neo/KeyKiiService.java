@@ -20,6 +20,12 @@ public class KeyKiiService extends InputMethodService {
     HorizontalScrollView emojiSearchResultsScroll=null;
     LinearLayout emojiSearchResultsRow=null;
 
+    // 2.27.0 local word suggestions / prediction bar.
+    LinearLayout suggestionBar=null;
+    TextView[] suggestionViews=new TextView[3];
+    android.os.Handler suggestionHandler=
+        new android.os.Handler(android.os.Looper.getMainLooper());
+
     PopupWindow keyPreviewPopup=null;
     TextView keyPreviewText=null;
 
@@ -108,6 +114,8 @@ public class KeyKiiService extends InputMethodService {
                         getCurrentInputConnection();
                     if(ic!=null)
                         deleteOneBeforeCursor(ic);
+                    if(page==0 && !symbols)
+                        scheduleSuggestionRefresh();
                 }
 
                 backspaceRepeating=true;
@@ -1012,6 +1020,8 @@ public class KeyKiiService extends InputMethodService {
 
     void showPage() {
 
+        suggestionBar=null;
+        suggestionViews=new TextView[3];
         body.removeAllViews();
 
         if(page==0)
@@ -1036,9 +1046,259 @@ public class KeyKiiService extends InputMethodService {
             buildKeyboard();
     }
 
+    String currentWordPrefix() {
+        InputConnection ic=getCurrentInputConnection();
+        if(ic==null) return "";
+
+        try {
+            CharSequence before=ic.getTextBeforeCursor(64,0);
+            if(before==null) return "";
+
+            String s=before.toString();
+            int start=s.length();
+
+            while(start>0) {
+                char ch=s.charAt(start-1);
+                if(Character.isLetter(ch) || ch=='\'')
+                    start--;
+                else
+                    break;
+            }
+
+            return s.substring(start);
+        } catch(Exception ignored) {
+            return "";
+        }
+    }
+
+
+    java.util.ArrayList<String> loadLearnedWords() {
+        SharedPreferences sp=
+            getSharedPreferences(
+                "keykii_predictions",
+                MODE_PRIVATE
+            );
+
+        java.util.ArrayList<String> out=
+            new java.util.ArrayList<>();
+
+        for(int i=0;i<40;i++) {
+            String w=sp.getString("word"+i,"");
+            if(w!=null && !w.isEmpty() && !out.contains(w))
+                out.add(w);
+        }
+
+        return out;
+    }
+
+
+    void rememberPredictionWord(String word) {
+        if(word==null) return;
+
+        String clean=word.trim();
+        if(clean.length()<2 || clean.length()>32)
+            return;
+
+        for(int i=0;i<clean.length();i++) {
+            char ch=clean.charAt(i);
+            if(!Character.isLetter(ch) && ch!='\'')
+                return;
+        }
+
+        String normalized=clean.toLowerCase(java.util.Locale.ROOT);
+        java.util.ArrayList<String> words=loadLearnedWords();
+        words.remove(normalized);
+        words.add(0,normalized);
+
+        SharedPreferences sp=
+            getSharedPreferences(
+                "keykii_predictions",
+                MODE_PRIVATE
+            );
+
+        SharedPreferences.Editor e=sp.edit();
+        for(int i=0;i<40;i++)
+            e.remove("word"+i);
+
+        for(int i=0;i<Math.min(40,words.size());i++)
+            e.putString("word"+i,words.get(i));
+
+        e.apply();
+    }
+
+
+    void rememberCurrentWord(InputConnection ic) {
+        if(ic==null) return;
+
+        String prefix=currentWordPrefix();
+        if(prefix!=null && !prefix.isEmpty())
+            rememberPredictionWord(prefix);
+    }
+
+
+    String suggestionCase(String word, String prefix) {
+        if(word==null) return "";
+        if(prefix==null || prefix.isEmpty()) return word;
+
+        if(prefix.equals(prefix.toUpperCase(java.util.Locale.ROOT)))
+            return word.toUpperCase(java.util.Locale.ROOT);
+
+        if(Character.isUpperCase(prefix.charAt(0))) {
+            if(word.length()==1)
+                return word.toUpperCase(java.util.Locale.ROOT);
+            return word.substring(0,1).toUpperCase(java.util.Locale.ROOT)+
+                word.substring(1);
+        }
+
+        return word;
+    }
+
+
+    java.util.ArrayList<String> predictionSuggestions(String prefix) {
+        java.util.ArrayList<String> out=new java.util.ArrayList<>();
+        String q=prefix==null
+            ? ""
+            : prefix.toLowerCase(java.util.Locale.ROOT);
+
+        java.util.ArrayList<String> candidates=loadLearnedWords();
+
+        String[] common={
+            "the","to","and","a","i","you","it","is","in","that",
+            "for","of","on","this","with","my","we","are","be","have",
+            "not","was","but","what","can","me","your","so","do","if",
+            "just","like","how","yes","no","okay","ok","please","thanks","thank",
+            "good","great","hello","hi","hey","love","want","need","know","think",
+            "today","tomorrow","now","later","time","more","very","really","still","already",
+            "make","made","work","working","done","next","update","keyboard","clipboard","shortcut",
+            "where","when","why","who","which","there","here","from","about","because",
+            "could","would","should","will","may","maybe","also","only","back","again",
+            "new","same","right","left","first","last","before","after","much","many"
+        };
+
+        for(String w:common)
+            if(!candidates.contains(w))
+                candidates.add(w);
+
+        if(q.isEmpty()) {
+            String[] starters={"I","the","you"};
+            for(String s:starters) out.add(s);
+            return out;
+        }
+
+        for(String word:candidates) {
+            if(word==null || word.isEmpty()) continue;
+            String lower=word.toLowerCase(java.util.Locale.ROOT);
+
+            if(lower.startsWith(q) && !lower.equals(q)) {
+                String shown=suggestionCase(lower,prefix);
+                if(!out.contains(shown))
+                    out.add(shown);
+            }
+
+            if(out.size()>=3) break;
+        }
+
+        return out;
+    }
+
+
+    void commitSuggestion(String suggestion) {
+        if(suggestion==null || suggestion.isEmpty())
+            return;
+
+        InputConnection ic=getCurrentInputConnection();
+        if(ic==null) return;
+
+        String prefix=currentWordPrefix();
+
+        try {
+            if(prefix!=null && !prefix.isEmpty())
+                ic.deleteSurroundingText(prefix.length(),0);
+
+            ic.commitText(suggestion+" ",1);
+            rememberPredictionWord(suggestion);
+        } catch(Exception ignored) {
+            ic.commitText(suggestion+" ",1);
+        }
+
+        shift=false;
+        capsLock=false;
+        scheduleSuggestionRefresh();
+    }
+
+
+    void buildSuggestionBar() {
+        suggestionBar=new LinearLayout(this);
+        suggestionBar.setGravity(Gravity.CENTER);
+        suggestionBar.setPadding(dp(2),0,dp(2),0);
+
+        for(int i=0;i<3;i++) {
+            final int index=i;
+            TextView v=new TextView(this);
+            suggestionViews[i]=v;
+
+            v.setTextColor(textColor());
+            v.setTextSize(13);
+            v.setGravity(Gravity.CENTER);
+            v.setMaxLines(1);
+            v.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            v.setBackground(round(keyColor(false),13,borderColor()));
+            v.setPadding(dp(4),0,dp(4),0);
+
+            v.setOnClickListener(x -> {
+                CharSequence value=suggestionViews[index].getText();
+                if(value!=null && value.length()>0)
+                    commitSuggestion(value.toString());
+            });
+
+            LinearLayout.LayoutParams lp=
+                new LinearLayout.LayoutParams(0,dp(34),1);
+            lp.setMargins(dp(2),dp(1),dp(2),dp(2));
+            suggestionBar.addView(v,lp);
+        }
+
+        body.addView(
+            suggestionBar,
+            new LinearLayout.LayoutParams(-1,dp(37))
+        );
+
+        updateSuggestionBar();
+    }
+
+
+    void updateSuggestionBar() {
+        if(suggestionBar==null || page!=0 || symbols)
+            return;
+
+        java.util.ArrayList<String> values=
+            predictionSuggestions(currentWordPrefix());
+
+        for(int i=0;i<3;i++) {
+            TextView v=suggestionViews[i];
+            if(v==null) continue;
+
+            String value=i<values.size() ? values.get(i) : "";
+            v.setText(value);
+            v.setAlpha(value.isEmpty() ? 0f : 1f);
+            v.setClickable(!value.isEmpty());
+        }
+    }
+
+
+    void scheduleSuggestionRefresh() {
+        suggestionHandler.removeCallbacksAndMessages(null);
+        suggestionHandler.postDelayed(
+            () -> updateSuggestionBar(),
+            20
+        );
+    }
+
+
     void buildKeyboard() {
 
         if(!symbols) {
+
+            buildSuggestionBar();
 
             if(numberRow) {
                 row(new String[]{
@@ -6883,10 +7143,12 @@ public class KeyKiiService extends InputMethodService {
                 break;
 
             case "SPACE":
+                rememberCurrentWord(i);
                 smartSpace(i);
                 break;
 
             case "ENTER":
+                rememberCurrentWord(i);
                 enter(i);
 
                 if(autoCapitalization) {
@@ -7042,6 +7304,9 @@ public class KeyKiiService extends InputMethodService {
                     showPage();
                 }
         }
+
+        if(page==0 && !symbols)
+            scheduleSuggestionRefresh();
     }
 
     void smartSpace(InputConnection i) {
