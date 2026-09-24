@@ -219,10 +219,15 @@ public class SettingsActivity extends Activity {
                 "Auto-capitalization, double-space period and key preview",
                 v -> showSmartTyping()
         );
-        addRow(page, "〰", "Glide typing", "Swipe typing is not enabled yet", v -> showComing(
+        addRow(
+                page,
+                "〰",
                 "Glide typing",
-                "Glide typing needs a gesture decoder and language model. The setting is shown here now so the structure is ready, but it is not enabled yet."
-        ));
+                prefs.getBoolean("glide_typing", false)
+                        ? "On • Swipe across letters to type"
+                        : "Off • Swipe across letters to type",
+                v -> showGlideTyping()
+        );
         addRow(page, "🎙", "Voice typing", "Android voice input", v -> showVoice());
 
         addSection(page, "Data & content");
@@ -1074,6 +1079,54 @@ public class SettingsActivity extends Activity {
                 page,
                 "About suggestions",
                 "These helpers work locally. Full word suggestions and auto-correction are still planned for a later update."
+        );
+
+        setContentView(
+                wrap(page)
+        );
+    }
+
+
+    private void showGlideTyping() {
+        screen = "glide_typing";
+
+        LinearLayout page = page(
+                "Glide typing",
+                "Swipe across letters to enter a word",
+                true
+        );
+
+        addSection(
+                page,
+                "Typing"
+        );
+
+        addSwitchRow(
+                page,
+                "Enable glide typing",
+                "Swipe from letter to letter instead of tapping each key",
+                "glide_typing",
+                false
+        );
+
+        addSwitchRow(
+                page,
+                "Show glide trail",
+                "Show the letters KeyKii sees while your finger is moving",
+                "glide_trail",
+                true
+        );
+
+        addInfoCard(
+                page,
+                "Performance",
+                "Glide recognition only runs after a swipe. Normal tap typing does not run the glide decoder in the background."
+        );
+
+        addInfoCard(
+                page,
+                "Language",
+                "Glide typing currently uses KeyKii's local English dictionary and works offline."
         );
 
         setContentView(
