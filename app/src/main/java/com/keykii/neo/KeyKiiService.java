@@ -73,10 +73,12 @@ public class KeyKiiService extends InputMethodService {
     boolean wideMode=false;
     boolean numberRow=false;
 
-    // Keyboard language layouts. Prediction remains disabled; these only
-    // change the visible layout, long-press characters, locale casing and
-    // the language shown on the spacebar.
+    // Keyboard language layouts plus local word suggestions.
     String activeKeyboardLanguage="en-US";
+    boolean wordSuggestions=true;
+    LinearLayout predictionStrip=null;
+    TextView[] predictionViews=new TextView[3];
+    boolean predictionDictionaryLoading=false;
     java.util.ArrayList<String> enabledKeyboardLanguages=
         new java.util.ArrayList<>();
 
@@ -477,6 +479,11 @@ public class KeyKiiService extends InputMethodService {
             true
         );
 
+        wordSuggestions=keykiiPrefs.getBoolean(
+            "word_suggestions",
+            true
+        );
+
         glideTyping=keykiiPrefs.getBoolean(
             "glide_typing",
             false
@@ -498,6 +505,13 @@ public class KeyKiiService extends InputMethodService {
         loadKeyboardLanguagePrefs(
             keykiiPrefs
         );
+
+        if(
+            wordSuggestions &&
+            isEnglishKeyboardLanguage()
+        ) {
+            ensurePredictionDictionaryAsync();
+        }
 
         theme=resolvedTheme(keykiiPrefs);
 
@@ -609,6 +623,11 @@ public class KeyKiiService extends InputMethodService {
             true
         );
 
+        wordSuggestions=p.getBoolean(
+            "word_suggestions",
+            true
+        );
+
         glideTyping=p.getBoolean(
             "glide_typing",
             false
@@ -621,6 +640,13 @@ public class KeyKiiService extends InputMethodService {
 
         if(glideTyping)
             ensureGlideDictionaryAsync();
+
+        if(
+            wordSuggestions &&
+            isEnglishKeyboardLanguage()
+        ) {
+            ensurePredictionDictionaryAsync();
+        }
 
         wideMode=p.getBoolean(
             "wide_default",
@@ -659,6 +685,39 @@ public class KeyKiiService extends InputMethodService {
         if(root!=null)
             buildShell();
     }
+
+
+    @Override
+    public void onUpdateSelection(
+        int oldSelStart,
+        int oldSelEnd,
+        int newSelStart,
+        int newSelEnd,
+        int candidatesStart,
+        int candidatesEnd
+    ) {
+        super.onUpdateSelection(
+            oldSelStart,
+            oldSelEnd,
+            newSelStart,
+            newSelEnd,
+            candidatesStart,
+            candidatesEnd
+        );
+
+        if(
+            root!=null &&
+            page==0 &&
+            wordSuggestions
+        ) {
+            new android.os.Handler(
+                android.os.Looper.getMainLooper()
+            ).post(
+                () -> refreshPredictionSuggestions()
+            );
+        }
+    }
+
 
     void buildShell() {
 
@@ -2943,6 +3002,13 @@ public class KeyKiiService extends InputMethodService {
         capsLock=false;
         lastShiftTap=0L;
 
+        if(
+            wordSuggestions &&
+            isEnglishKeyboardLanguage()
+        ) {
+            ensurePredictionDictionaryAsync();
+        }
+
         showPage();
 
         voiceToast(
@@ -2957,6 +3023,19 @@ public class KeyKiiService extends InputMethodService {
         hideGlideTrail();
         glideLetterViews.clear();
         glideLetterActions.clear();
+
+        if(
+            !symbols &&
+            wordSuggestions &&
+            isEnglishKeyboardLanguage() &&
+            predictionAllowedForCurrentField()
+        ) {
+            buildPredictionStrip();
+        } else {
+            predictionStrip=null;
+            predictionViews=
+                new TextView[3];
+        }
 
         if(!symbols) {
 
@@ -3022,6 +3101,584 @@ public class KeyKiiService extends InputMethodService {
 
         bottom();
     }
+
+
+    boolean predictionAllowedForCurrentField() {
+        EditorInfo info=
+            getCurrentInputEditorInfo();
+
+        if(info==null)
+            return true;
+
+        int inputType=info.inputType;
+        int inputClass=
+            inputType &
+            android.text.InputType.TYPE_MASK_CLASS;
+
+        if(
+            inputClass!=
+            android.text.InputType.TYPE_CLASS_TEXT
+        ) {
+            return false;
+        }
+
+        int variation=
+            inputType &
+            android.text.InputType.TYPE_MASK_VARIATION;
+
+        if(
+            variation==
+                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD ||
+            variation==
+                android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
+            variation==
+                android.text.InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+
+    void ensurePredictionDictionaryAsync() {
+        if(
+            glideDictionary!=null ||
+            predictionDictionaryLoading
+        ) {
+            if(glideDictionary!=null) {
+                new android.os.Handler(
+                    android.os.Looper.getMainLooper()
+                ).post(
+                    () -> refreshPredictionSuggestions()
+                );
+            }
+
+            return;
+        }
+
+        predictionDictionaryLoading=true;
+
+        new Thread(
+            () -> {
+                loadGlideDictionaryBlocking();
+                predictionDictionaryLoading=false;
+
+                new android.os.Handler(
+                    android.os.Looper.getMainLooper()
+                ).post(
+                    () -> refreshPredictionSuggestions()
+                );
+            },
+            "KeyKii-Prediction-Dictionary"
+        ).start();
+    }
+
+
+    void buildPredictionStrip() {
+        predictionStrip=
+            new LinearLayout(this);
+
+        predictionStrip.setGravity(
+            Gravity.CENTER
+        );
+
+        predictionStrip.setPadding(
+            dp(2),
+            dp(2),
+            dp(2),
+            dp(2)
+        );
+
+        predictionViews=
+            new TextView[3];
+
+        for(int i=0;i<3;i++) {
+            final int index=i;
+
+            TextView word=
+                new TextView(this);
+
+            word.setText("");
+            word.setTextColor(textColor());
+            word.setTextSize(14);
+            word.setGravity(Gravity.CENTER);
+            word.setSingleLine(true);
+            word.setEllipsize(
+                android.text.TextUtils.TruncateAt.END
+            );
+
+            word.setBackground(
+                round(
+                    keyColor(false),
+                    14,
+                    borderColor()
+                )
+            );
+
+            word.setOnClickListener(
+                v -> {
+                    CharSequence value=
+                        predictionViews[index]
+                            .getText();
+
+                    if(
+                        value!=null &&
+                        value.length()>0
+                    ) {
+                        applyPredictionSuggestion(
+                            value.toString()
+                        );
+                    }
+                }
+            );
+
+            predictionViews[i]=word;
+
+            LinearLayout.LayoutParams p=
+                new LinearLayout.LayoutParams(
+                    0,
+                    dp(36),
+                    1f
+                );
+
+            p.setMargins(
+                dp(3),0,
+                dp(3),0
+            );
+
+            predictionStrip.addView(
+                word,
+                p
+            );
+        }
+
+        body.addView(
+            predictionStrip,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(40)
+            )
+        );
+
+        predictionStrip.post(
+            () -> refreshPredictionSuggestions()
+        );
+    }
+
+
+    String currentPredictionWord(
+        InputConnection ic
+    ) {
+        if(ic==null)
+            return "";
+
+        try {
+            CharSequence before=
+                ic.getTextBeforeCursor(
+                    64,
+                    0
+                );
+
+            if(
+                before==null ||
+                before.length()==0
+            ) {
+                return "";
+            }
+
+            int end=before.length();
+            int start=end;
+
+            while(start>0) {
+                char ch=
+                    before.charAt(start-1);
+
+                if(
+                    Character.isLetter(ch) ||
+                    ch=='\''
+                ) {
+                    start--;
+                } else {
+                    break;
+                }
+            }
+
+            return before
+                .subSequence(start,end)
+                .toString();
+
+        } catch(Exception ignored) {
+            return "";
+        }
+    }
+
+
+    String previousPredictionWord(
+        InputConnection ic
+    ) {
+        if(ic==null)
+            return "";
+
+        try {
+            CharSequence before=
+                ic.getTextBeforeCursor(
+                    96,
+                    0
+                );
+
+            if(before==null)
+                return "";
+
+            String text=
+                before.toString();
+
+            int end=text.length();
+
+            while(
+                end>0 &&
+                !Character.isLetter(
+                    text.charAt(end-1)
+                )
+            ) {
+                end--;
+            }
+
+            if(end<=0)
+                return "";
+
+            int start=end;
+
+            while(
+                start>0 &&
+                Character.isLetter(
+                    text.charAt(start-1)
+                )
+            ) {
+                start--;
+            }
+
+            return text
+                .substring(start,end)
+                .toLowerCase(
+                    java.util.Locale.ROOT
+                );
+
+        } catch(Exception ignored) {
+            return "";
+        }
+    }
+
+
+    String[] nextWordSeeds(
+        String previous
+    ) {
+        if(previous==null)
+            previous="";
+
+        switch(previous) {
+            case "i":
+                return new String[]{"am","have","will"};
+            case "you":
+                return new String[]{"are","can","have"};
+            case "we":
+                return new String[]{"are","can","will"};
+            case "they":
+                return new String[]{"are","have","will"};
+            case "good":
+                return new String[]{"morning","luck","job"};
+            case "how":
+                return new String[]{"are","do","is"};
+            case "what":
+                return new String[]{"is","are","do"};
+            case "can":
+                return new String[]{"you","I","we"};
+            case "please":
+                return new String[]{"send","check","let"};
+            case "thank":
+                return new String[]{"you","you","you"};
+            default:
+                return new String[]{"the","I","and"};
+        }
+    }
+
+
+    boolean predictionNearMatch(
+        String a,
+        String b
+    ) {
+        if(a==null || b==null)
+            return false;
+
+        int la=a.length();
+        int lb=b.length();
+
+        if(Math.abs(la-lb)>1)
+            return false;
+
+        int i=0;
+        int j=0;
+        int edits=0;
+
+        while(i<la && j<lb) {
+            if(a.charAt(i)==b.charAt(j)) {
+                i++;
+                j++;
+                continue;
+            }
+
+            if(++edits>1)
+                return false;
+
+            if(la>lb)
+                i++;
+            else if(lb>la)
+                j++;
+            else {
+                i++;
+                j++;
+            }
+        }
+
+        if(i<la || j<lb)
+            edits++;
+
+        return edits<=1;
+    }
+
+
+    String matchPredictionCase(
+        String candidate,
+        String typed
+    ) {
+        if(
+            candidate==null ||
+            candidate.isEmpty()
+        ) {
+            return "";
+        }
+
+        if(
+            typed!=null &&
+            typed.length()>1 &&
+            typed.equals(
+                typed.toUpperCase(
+                    keyboardLocale()
+                )
+            )
+        ) {
+            return candidate.toUpperCase(
+                keyboardLocale()
+            );
+        }
+
+        if(
+            typed!=null &&
+            !typed.isEmpty() &&
+            Character.isUpperCase(
+                typed.charAt(0)
+            )
+        ) {
+            return
+                candidate.substring(0,1)
+                    .toUpperCase(
+                        keyboardLocale()
+                    ) +
+                candidate.substring(1);
+        }
+
+        return candidate;
+    }
+
+
+    void refreshPredictionSuggestions() {
+        if(
+            predictionViews==null ||
+            predictionViews.length!=3
+        ) {
+            return;
+        }
+
+        if(
+            page!=0 ||
+            symbols ||
+            !wordSuggestions ||
+            !isEnglishKeyboardLanguage() ||
+            !predictionAllowedForCurrentField()
+        ) {
+            for(TextView view:predictionViews) {
+                if(view!=null)
+                    view.setText("");
+            }
+            return;
+        }
+
+        InputConnection ic=
+            getCurrentInputConnection();
+
+        if(ic==null)
+            return;
+
+        String typed=
+            currentPredictionWord(ic);
+
+        java.util.ArrayList<String> result=
+            new java.util.ArrayList<>();
+
+        if(typed.isEmpty()) {
+            String previous=
+                previousPredictionWord(ic);
+
+            String[] seeds=
+                nextWordSeeds(previous);
+
+            for(String seed:seeds) {
+                if(
+                    seed!=null &&
+                    !seed.isEmpty() &&
+                    !result.contains(seed)
+                ) {
+                    result.add(seed);
+                }
+            }
+
+        } else {
+            if(glideDictionary==null) {
+                ensurePredictionDictionaryAsync();
+            } else {
+                String prefix=
+                    typed.toLowerCase(
+                        java.util.Locale.ROOT
+                    );
+
+                for(String word:glideDictionary) {
+                    if(
+                        word.startsWith(prefix) &&
+                        !result.contains(word)
+                    ) {
+                        result.add(word);
+
+                        if(result.size()>=3)
+                            break;
+                    }
+                }
+
+                if(
+                    result.size()<3 &&
+                    prefix.length()>=3
+                ) {
+                    int checked=0;
+
+                    for(String word:glideDictionary) {
+                        if(checked++>=7000)
+                            break;
+
+                        if(
+                            result.contains(word) ||
+                            word.startsWith(prefix)
+                        ) {
+                            continue;
+                        }
+
+                        if(
+                            predictionNearMatch(
+                                prefix,
+                                word
+                            )
+                        ) {
+                            result.add(word);
+
+                            if(result.size()>=3)
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+
+        for(int i=0;i<3;i++) {
+            TextView view=
+                predictionViews[i];
+
+            if(view==null)
+                continue;
+
+            if(i<result.size()) {
+                String word=
+                    matchPredictionCase(
+                        result.get(i),
+                        typed
+                    );
+
+                view.setText(word);
+                view.setAlpha(1f);
+            } else {
+                view.setText("");
+                view.setAlpha(.35f);
+            }
+        }
+    }
+
+
+    void applyPredictionSuggestion(
+        String suggestion
+    ) {
+        if(
+            suggestion==null ||
+            suggestion.trim().isEmpty()
+        ) {
+            return;
+        }
+
+        InputConnection ic=
+            getCurrentInputConnection();
+
+        if(ic==null)
+            return;
+
+        String typed=
+            currentPredictionWord(ic);
+
+        try {
+            ic.beginBatchEdit();
+
+            if(!typed.isEmpty()) {
+                ic.deleteSurroundingText(
+                    typed.length(),
+                    0
+                );
+            }
+
+            ic.commitText(
+                suggestion+" ",
+                1
+            );
+
+            ic.endBatchEdit();
+
+        } catch(Exception e) {
+            try {
+                ic.endBatchEdit();
+            } catch(Exception ignored) {
+            }
+        }
+
+        if(
+            shift &&
+            !capsLock
+        ) {
+            shift=false;
+            lastShiftTap=0L;
+        }
+
+        new android.os.Handler(
+            android.os.Looper.getMainLooper()
+        ).postDelayed(
+            () -> refreshPredictionSuggestions(),
+            35
+        );
+    }
+
 
     void row(String[] values) {
 
