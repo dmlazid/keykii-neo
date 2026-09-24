@@ -128,7 +128,7 @@ public class KeyKiiService extends InputMethodService {
     // Gboard-style translator using Google ML Kit on-device translation.
     // Language models download on demand; typed text stays on the device.
     final String[] translatorLanguageNames={
-        "English","Filipino (Tagalog)","Spanish","French","German",
+        "English","Filipino (Tagalog)","Cebuano","Spanish","French","German",
         "Italian","Portuguese","Turkish","Chinese","Japanese","Korean",
         "Arabic","Russian","Ukrainian","Dutch","Polish","Romanian",
         "Greek","Hindi","Indonesian","Malay","Thai","Vietnamese",
@@ -140,7 +140,7 @@ public class KeyKiiService extends InputMethodService {
         "Slovak","Slovenian","Swahili","Tamil","Telugu","Urdu","Welsh"
     };
     final String[] translatorLanguageCodes={
-        "en","tl","es","fr","de",
+        "en","tl","ceb","es","fr","de",
         "it","pt","tr","zh","ja","ko",
         "ar","ru","uk","nl","pl","ro",
         "el","hi","id","ms","th","vi",
@@ -8994,33 +8994,124 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
-    String fallbackDetectedLanguageCode(
+    String strongDetectedLanguageCode(
         String text
     ) {
         if(text==null)
-            return "en";
+            return "";
 
         String lower=
             text.toLowerCase(
                 java.util.Locale.ROOT
             );
 
+        String clean=
+            " "+
+            lower.replaceAll(
+                "[^\\p{L}\\p{Nd}]+",
+                " "
+            ).trim()+
+            " ";
+
+        String[] cebuanoStrong={
+            "gwapa","gwapo","maayo","maayong","buntag","gabii",
+            "dili","unsa","ngano","asa","kinsa","kanus","kaayo",
+            "nimo","nako","imong","akong","gyud","pud","diri",
+            "adto","palihug","amping","gihigugma","gusto"
+        };
+
+        String[] filipinoStrong={
+            "maganda","magandang","hindi","bakit","saan","sino",
+            "kailan","kumusta","kamusta","umaga","gabi","ngayon",
+            "bukas","kahapon","mahal","opo","po","salamat",
+            "paano","ano","gusto","akin","iyo"
+        };
+
+        String[] englishStrong={
+            "hello","hi","good","morning","afternoon","evening",
+            "beautiful","thanks","thank","please","what","where",
+            "why","when","how","you","your","this","that","the",
+            "and","is","are","was","were","have","has","can",
+            "will","with","from"
+        };
+
+        String[] turkishStrong={
+            "merhaba","gunaydin","günaydın","teşekkür","tesekkur",
+            "evet","hayır","hayir","nasilsin","nasılsın","güzel"
+        };
+
+        int ceb=0;
+        int fil=0;
+        int en=0;
+        int tr=0;
+
+        for(String w:cebuanoStrong) {
+            if(clean.contains(" "+w+" "))
+                ceb++;
+        }
+
+        for(String w:filipinoStrong) {
+            if(clean.contains(" "+w+" "))
+                fil++;
+        }
+
+        for(String w:englishStrong) {
+            if(clean.contains(" "+w+" "))
+                en++;
+        }
+
+        for(String w:turkishStrong) {
+            if(clean.contains(" "+w+" "))
+                tr++;
+        }
+
+        // High-value Philippine words should win even in very short phrases.
         if(
-            lower.contains("ğ") ||
-            lower.contains("ş") ||
-            lower.contains("ı") ||
-            lower.matches(
-                ".*\\b(merhaba|gunaydin|günaydın|teşekkür|tesekkur|evet|hayır|hayir|nasilsin|nasılsın)\\b.*"
-            )
+            clean.contains(" gwapa ") ||
+            clean.contains(" gwapo ") ||
+            clean.contains(" dili ") ||
+            clean.contains(" unsa ") ||
+            clean.contains(" kaayo ") ||
+            clean.contains(" maayong ")
         )
-            return "tr";
+            return "ceb";
 
         if(
-            lower.matches(
-                ".*\\b(ang|mga|ako|ikaw|hindi|salamat|ito|iyon|para|naman|po|opo|maganda)\\b.*"
-            )
+            clean.contains(" maganda ") ||
+            clean.contains(" magandang ") ||
+            clean.contains(" hindi ") ||
+            clean.contains(" kumusta ") ||
+            clean.contains(" kamusta ")
         )
             return "tl";
+
+        if(tr>=1)
+            return "tr";
+
+        if(ceb>=2 && ceb>fil)
+            return "ceb";
+
+        if(fil>=2 && fil>=ceb)
+            return "tl";
+
+        if(en>=2)
+            return "en";
+
+        return "";
+    }
+
+
+    String fallbackDetectedLanguageCode(
+        String text
+    ) {
+        String strong=
+            strongDetectedLanguageCode(text);
+
+        if(!strong.isEmpty())
+            return strong;
+
+        if(text==null)
+            return "en";
 
         for(
             int offset=0;
@@ -9285,7 +9376,7 @@ public class KeyKiiService extends InputMethodService {
 
             if(status.isEmpty())
                 status=
-                    "On-device translation • model downloads on first use";
+                    "On-device translation • Cebuano uses internet fallback";
 
             translatorStatusView.setText(status);
         }
@@ -9331,6 +9422,32 @@ public class KeyKiiService extends InputMethodService {
                 ],
                 request
             );
+            return;
+        }
+
+        String strongDetected=
+            strongDetectedLanguageCode(
+                sourceText
+            );
+
+        if(!strongDetected.isEmpty()) {
+            translatorStatus=
+                "Detected "+
+                translatorDisplayNameForCode(
+                    strongDetected
+                );
+
+            updateTranslatorPanel();
+
+            startMlKitTranslation(
+                sourceText,
+                strongDetected,
+                translatorLanguageCodes[
+                    translatorTargetLanguage
+                ],
+                request
+            );
+
             return;
         }
 
@@ -9435,10 +9552,23 @@ public class KeyKiiService extends InputMethodService {
             )
         ) {
             translatorResult=sourceText;
-            translatorStatus="Same language";
+            translatorStatus=
+                "Already "+
+                translatorDisplayNameForCode(
+                    targetCode
+                );
             updateTranslatorPanel();
-            insertTranslatorTranslation(
+            return;
+        }
+
+        if(
+            sourceCode.equalsIgnoreCase("ceb") ||
+            targetCode.equalsIgnoreCase("ceb")
+        ) {
+            startOnlineTranslatorFallback(
                 sourceText,
+                sourceCode,
+                targetCode,
                 request
             );
             return;
@@ -9456,9 +9586,12 @@ public class KeyKiiService extends InputMethodService {
             sourceTag==null ||
             targetTag==null
         ) {
-            translatorStatus=
-                "Language pair is not supported";
-            updateTranslatorPanel();
+            startOnlineTranslatorFallback(
+                sourceText,
+                sourceCode,
+                targetCode,
+                request
+            );
             return;
         }
 
@@ -9530,9 +9663,12 @@ public class KeyKiiService extends InputMethodService {
                         if(request!=translatorRequestId)
                             return;
 
-                        translatorStatus=
-                            "Translation failed";
-                        updateTranslatorPanel();
+                        startOnlineTranslatorFallback(
+                            sourceText,
+                            sourceCode,
+                            targetCode,
+                            request
+                        );
                     }
                 );
             }
@@ -9543,11 +9679,203 @@ public class KeyKiiService extends InputMethodService {
                 if(request!=translatorRequestId)
                     return;
 
-                translatorStatus=
-                    "Language model download failed • check internet";
-                updateTranslatorPanel();
+                startOnlineTranslatorFallback(
+                    sourceText,
+                    sourceCode,
+                    targetCode,
+                    request
+                );
             }
         );
+    }
+
+
+    void startOnlineTranslatorFallback(
+        String sourceText,
+        String sourceCode,
+        String targetCode,
+        int request
+    ) {
+        translatorStatus=
+            sourceCode.equalsIgnoreCase("ceb") ||
+            targetCode.equalsIgnoreCase("ceb")
+            ? "Translating Cebuano online…"
+            : "Trying online translation…";
+
+        updateTranslatorPanel();
+
+        new Thread(
+            () -> {
+                String result="";
+                String status="";
+                java.net.HttpURLConnection connection=null;
+
+                try {
+                    String encodedText=
+                        java.net.URLEncoder.encode(
+                            sourceText,
+                            "UTF-8"
+                        );
+
+                    String encodedSource=
+                        java.net.URLEncoder.encode(
+                            sourceCode,
+                            "UTF-8"
+                        );
+
+                    String encodedTarget=
+                        java.net.URLEncoder.encode(
+                            targetCode,
+                            "UTF-8"
+                        );
+
+                    java.net.URL url=
+                        new java.net.URL(
+                            "https://translate.googleapis.com/translate_a/single"+
+                            "?client=gtx"+
+                            "&dt=t"+
+                            "&sl="+encodedSource+
+                            "&tl="+encodedTarget+
+                            "&q="+encodedText
+                        );
+
+                    connection=
+                        (java.net.HttpURLConnection)
+                        url.openConnection();
+
+                    connection.setConnectTimeout(8000);
+                    connection.setReadTimeout(10000);
+                    connection.setRequestMethod("GET");
+                    connection.setRequestProperty(
+                        "Accept",
+                        "application/json"
+                    );
+                    connection.setRequestProperty(
+                        "User-Agent",
+                        "KeyKii-Neo/2.33.3"
+                    );
+
+                    int code=
+                        connection.getResponseCode();
+
+                    if(code>=200 && code<300) {
+                        java.io.BufferedReader reader=
+                            new java.io.BufferedReader(
+                                new java.io.InputStreamReader(
+                                    connection.getInputStream(),
+                                    "UTF-8"
+                                )
+                            );
+
+                        StringBuilder raw=
+                            new StringBuilder();
+
+                        String line;
+                        while(
+                            (line=reader.readLine())!=null
+                        ) {
+                            raw.append(line);
+                        }
+
+                        reader.close();
+
+                        org.json.JSONArray root=
+                            new org.json.JSONArray(
+                                raw.toString()
+                            );
+
+                        org.json.JSONArray segments=
+                            root.optJSONArray(0);
+
+                        StringBuilder translated=
+                            new StringBuilder();
+
+                        if(segments!=null) {
+                            for(
+                                int i=0;
+                                i<segments.length();
+                                i++
+                            ) {
+                                org.json.JSONArray part=
+                                    segments.optJSONArray(i);
+
+                                if(part==null)
+                                    continue;
+
+                                String value=
+                                    part.optString(0,"");
+
+                                if(value!=null)
+                                    translated.append(value);
+                            }
+                        }
+
+                        result=
+                            translated.toString().trim();
+                    }
+
+                    if(
+                        result==null ||
+                        result.isEmpty() ||
+                        (
+                            !sourceCode.equalsIgnoreCase(
+                                targetCode
+                            ) &&
+                            result.equalsIgnoreCase(
+                                sourceText.trim()
+                            )
+                        )
+                    ) {
+                        result="";
+                        status=
+                            "Translation unavailable • try choosing the source language";
+                    } else {
+                        status="Translated";
+                    }
+
+                } catch(Exception e) {
+                    result="";
+                    status=
+                        "Translation failed • check internet";
+                } finally {
+                    if(connection!=null)
+                        connection.disconnect();
+                }
+
+                final String finalResult=
+                    result==null
+                    ? ""
+                    : result;
+
+                final String finalStatus=
+                    status;
+
+                new android.os.Handler(
+                    android.os.Looper.getMainLooper()
+                ).post(
+                    () -> {
+                        if(request!=translatorRequestId)
+                            return;
+
+                        translatorResult=
+                            finalResult;
+
+                        translatorStatus=
+                            finalStatus;
+
+                        updateTranslatorPanel();
+
+                        if(!finalResult.isEmpty()) {
+                            insertTranslatorTranslation(
+                                finalResult,
+                                request
+                            );
+                        }
+                    }
+                );
+            },
+            "KeyKii-Translate-Fallback"
+        ).start();
     }
 
 
