@@ -1288,6 +1288,16 @@ public class SettingsActivity extends Activity {
                 dp(285)
         );
 
+        addThemeSection(page, "Style packs");
+
+        addInfoCard(
+                page,
+                "Free + Pro preview",
+                "All packs are unlocked in this test build. Packs marked PRO PREVIEW are the designs we can later lock behind KeyKii Pro with Google Play Billing."
+        );
+
+        addKeyboardStylePackRows(page);
+
         addThemeSection(page, "My themes");
         addMyThemeTiles(page);
 
@@ -1423,6 +1433,20 @@ public class SettingsActivity extends Activity {
 
         addChoiceRow(
                 page,
+                "Keyboard font",
+                keyboardFontName(),
+                new String[]{
+                        "System","Rounded","Serif","Mono",
+                        "Condensed","Casual","Medium"
+                },
+                new int[]{0,1,2,3,4,5,6},
+                "keyboard_font_style",
+                0,
+                this::updateThemePreview
+        );
+
+        addChoiceRow(
+                page,
                 "Keyboard transparency",
                 themeTransparencyName(),
                 new String[]{"More transparent","Transparent","Balanced","Solid"},
@@ -1491,6 +1515,285 @@ public class SettingsActivity extends Activity {
 
         updateThemePreview();
         refreshThemeTileSelection();
+    }
+
+
+    private String keyboardFontName() {
+        int value=
+                prefs.getInt(
+                        "keyboard_font_style",
+                        0
+                );
+
+        switch(value) {
+            case 1:
+                return "Rounded";
+            case 2:
+                return "Serif";
+            case 3:
+                return "Mono";
+            case 4:
+                return "Condensed";
+            case 5:
+                return "Casual";
+            case 6:
+                return "Medium";
+            default:
+                return "System";
+        }
+    }
+
+
+    private void addKeyboardStylePackRows(
+            LinearLayout page
+    ) {
+        addStylePackRow(
+                page,
+                "FREE • Clean Cloud",
+                "Soft blue • rounded • simple",
+                0
+        );
+
+        addStylePackRow(
+                page,
+                "FREE • Matcha",
+                "Fresh green • rounded font",
+                1
+        );
+
+        addStylePackRow(
+                page,
+                "FREE • Midnight",
+                "Dark navy • medium font",
+                2
+        );
+
+        addStylePackRow(
+                page,
+                "PRO PREVIEW • Sakura",
+                "Pink blossom • rounded keys",
+                3
+        );
+
+        addStylePackRow(
+                page,
+                "PRO PREVIEW • Neon Night",
+                "Electric purple + cyan • mono",
+                4
+        );
+
+        addStylePackRow(
+                page,
+                "PRO PREVIEW • Rose Gold",
+                "Warm rose + cream • serif",
+                5
+        );
+
+        addStylePackRow(
+                page,
+                "PRO PREVIEW • Ocean Glass",
+                "Aqua glass • condensed",
+                6
+        );
+
+        addStylePackRow(
+                page,
+                "PRO PREVIEW • Sunset Pop",
+                "Orange + coral • casual",
+                7
+        );
+
+        addStylePackRow(
+                page,
+                "PRO PREVIEW • Lavender Dream",
+                "Lavender pastel • rounded",
+                8
+        );
+
+        addStylePackRow(
+                page,
+                "PRO PREVIEW • AMOLED",
+                "Pure black • minimal keys",
+                9
+        );
+
+        addStylePackRow(
+                page,
+                "PRO PREVIEW • Gaming Red",
+                "Black + red • sharp keys",
+                10
+        );
+
+        addStylePackRow(
+                page,
+                "PRO PREVIEW • Cocoa",
+                "Warm coffee • serif",
+                11
+        );
+    }
+
+
+    private void addStylePackRow(
+            LinearLayout page,
+            String name,
+            String subtitle,
+            int pack
+    ) {
+        addRow(
+                page,
+                "✦",
+                name,
+                subtitle,
+                v -> applyKeyboardStylePack(pack)
+        );
+    }
+
+
+    private void applyKeyboardStylePack(
+            int pack
+    ) {
+        int start;
+        int end;
+        int accent;
+        int corner;
+        int transparency;
+        int font;
+        boolean borders=true;
+        int baseTheme=1;
+
+        switch(pack) {
+            case 0:
+                start=Color.rgb(225,238,255);
+                end=Color.rgb(247,250,255);
+                accent=Color.rgb(76,126,205);
+                corner=18;
+                transparency=96;
+                font=0;
+                break;
+
+            case 1:
+                start=Color.rgb(218,241,204);
+                end=Color.rgb(246,244,210);
+                accent=Color.rgb(77,139,71);
+                corner=20;
+                transparency=96;
+                font=1;
+                break;
+
+            case 2:
+                start=Color.rgb(24,38,61);
+                end=Color.rgb(8,14,25);
+                accent=Color.rgb(91,143,224);
+                corner=14;
+                transparency=100;
+                font=6;
+                baseTheme=0;
+                break;
+
+            case 3:
+                start=Color.rgb(255,205,224);
+                end=Color.rgb(255,239,245);
+                accent=Color.rgb(220,93,143);
+                corner=22;
+                transparency=94;
+                font=1;
+                break;
+
+            case 4:
+                start=Color.rgb(34,12,62);
+                end=Color.rgb(5,23,44);
+                accent=Color.rgb(43,221,232);
+                corner=12;
+                transparency=94;
+                font=3;
+                baseTheme=0;
+                break;
+
+            case 5:
+                start=Color.rgb(229,177,174);
+                end=Color.rgb(251,235,216);
+                accent=Color.rgb(170,89,96);
+                corner=17;
+                transparency=98;
+                font=2;
+                break;
+
+            case 6:
+                start=Color.rgb(181,236,239);
+                end=Color.rgb(213,232,255);
+                accent=Color.rgb(35,143,164);
+                corner=24;
+                transparency=78;
+                font=4;
+                break;
+
+            case 7:
+                start=Color.rgb(255,189,115);
+                end=Color.rgb(250,111,117);
+                accent=Color.rgb(207,67,48);
+                corner=18;
+                transparency=94;
+                font=5;
+                break;
+
+            case 8:
+                start=Color.rgb(222,205,255);
+                end=Color.rgb(250,226,248);
+                accent=Color.rgb(131,90,192);
+                corner=24;
+                transparency=93;
+                font=1;
+                break;
+
+            case 9:
+                start=Color.rgb(0,0,0);
+                end=Color.rgb(0,0,0);
+                accent=Color.rgb(116,116,124);
+                corner=10;
+                transparency=100;
+                font=0;
+                borders=false;
+                baseTheme=0;
+                break;
+
+            case 10:
+                start=Color.rgb(20,20,23);
+                end=Color.rgb(2,2,3);
+                accent=Color.rgb(222,45,55);
+                corner=6;
+                transparency=100;
+                font=6;
+                baseTheme=0;
+                break;
+
+            default:
+                start=Color.rgb(119,80,62);
+                end=Color.rgb(55,34,27);
+                accent=Color.rgb(218,166,117);
+                corner=16;
+                transparency=98;
+                font=2;
+                baseTheme=0;
+                break;
+        }
+
+        prefs.edit()
+                .putInt("theme_surface_mode",2)
+                .putInt("theme",baseTheme)
+                .putInt("theme_custom_start",start)
+                .putInt("theme_custom_end",end)
+                .putInt("accent_color",accent)
+                .putInt("key_corner_radius",corner)
+                .putInt("theme_transparency",transparency)
+                .putInt("keyboard_font_style",font)
+                .putBoolean("theme_key_borders",borders)
+                .putBoolean("photo_key_borders",borders)
+                .putBoolean("theme_auto_day_night",false)
+                .putInt("keykii_style_pack",pack)
+                .apply();
+
+        toast("Style pack applied");
+        showTheme();
     }
 
 
