@@ -3387,66 +3387,6 @@ public class SettingsActivity extends Activity {
                 strokeWidth=2;
                 break;
 
-            case 9:
-                start=
-                        special || wideKey
-                                ? blendPreviewColor(accent,white,76)
-                                : Color.rgb(250,252,255);
-                end=blendPreviewColor(accent,white,90);
-                stroke=blendPreviewColor(accent,black,12);
-                strokeWidth=1;
-                break;
-
-            case 10:
-                start=
-                        special || wideKey
-                                ? blendPreviewColor(accent,white,38)
-                                : blendPreviewColor(accent,white,68);
-                end=blendPreviewColor(accent,white,54);
-                stroke=blendPreviewColor(accent,black,28);
-                strokeWidth=1;
-                break;
-
-            case 11:
-                start=Color.argb(
-                        special || wideKey ? 220 : 170,
-                        Color.red(blendPreviewColor(accent,white,45)),
-                        Color.green(blendPreviewColor(accent,white,45)),
-                        Color.blue(blendPreviewColor(accent,white,45))
-                );
-                end=Color.argb(
-                        special || wideKey ? 205 : 145,
-                        255,255,255
-                );
-                stroke=Color.WHITE;
-                strokeWidth=2;
-                break;
-
-            case 12:
-                start=blendPreviewColor(accent,white,82);
-                end=blendPreviewColor(accent,white,67);
-                stroke=blendPreviewColor(accent,white,22);
-                strokeWidth=1;
-                break;
-
-            case 13:
-                start=blendPreviewColor(accent,white,74);
-                end=blendPreviewColor(
-                        accent,
-                        Color.rgb(255,224,240),
-                        45
-                );
-                stroke=Color.WHITE;
-                strokeWidth=2;
-                break;
-
-            case 14:
-                start=Color.rgb(250,253,255);
-                end=blendPreviewColor(accent,white,82);
-                stroke=blendPreviewColor(accent,white,42);
-                strokeWidth=2;
-                break;
-
             default:
                 start=dark
                         ? Color.argb(
@@ -3534,7 +3474,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,184,211),
                         Color.rgb(255,235,244),
                         Color.rgb(230,90,145),
-                        12,98,1,1,20,13
+                        12,98,1,1,20,8
                 };
 
             case 101:
@@ -3542,7 +3482,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(124,147,255),
                         Color.rgb(208,218,255),
                         Color.rgb(92,111,234),
-                        12,98,1,1,21,11
+                        12,98,1,1,21,6
                 };
 
             case 102:
@@ -3550,7 +3490,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(203,231,179),
                         Color.rgb(244,247,211),
                         Color.rgb(91,150,75),
-                        13,98,1,1,22,10
+                        13,98,1,1,22,3
                 };
 
             case 103:
@@ -3558,7 +3498,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,195,175),
                         Color.rgb(255,235,226),
                         Color.rgb(210,113,87),
-                        12,98,1,1,23,10
+                        12,98,1,1,23,3
                 };
 
             case 104:
@@ -3566,7 +3506,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(215,191,255),
                         Color.rgb(244,233,255),
                         Color.rgb(135,91,194),
-                        12,98,1,1,24,12
+                        12,98,1,1,24,3
                 };
 
             case 105:
@@ -3582,7 +3522,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,171,204),
                         Color.rgb(255,233,241),
                         Color.rgb(229,80,132),
-                        13,100,1,1,26,13
+                        13,100,1,1,26,8
                 };
 
             case 107:
@@ -3590,7 +3530,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(89,110,201),
                         Color.rgb(209,221,255),
                         Color.rgb(117,132,220),
-                        12,98,1,1,27,11
+                        12,98,1,1,27,6
                 };
 
             case 108:
@@ -3598,7 +3538,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(185,229,181),
                         Color.rgb(236,249,225),
                         Color.rgb(72,151,83),
-                        13,98,1,1,28,10
+                        13,98,1,1,28,3
                 };
 
             case 109:
@@ -3606,7 +3546,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(226,184,173),
                         Color.rgb(248,224,218),
                         Color.rgb(171,105,90),
-                        12,98,1,1,29,10
+                        12,98,1,1,29,3
                 };
 
             case 110:
@@ -3614,7 +3554,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(210,191,250),
                         Color.rgb(248,238,255),
                         Color.rgb(135,93,190),
-                        12,98,1,1,30,12
+                        12,98,1,1,30,3
                 };
 
             case 111:
@@ -3622,7 +3562,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,183,204),
                         Color.rgb(255,232,225),
                         Color.rgb(225,80,126),
-                        12,98,1,1,31,13
+                        12,98,1,1,31,8
                 };
 
             case 112:
@@ -3630,7 +3570,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(83,171,246),
                         Color.rgb(185,230,255),
                         Color.rgb(50,143,226),
-                        12,98,1,1,32,11
+                        12,98,1,1,32,6
                 };
 
             case 113:
@@ -3638,7 +3578,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(126,84,62),
                         Color.rgb(205,164,133),
                         Color.rgb(188,128,84),
-                        11,100,1,0,33,10
+                        11,100,1,0,33,5
                 };
 
             case 114:
@@ -3646,7 +3586,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(255,173,211),
                         Color.rgb(255,231,244),
                         Color.rgb(226,80,150),
-                        13,100,1,1,34,13
+                        13,100,1,1,34,8
                 };
 
             case 115:
@@ -3654,7 +3594,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(203,220,255),
                         Color.rgb(247,250,255),
                         Color.rgb(66,108,181),
-                        10,100,1,1,35,9
+                        10,100,1,1,35,6
                 };
 
             case 116:
@@ -3662,7 +3602,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(219,202,246),
                         Color.rgb(247,239,255),
                         Color.rgb(127,83,171),
-                        10,96,1,1,36,12
+                        10,96,1,1,36,2
                 };
 
             case 117:
@@ -3670,7 +3610,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(241,229,215),
                         Color.rgb(255,249,242),
                         Color.rgb(168,126,98),
-                        10,100,1,1,37,9
+                        10,100,1,1,37,3
                 };
 
             case 118:
@@ -3686,7 +3626,7 @@ public class SettingsActivity extends Activity {
                         Color.rgb(210,235,255),
                         Color.rgb(245,239,255),
                         Color.rgb(224,88,119),
-                        10,98,1,1,39,14
+                        10,98,1,1,39,6
                 };
 
             default:
@@ -3879,130 +3819,28 @@ public class SettingsActivity extends Activity {
                 value.equals("KeyKii") ||
                 value.equals("5");
 
-        boolean midLeft=
-                value.equals("e") ||
-                value.equals("a") ||
-                value.equals("z");
-
-        boolean midRight=
-                value.equals("i") ||
-                value.equals("l") ||
-                value.equals("m");
-
         if(
                 !left &&
                 !right &&
-                !center &&
-                !midLeft &&
-                !midRight
+                !center
         ) {
             return 0;
         }
 
-        switch(pack) {
-            case 100:
-                if(right || midRight) return R.drawable.theme_motif_cherry;
-                if(center) return R.drawable.theme_motif_heart;
-                return R.drawable.theme_motif_flower;
-
-            case 101:
-                if(center) return R.drawable.theme_motif_moonstar;
-                if(right || midRight) return R.drawable.theme_motif_cloud;
-                return R.drawable.theme_motif_star;
-
-            case 102:
-                if(center) return R.drawable.theme_motif_cup;
-                if(midLeft || midRight) return R.drawable.theme_motif_leaf;
-                return R.drawable.theme_motif_bunny;
-
-            case 103:
-                if(right || midRight) return R.drawable.theme_motif_cake;
-                if(center) return R.drawable.theme_motif_heart;
-                return R.drawable.theme_motif_bear;
-
-            case 104:
-                if(center) return R.drawable.theme_motif_bow;
-                if(midLeft || midRight) return R.drawable.theme_motif_flower;
+        if(pack==116) {
+            if(right)
                 return R.drawable.theme_motif_butterfly;
 
-            case 105:
-                if(center) return R.drawable.theme_motif_bubble;
-                if(midLeft || midRight) return R.drawable.theme_motif_moonstar;
-                return R.drawable.theme_motif_star;
-
-            case 106:
-                if(center) return R.drawable.theme_motif_heart;
-                if(right || midRight) return R.drawable.theme_motif_bow;
-                return R.drawable.theme_motif_strawberry;
-
-            case 107:
-                if(center) return R.drawable.theme_motif_moonstar;
-                if(midLeft || midRight) return R.drawable.theme_motif_star;
-                return R.drawable.theme_motif_cloud;
-
-            case 108:
-                if(center) return R.drawable.theme_motif_flower;
-                if(midLeft || midRight) return R.drawable.theme_motif_leaf;
-                return R.drawable.theme_motif_frog;
-
-            case 109:
-                if(center) return R.drawable.theme_motif_heart;
-                if(right || midRight) return R.drawable.theme_motif_bow;
-                return R.drawable.theme_motif_bear;
-
-            case 110:
-                if(center) return R.drawable.theme_motif_bow;
-                if(midLeft || midRight) return R.drawable.theme_motif_flower;
-                return R.drawable.theme_motif_butterfly;
-
-            case 111:
-                if(center) return R.drawable.theme_motif_cup;
-                if(right || midRight) return R.drawable.theme_motif_cherry;
-                return R.drawable.theme_motif_flower;
-
-            case 112:
-                if(center) return R.drawable.theme_motif_star;
-                if(midLeft || midRight) return R.drawable.theme_motif_moonstar;
-                return R.drawable.theme_motif_bubble;
-
-            case 113:
-                if(center) return R.drawable.theme_motif_cup;
-                if(right || midRight) return R.drawable.theme_motif_bear;
-                return R.drawable.theme_motif_bunny;
-
-            case 114:
-                if(center) return R.drawable.theme_motif_heart;
-                if(right || midRight) return R.drawable.theme_motif_cat;
-                return R.drawable.theme_motif_bow;
-
-            case 115:
-                if(center) return R.drawable.theme_motif_lotus;
-                if(midLeft || midRight) return R.drawable.theme_motif_flower;
-                return R.drawable.theme_motif_star;
-
-            case 116:
-                if(right || midRight) return R.drawable.theme_motif_butterfly;
-                return R.drawable.theme_motif_lotus;
-
-            case 117:
-                if(center || midLeft) return R.drawable.theme_motif_heart;
-                if(right || midRight) return R.drawable.theme_motif_bow;
-                return R.drawable.theme_motif_flower;
-
-            case 118:
-                if(center) return R.drawable.theme_motif_heart;
-                if(midLeft || midRight) return R.drawable.theme_motif_star;
-                return R.drawable.theme_motif_butterfly;
-
-            case 119:
-                if(center) return R.drawable.theme_motif_bow;
-                if(right || midRight) return R.drawable.theme_motif_gift;
-                return R.drawable.theme_motif_snow;
+            return R.drawable.theme_motif_lotus;
         }
 
-        if(center) return previewThemeTertiaryAssetRes(pack);
-        if(right || midRight) return previewThemeSecondaryAssetRes(pack);
-        return previewThemePrimaryAssetRes(pack);
+        if(left)
+            return previewThemePrimaryAssetRes(pack);
+
+        if(right)
+            return previewThemeSecondaryAssetRes(pack);
+
+        return previewThemeTertiaryAssetRes(pack);
     }
 
 
@@ -4067,11 +3905,99 @@ public class SettingsActivity extends Activity {
                     style>=20 &&
                     style<=39
             ) {
-                drawAestheticPreviewComposition(
+                if(pack==116) {
+                    int res=
+                            R.drawable.theme_motif_lotus;
+
+                    android.graphics.drawable.Drawable motif=
+                            SettingsActivity.this.getDrawable(res);
+
+                    if(motif!=null) {
+                        motif=motif.mutate();
+                        motif.setTint(accent);
+                        motif.setAlpha(180);
+
+                        drawPreviewAsset(
+                                canvas,
+                                motif,
+                                w*.03f,
+                                h*.04f,
+                                previewAssetSize(w,h,false)
+                        );
+
+                        drawPreviewAsset(
+                                canvas,
+                                motif,
+                                w*.78f,
+                                h*.04f,
+                                previewAssetSize(w,h,true)
+                        );
+
+                        drawPreviewAsset(
+                                canvas,
+                                motif,
+                                w*.72f,
+                                h*.69f,
+                                previewAssetSize(w,h,false)
+                        );
+
+                        return;
+                    }
+                }
+
+                int primary=
+                        previewThemePrimaryAssetRes(pack);
+
+                int secondary=
+                        previewThemeSecondaryAssetRes(pack);
+
+                int tertiary=
+                        previewThemeTertiaryAssetRes(pack);
+
+                drawPreviewTintedAsset(
+                        canvas,
+                        primary,
+                        accent,
+                        dark ? 210 : 185,
+                        w*.02f,
+                        h*.04f,
+                        previewAssetSize(w,h,false)
+                );
+
+                drawPreviewTintedAsset(
+                        canvas,
+                        secondary,
+                        blendPreviewColor(
+                                accent,
+                                Color.WHITE,
+                                dark ? 45 : 58
+                        ),
+                        dark ? 220 : 195,
+                        w*.78f,
+                        h*.03f,
+                        previewAssetSize(w,h,true)
+                );
+
+                drawPreviewTintedAsset(
+                        canvas,
+                        tertiary,
+                        blendPreviewColor(
+                                accent,
+                                Color.WHITE,
+                                dark ? 20 : 35
+                        ),
+                        dark ? 200 : 175,
+                        w*.70f,
+                        h*.70f,
+                        previewAssetSize(w,h,false)
+                );
+
+                drawSmallPreviewAccent(
                         canvas,
                         w,
                         h
                 );
+
                 return;
             }
 
@@ -4320,6 +4246,72 @@ public class SettingsActivity extends Activity {
         }
 
 
+        void drawSmallPreviewAccent(
+                android.graphics.Canvas canvas,
+                float w,
+                float h
+        ) {
+            if(pack==116)
+                return;
+
+            int soft=
+                    blendPreviewColor(
+                            accent,
+                            Color.WHITE,
+                            dark ? 38 : 58
+                    );
+
+            int a=0;
+            int b=0;
+
+            switch(pack) {
+                case 100: a=R.drawable.theme_motif_flower; b=R.drawable.theme_motif_cherry; break;
+                case 101: a=R.drawable.theme_motif_star; b=R.drawable.theme_motif_star; break;
+                case 102: a=R.drawable.theme_motif_leaf; b=R.drawable.theme_motif_leaf; break;
+                case 103: a=R.drawable.theme_motif_heart; b=R.drawable.theme_motif_cake; break;
+                case 104: a=R.drawable.theme_motif_flower; b=R.drawable.theme_motif_butterfly; break;
+                case 105: a=R.drawable.theme_motif_star; b=R.drawable.theme_motif_bubble; break;
+                case 106: a=R.drawable.theme_motif_heart; b=R.drawable.theme_motif_strawberry; break;
+                case 107: a=R.drawable.theme_motif_star; b=R.drawable.theme_motif_cloud; break;
+                case 108: a=R.drawable.theme_motif_leaf; b=R.drawable.theme_motif_flower; break;
+                case 109: a=R.drawable.theme_motif_bow; b=R.drawable.theme_motif_heart; break;
+                case 110: a=R.drawable.theme_motif_flower; b=R.drawable.theme_motif_bow; break;
+                case 111: a=R.drawable.theme_motif_cherry; b=R.drawable.theme_motif_cup; break;
+                case 112: a=R.drawable.theme_motif_star; b=R.drawable.theme_motif_bubble; break;
+                case 113: a=R.drawable.theme_motif_heart; b=R.drawable.theme_motif_cup; break;
+                case 114: a=R.drawable.theme_motif_bow; b=R.drawable.theme_motif_heart; break;
+                case 115: a=R.drawable.theme_motif_flower; b=R.drawable.theme_motif_lotus; break;
+                case 117: a=R.drawable.theme_motif_heart; b=R.drawable.theme_motif_bow; break;
+                case 118: a=R.drawable.theme_motif_star; b=R.drawable.theme_motif_butterfly; break;
+                case 119: a=R.drawable.theme_motif_snow; b=R.drawable.theme_motif_gift; break;
+            }
+
+            if(a!=0) {
+                drawPreviewTintedAsset(
+                        canvas,
+                        a,
+                        soft,
+                        dark ? 165 : 145,
+                        w*.30f,
+                        h*.03f,
+                        Math.max(dp(12),previewAssetSize(w,h,false)*2/3)
+                );
+            }
+
+            if(b!=0) {
+                drawPreviewTintedAsset(
+                        canvas,
+                        b,
+                        accent,
+                        dark ? 175 : 150,
+                        w*.60f,
+                        h*.76f,
+                        Math.max(dp(13),previewAssetSize(w,h,false)*2/3)
+                );
+            }
+        }
+
+
         int previewAssetSize(
                 float w,
                 float h,
@@ -4359,370 +4351,6 @@ public class SettingsActivity extends Activity {
             );
 
             drawable.draw(canvas);
-        }
-
-
-        void drawAestheticPreviewComposition(
-                android.graphics.Canvas canvas,
-                float w,
-                float h
-        ) {
-            int soft=
-                    blendPreviewColor(
-                            accent,
-                            Color.WHITE,
-                            dark ? 34 : 58
-                    );
-
-            int deep=
-                    blendPreviewColor(
-                            accent,
-                            Color.BLACK,
-                            dark ? 10 : 20
-                    );
-
-            switch(pack) {
-                case 100:
-                    previewGarland(canvas,w,h,R.drawable.theme_motif_flower,R.drawable.theme_motif_cherry,soft);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_heart,accent,190,w*.47f,h*.06f,previewAssetSize(w,h,false)*2/3);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_flower,accent,215,w*.01f,h*.68f,previewAssetSize(w,h,true));
-                    break;
-
-                case 101:
-                    previewStars(canvas,w,h,soft);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_moonstar,soft,225,w*.02f,h*.03f,previewAssetSize(w,h,true));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_cloud,Color.WHITE,185,w*.69f,h*.05f,previewAssetSize(w,h,true));
-                    break;
-
-                case 102:
-                    previewLeafBorder(canvas,w,h,soft);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_bunny,accent,220,w*.02f,h*.62f,previewAssetSize(w,h,true));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_cup,deep,210,w*.77f,h*.67f,previewAssetSize(w,h,false));
-                    break;
-
-                case 103:
-                    previewGrid(canvas,w,h,accent,22,19,34);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_bear,deep,220,w*.74f,h*.02f,previewAssetSize(w,h,true));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_cake,accent,215,w*.02f,h*.67f,previewAssetSize(w,h,false));
-                    break;
-
-                case 104:
-                    previewScallops(canvas,w,h,soft);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_butterfly,accent,220,w*.01f,h*.03f,previewAssetSize(w,h,false));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_butterfly,soft,205,w*.80f,h*.05f,previewAssetSize(w,h,false));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_bow,accent,190,w*.43f,h*.70f,previewAssetSize(w,h,false));
-                    break;
-
-                case 105:
-                    previewNeonGrid(canvas,w,h,accent);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_star,accent,230,w*.02f,h*.06f,previewAssetSize(w,h,false));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_bubble,Color.MAGENTA,185,w*.78f,h*.04f,previewAssetSize(w,h,true));
-                    break;
-
-                case 106:
-                    previewDots(canvas,w,h,accent,18,22);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_strawberry,accent,225,w*.01f,h*.04f,previewAssetSize(w,h,false));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_bow,soft,230,w*.78f,h*.03f,previewAssetSize(w,h,true));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_heart,accent,185,w*.46f,h*.06f,previewAssetSize(w,h,false)*2/3);
-                    break;
-
-                case 107:
-                    previewStars(canvas,w,h,soft);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_moonstar,soft,230,w*.02f,h*.01f,previewAssetSize(w,h,true));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_cloud,Color.WHITE,190,w*.58f,h*.06f,previewAssetSize(w,h,true));
-                    break;
-
-                case 108:
-                    previewLeafBorder(canvas,w,h,accent);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_frog,accent,225,w*.01f,h*.62f,previewAssetSize(w,h,true));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_frog,soft,205,w*.79f,h*.03f,previewAssetSize(w,h,false));
-                    break;
-
-                case 109:
-                    previewGrid(canvas,w,h,deep,24,20,38);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_bear,deep,225,w*.74f,h*.02f,previewAssetSize(w,h,true));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_bow,accent,210,w*.02f,h*.04f,previewAssetSize(w,h,false));
-                    break;
-
-                case 110:
-                    previewScallops(canvas,w,h,soft);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_butterfly,accent,220,w*.02f,h*.03f,previewAssetSize(w,h,false));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_flower,accent,190,w*.02f,h*.70f,previewAssetSize(w,h,false));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_bow,soft,195,w*.77f,h*.69f,previewAssetSize(w,h,false));
-                    break;
-
-                case 111:
-                    previewGarland(canvas,w,h,R.drawable.theme_motif_flower,R.drawable.theme_motif_cherry,soft);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_cup,accent,205,w*.77f,h*.67f,previewAssetSize(w,h,false));
-                    break;
-
-                case 112:
-                    previewWaves(canvas,w,h,soft);
-                    previewBubbles(canvas,w,h,Color.WHITE);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_star,soft,220,w*.02f,h*.04f,previewAssetSize(w,h,false));
-                    break;
-
-                case 113:
-                    previewChecker(canvas,w,h,deep,soft);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_bunny,soft,220,w*.02f,h*.03f,previewAssetSize(w,h,false));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_bear,accent,215,w*.78f,h*.03f,previewAssetSize(w,h,false));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_cup,deep,205,w*.76f,h*.69f,previewAssetSize(w,h,false));
-                    break;
-
-                case 114:
-                    previewDots(canvas,w,h,soft,19,20);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_cat,accent,225,w*.74f,h*.01f,previewAssetSize(w,h,true));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_bow,soft,225,w*.01f,h*.03f,previewAssetSize(w,h,false));
-                    break;
-
-                case 115:
-                    previewFrame(canvas,w,h,accent,2);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_flower,accent,220,w*.00f,h*.00f,previewAssetSize(w,h,true));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_lotus,deep,190,w*.78f,h*.02f,previewAssetSize(w,h,true));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_flower,soft,205,w*.78f,h*.68f,previewAssetSize(w,h,false));
-                    break;
-
-                case 116:
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_lotus,accent,215,w*.01f,h*.02f,previewAssetSize(w,h,true));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_lotus,soft,205,w*.78f,h*.02f,previewAssetSize(w,h,true));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_butterfly,accent,185,w*.72f,h*.68f,previewAssetSize(w,h,false));
-                    break;
-
-                case 117:
-                    previewFrame(canvas,w,h,accent,1);
-                    for(int i=0;i<5;i++)
-                        drawPreviewTintedAsset(canvas,R.drawable.theme_motif_heart,accent,120,w*(.08f+i*.19f),h*.04f,previewAssetSize(w,h,false)*2/3);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_bow,accent,170,w*.77f,h*.70f,previewAssetSize(w,h,false));
-                    break;
-
-                case 118:
-                    previewFrame(canvas,w,h,accent,3);
-                    previewStars(canvas,w,h,accent);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_butterfly,accent,230,w*.01f,h*.02f,previewAssetSize(w,h,false));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_butterfly,soft,205,w*.78f,h*.04f,previewAssetSize(w,h,false));
-                    break;
-
-                case 119:
-                    previewSnow(canvas,w,h,Color.WHITE);
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_snow,Color.WHITE,230,w*.02f,h*.02f,previewAssetSize(w,h,false));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_gift,accent,220,w*.78f,h*.03f,previewAssetSize(w,h,true));
-                    drawPreviewTintedAsset(canvas,R.drawable.theme_motif_bow,soft,200,w*.06f,h*.69f,previewAssetSize(w,h,false));
-                    break;
-            }
-        }
-
-
-        void previewGarland(
-                android.graphics.Canvas canvas,
-                float w,
-                float h,
-                int a,
-                int b,
-                int tint
-        ) {
-            for(int i=0;i<6;i++)
-                drawPreviewTintedAsset(
-                        canvas,
-                        i%2==0 ? a : b,
-                        tint,
-                        165,
-                        w*(.01f+i*.17f),
-                        h*.01f,
-                        previewAssetSize(w,h,false)*2/3
-                );
-        }
-
-
-        void previewGrid(
-                android.graphics.Canvas canvas,
-                float w,
-                float h,
-                int color,
-                int stepX,
-                int stepY,
-                int alpha
-        ) {
-            paint.setStyle(android.graphics.Paint.Style.STROKE);
-            paint.setStrokeWidth(dp(1));
-            paint.setColor(Color.argb(alpha,Color.red(color),Color.green(color),Color.blue(color)));
-            for(float x=0;x<w;x+=dp(stepX))
-                canvas.drawLine(x,0,x,h,paint);
-            for(float y=0;y<h;y+=dp(stepY))
-                canvas.drawLine(0,y,w,y,paint);
-            paint.setStyle(android.graphics.Paint.Style.FILL);
-        }
-
-
-        void previewDots(
-                android.graphics.Canvas canvas,
-                float w,
-                float h,
-                int color,
-                int step,
-                int alpha
-        ) {
-            paint.setColor(Color.argb(alpha,Color.red(color),Color.green(color),Color.blue(color)));
-            for(float y=dp(8);y<h;y+=dp(step))
-                for(float x=dp(8);x<w;x+=dp(step))
-                    canvas.drawCircle(x,y,dp(1),paint);
-        }
-
-
-        void previewStars(
-                android.graphics.Canvas canvas,
-                float w,
-                float h,
-                int color
-        ) {
-            int[] xs={10,28,50,70,88,37,82};
-            int[] ys={14,25,9,23,13,78,70};
-            for(int i=0;i<xs.length;i++)
-                drawPreviewTintedAsset(
-                        canvas,
-                        R.drawable.theme_motif_star,
-                        color,
-                        135,
-                        w*xs[i]/100f,
-                        h*ys[i]/100f,
-                        dp(i%3==0 ? 11 : 8)
-                );
-        }
-
-
-        void previewLeafBorder(
-                android.graphics.Canvas canvas,
-                float w,
-                float h,
-                int color
-        ) {
-            for(int i=0;i<7;i++) {
-                drawPreviewTintedAsset(canvas,R.drawable.theme_motif_leaf,color,155,w*(.01f+i*.15f),h*.00f,dp(14));
-                drawPreviewTintedAsset(canvas,R.drawable.theme_motif_leaf,color,110,w*(.05f+i*.14f),h*.84f,dp(12));
-            }
-        }
-
-
-        void previewScallops(
-                android.graphics.Canvas canvas,
-                float w,
-                float h,
-                int color
-        ) {
-            paint.setStyle(android.graphics.Paint.Style.STROKE);
-            paint.setStrokeWidth(dp(1));
-            paint.setColor(Color.argb(90,Color.red(color),Color.green(color),Color.blue(color)));
-            for(float x=dp(6);x<w;x+=dp(12)) {
-                canvas.drawCircle(x,dp(6),dp(5),paint);
-                canvas.drawCircle(x,h-dp(6),dp(5),paint);
-            }
-            paint.setStyle(android.graphics.Paint.Style.FILL);
-        }
-
-
-        void previewNeonGrid(
-                android.graphics.Canvas canvas,
-                float w,
-                float h,
-                int color
-        ) {
-            previewGrid(canvas,w,h,color,20,18,80);
-            paint.setStrokeWidth(dp(1));
-            paint.setColor(Color.argb(165,Color.red(color),Color.green(color),Color.blue(color)));
-            canvas.drawLine(0,h*.22f,w,h*.12f,paint);
-            canvas.drawLine(0,h*.82f,w,h*.68f,paint);
-        }
-
-
-        void previewWaves(
-                android.graphics.Canvas canvas,
-                float w,
-                float h,
-                int color
-        ) {
-            paint.setStyle(android.graphics.Paint.Style.STROKE);
-            paint.setStrokeWidth(dp(1));
-            paint.setColor(Color.argb(95,Color.red(color),Color.green(color),Color.blue(color)));
-            for(int band=0;band<3;band++) {
-                android.graphics.Path path=new android.graphics.Path();
-                float y=h*(.14f+band*.33f);
-                path.moveTo(0,y);
-                for(int i=1;i<=8;i++) {
-                    float x=w*i/8f;
-                    path.lineTo(x,y+(i%2==0 ? -dp(3) : dp(3)));
-                }
-                canvas.drawPath(path,paint);
-            }
-            paint.setStyle(android.graphics.Paint.Style.FILL);
-        }
-
-
-        void previewBubbles(
-                android.graphics.Canvas canvas,
-                float w,
-                float h,
-                int color
-        ) {
-            paint.setStyle(android.graphics.Paint.Style.STROKE);
-            paint.setStrokeWidth(dp(1));
-            paint.setColor(Color.argb(95,Color.red(color),Color.green(color),Color.blue(color)));
-            int[] xs={10,23,44,68,87,78,32};
-            int[] ys={20,72,13,22,63,82,84};
-            for(int i=0;i<xs.length;i++)
-                canvas.drawCircle(w*xs[i]/100f,h*ys[i]/100f,dp(2+i%3),paint);
-            paint.setStyle(android.graphics.Paint.Style.FILL);
-        }
-
-
-        void previewChecker(
-                android.graphics.Canvas canvas,
-                float w,
-                float h,
-                int a,
-                int b
-        ) {
-            float size=dp(16);
-            for(int r=0;r*size<h;r++)
-                for(int c=0;c*size<w;c++) {
-                    int color=(r+c)%2==0 ? a : b;
-                    paint.setColor(Color.argb(25,Color.red(color),Color.green(color),Color.blue(color)));
-                    canvas.drawRect(c*size,r*size,(c+1)*size,(r+1)*size,paint);
-                }
-        }
-
-
-        void previewFrame(
-                android.graphics.Canvas canvas,
-                float w,
-                float h,
-                int color,
-                int width
-        ) {
-            paint.setStyle(android.graphics.Paint.Style.STROKE);
-            paint.setStrokeWidth(dp(width));
-            paint.setColor(Color.argb(155,Color.red(color),Color.green(color),Color.blue(color)));
-            canvas.drawRoundRect(new android.graphics.RectF(dp(3),dp(3),w-dp(3),h-dp(3)),dp(10),dp(10),paint);
-            paint.setStyle(android.graphics.Paint.Style.FILL);
-        }
-
-
-        void previewSnow(
-                android.graphics.Canvas canvas,
-                float w,
-                float h,
-                int color
-        ) {
-            int[] xs={8,19,31,45,58,72,86,94,25,67};
-            int[] ys={12,28,9,22,14,31,10,25,76,80};
-            for(int i=0;i<xs.length;i++)
-                drawPreviewTintedAsset(
-                        canvas,
-                        R.drawable.theme_motif_snow,
-                        color,
-                        135,
-                        w*xs[i]/100f,
-                        h*ys[i]/100f,
-                        dp(i%3==0 ? 12 : 8)
-                );
         }
 
 
