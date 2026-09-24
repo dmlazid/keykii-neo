@@ -50,6 +50,11 @@ public class KeyKiiService extends InputMethodService {
     ClipboardManager clipboardManager;
     ClipboardManager.OnPrimaryClipChangedListener clipboardListener;
     android.media.AudioManager audioManager;
+
+    // Voice typing only runs when the mic is tapped, so normal typing stays fast.
+    android.speech.SpeechRecognizer voiceRecognizer=null;
+    boolean voiceListening=false;
+
     boolean clipboardShortcutMode=false;
 
     boolean shift=false;
@@ -158,6 +163,17 @@ public class KeyKiiService extends InputMethodService {
                 .removePrimaryClipChangedListener(
                     clipboardListener
                 );
+        }
+
+        if(voiceRecognizer!=null) {
+            try {
+                voiceRecognizer.cancel();
+                voiceRecognizer.destroy();
+            } catch(Exception ignored) {
+            }
+
+            voiceRecognizer=null;
+            voiceListening=false;
         }
 
         super.onDestroy();
@@ -729,7 +745,7 @@ public class KeyKiiService extends InputMethodService {
         String orderText=
             toolbarPrefs.getString(
                 "toolbar_order",
-                "emoji,clipboard,actions,theme,width,hand"
+                "emoji,clipboard,actions,voice,theme,width,hand"
             );
 
         java.util.LinkedHashSet<String> order=
@@ -743,6 +759,7 @@ public class KeyKiiService extends InputMethodService {
                     clean.equals("emoji") ||
                     clean.equals("clipboard") ||
                     clean.equals("actions") ||
+                    clean.equals("voice") ||
                     clean.equals("theme") ||
                     clean.equals("width") ||
                     clean.equals("hand")
@@ -757,6 +774,7 @@ public class KeyKiiService extends InputMethodService {
         order.add("emoji");
         order.add("clipboard");
         order.add("actions");
+        order.add("voice");
         order.add("theme");
         order.add("width");
         order.add("hand");
@@ -789,6 +807,15 @@ public class KeyKiiService extends InputMethodService {
                 )
             ) {
                 tool(r,"✎",3);
+
+            } else if(
+                id.equals("voice") &&
+                toolbarPrefs.getBoolean(
+                    "toolbar_voice",
+                    true
+                )
+            ) {
+                tool(r,"🎙",8);
 
             } else if(
                 id.equals("theme") &&
@@ -996,6 +1023,10 @@ public class KeyKiiService extends InputMethodService {
                 }
 
                 buildShell();
+
+            } else if(action==8) {
+
+                toggleVoiceTyping();
             }
         });;
 
@@ -1007,6 +1038,239 @@ public class KeyKiiService extends InputMethodService {
                 1
             )
         );
+    }
+
+
+    void voiceToast(String text) {
+        android.widget.Toast.makeText(
+            this,
+            text,
+            android.widget.Toast.LENGTH_SHORT
+        ).show();
+    }
+
+
+    void openVoiceSettingsForPermission() {
+        try {
+            Intent intent=
+                new Intent(
+                    this,
+                    SettingsActivity.class
+                );
+
+            intent.putExtra(
+                "open_screen",
+                "voice"
+            );
+
+            intent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK
+            );
+
+            startActivity(intent);
+
+        } catch(Exception ignored) {
+            voiceToast(
+                "Open KeyKii settings and allow microphone access."
+            );
+        }
+    }
+
+
+    void toggleVoiceTyping() {
+
+        if(voiceListening) {
+            try {
+                if(voiceRecognizer!=null)
+                    voiceRecognizer.stopListening();
+            } catch(Exception ignored) {
+            }
+
+            voiceListening=false;
+            return;
+        }
+
+        if(
+            android.os.Build.VERSION.SDK_INT>=23 &&
+            checkSelfPermission(
+                android.Manifest.permission.RECORD_AUDIO
+            )!=
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            voiceToast(
+                "Allow microphone access to use KeyKii voice typing."
+            );
+
+            openVoiceSettingsForPermission();
+            return;
+        }
+
+        if(
+            !android.speech.SpeechRecognizer
+                .isRecognitionAvailable(this)
+        ) {
+            voiceToast(
+                "Android speech recognition is unavailable on this device."
+            );
+            return;
+        }
+
+        try {
+            if(voiceRecognizer!=null) {
+                try {
+                    voiceRecognizer.cancel();
+                    voiceRecognizer.destroy();
+                } catch(Exception ignored) {
+                }
+
+                voiceRecognizer=null;
+            }
+
+            voiceRecognizer=
+                android.speech.SpeechRecognizer
+                    .createSpeechRecognizer(this);
+
+            voiceRecognizer.setRecognitionListener(
+                new android.speech.RecognitionListener() {
+
+                    @Override
+                    public void onReadyForSpeech(
+                        android.os.Bundle params
+                    ) {
+                        voiceListening=true;
+                    }
+
+                    @Override
+                    public void onBeginningOfSpeech() {
+                    }
+
+                    @Override
+                    public void onRmsChanged(float rmsdB) {
+                    }
+
+                    @Override
+                    public void onBufferReceived(byte[] buffer) {
+                    }
+
+                    @Override
+                    public void onEndOfSpeech() {
+                        voiceListening=false;
+                    }
+
+                    @Override
+                    public void onError(int error) {
+                        voiceListening=false;
+
+                        if(
+                            error!=
+                            android.speech.SpeechRecognizer.ERROR_NO_MATCH &&
+                            error!=
+                            android.speech.SpeechRecognizer.ERROR_SPEECH_TIMEOUT
+                        ) {
+                            voiceToast(
+                                "Voice typing stopped. Tap the mic to try again."
+                            );
+                        }
+                    }
+
+                    @Override
+                    public void onResults(
+                        android.os.Bundle results
+                    ) {
+                        voiceListening=false;
+
+                        java.util.ArrayList<String> matches=
+                            results.getStringArrayList(
+                                android.speech.SpeechRecognizer
+                                    .RESULTS_RECOGNITION
+                            );
+
+                        if(
+                            matches==null ||
+                            matches.isEmpty()
+                        ) {
+                            return;
+                        }
+
+                        String spoken=matches.get(0);
+
+                        if(
+                            spoken==null ||
+                            spoken.trim().isEmpty()
+                        ) {
+                            return;
+                        }
+
+                        InputConnection ic=
+                            getCurrentInputConnection();
+
+                        if(ic!=null)
+                            ic.commitText(
+                                spoken.trim(),
+                                1
+                            );
+                    }
+
+                    @Override
+                    public void onPartialResults(
+                        android.os.Bundle partialResults
+                    ) {
+                    }
+
+                    @Override
+                    public void onEvent(
+                        int eventType,
+                        android.os.Bundle params
+                    ) {
+                    }
+                }
+            );
+
+            Intent listenIntent=
+                new Intent(
+                    android.speech.RecognizerIntent
+                        .ACTION_RECOGNIZE_SPEECH
+                );
+
+            listenIntent.putExtra(
+                android.speech.RecognizerIntent
+                    .EXTRA_LANGUAGE_MODEL,
+                android.speech.RecognizerIntent
+                    .LANGUAGE_MODEL_FREE_FORM
+            );
+
+            listenIntent.putExtra(
+                android.speech.RecognizerIntent
+                    .EXTRA_PARTIAL_RESULTS,
+                false
+            );
+
+            listenIntent.putExtra(
+                android.speech.RecognizerIntent
+                    .EXTRA_MAX_RESULTS,
+                3
+            );
+
+            listenIntent.putExtra(
+                android.speech.RecognizerIntent
+                    .EXTRA_LANGUAGE,
+                java.util.Locale.getDefault()
+                    .toLanguageTag()
+            );
+
+            voiceListening=true;
+            voiceToast("Listening…");
+
+            voiceRecognizer.startListening(
+                listenIntent
+            );
+
+        } catch(Exception e) {
+            voiceListening=false;
+            voiceToast(
+                "Unable to start voice typing."
+            );
+        }
     }
 
 
