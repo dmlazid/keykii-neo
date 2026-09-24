@@ -1984,34 +1984,34 @@ public class SettingsActivity extends Activity {
 
         addThemeStoreHero(page);
 
-        addThemeSection(page, "🔥 Trending");
+        addThemeSection(page, "✨ New aesthetic collection");
         addStylePackGrid(
                 page,
-                new int[]{0,3,5,10}
+                new int[]{100,101,102,103}
         );
 
-        addThemeSection(page, "💖 Cute & Kawaii");
+        addThemeSection(page, "🎀 Cute & Kawaii");
         addStylePackGrid(
                 page,
-                new int[]{1,8,9,16,21,22}
+                new int[]{104,106,108,109,113,114}
         );
 
-        addThemeSection(page, "⚡ Neon & Gaming");
+        addThemeSection(page, "☁ Dreamy & Nature");
         addStylePackGrid(
                 page,
-                new int[]{0,4,5,12,13,20}
+                new int[]{107,111,112,115,116}
         );
 
-        addThemeSection(page, "🌙 Galaxy & Fantasy");
+        addThemeSection(page, "🖤 Dark & Stylish");
         addStylePackGrid(
                 page,
-                new int[]{2,10,11,14,17,23}
+                new int[]{105,118}
         );
 
-        addThemeSection(page, "✨ Glass & Luxury");
+        addThemeSection(page, "♡ Soft & Seasonal");
         addStylePackGrid(
                 page,
-                new int[]{6,7,15,18,19,21}
+                new int[]{110,117,119}
         );
 
         addThemeSection(page, "My themes");
@@ -2536,7 +2536,7 @@ public class SettingsActivity extends Activity {
                 new TextView(this);
 
         sub.setText(
-                "Bold visual keyboards • Neon, kawaii, galaxy, glass & gaming\nTap any design to preview before applying."
+                "20 new illustrated keyboard themes • Cute, dreamy, kawaii & stylish\nThe old plain/glow packs are removed from this shop."
         );
 
         sub.setTextColor(MUTED);
@@ -3415,200 +3415,168 @@ public class SettingsActivity extends Activity {
             int pack
     ) {
         switch(pack) {
-            case 0: // Neon Aurora — free
+            case 100:
                 return new int[]{
-                        Color.rgb(20,12,58),
-                        Color.rgb(2,28,54),
-                        Color.rgb(48,230,255),
-                        12,100,1,0,4,1
+                        Color.rgb(255,184,211),
+                        Color.rgb(255,235,244),
+                        Color.rgb(230,90,145),
+                        24,98,1,1,20,8
                 };
 
-            case 1: // Pink Pop — free
+            case 101:
                 return new int[]{
-                        Color.rgb(255,110,190),
-                        Color.rgb(255,210,236),
-                        Color.rgb(235,62,151),
-                        26,100,1,1,1,3
+                        Color.rgb(124,147,255),
+                        Color.rgb(208,218,255),
+                        Color.rgb(92,111,234),
+                        22,98,1,1,21,6
                 };
 
-            case 2: // Galaxy Blue — free
+            case 102:
                 return new int[]{
-                        Color.rgb(22,33,98),
-                        Color.rgb(4,7,27),
-                        Color.rgb(72,137,255),
-                        16,100,1,0,7,7
+                        Color.rgb(203,231,179),
+                        Color.rgb(244,247,211),
+                        Color.rgb(91,150,75),
+                        24,98,1,1,22,3
                 };
 
-            case 3: // Sakura Glow
+            case 103:
                 return new int[]{
-                        Color.rgb(255,128,186),
-                        Color.rgb(255,224,239),
-                        Color.rgb(236,73,143),
-                        27,100,1,1,1,8
+                        Color.rgb(255,195,175),
+                        Color.rgb(255,235,226),
+                        Color.rgb(210,113,87),
+                        24,98,1,1,23,3
                 };
 
-            case 4: // Cyber Purple
+            case 104:
                 return new int[]{
-                        Color.rgb(91,12,145),
-                        Color.rgb(5,12,35),
-                        Color.rgb(51,229,255),
-                        10,100,1,0,4,1
+                        Color.rgb(215,191,255),
+                        Color.rgb(244,233,255),
+                        Color.rgb(135,91,194),
+                        25,98,1,1,24,3
                 };
 
-            case 5: // Black Red Pulse
+            case 105:
                 return new int[]{
-                        Color.rgb(24,8,12),
-                        Color.rgb(1,1,3),
-                        Color.rgb(255,46,61),
-                        7,100,1,0,4,4
+                        Color.rgb(37,13,72),
+                        Color.rgb(5,8,24),
+                        Color.rgb(218,52,255),
+                        11,100,1,0,25,1
                 };
 
-            case 6: // Gold Luxe
+            case 106:
                 return new int[]{
-                        Color.rgb(26,20,12),
-                        Color.rgb(2,2,3),
-                        Color.rgb(244,194,67),
-                        16,100,1,0,11,5
+                        Color.rgb(255,171,204),
+                        Color.rgb(255,233,241),
+                        Color.rgb(229,80,132),
+                        26,100,1,1,26,8
                 };
 
-            case 7: // Crystal Ice
+            case 107:
                 return new int[]{
-                        Color.rgb(169,229,255),
-                        Color.rgb(225,246,255),
-                        Color.rgb(82,177,229),
-                        27,84,1,1,9,6
+                        Color.rgb(89,110,201),
+                        Color.rgb(209,221,255),
+                        Color.rgb(117,132,220),
+                        24,98,1,1,27,6
                 };
 
-            case 8: // Kawaii Candy
+            case 108:
                 return new int[]{
-                        Color.rgb(255,178,223),
-                        Color.rgb(204,198,255),
-                        Color.rgb(232,86,176),
-                        28,100,1,1,6,3
+                        Color.rgb(185,229,181),
+                        Color.rgb(236,249,225),
+                        Color.rgb(72,151,83),
+                        25,98,1,1,28,3
                 };
 
-            case 9: // Love Neon
+            case 109:
                 return new int[]{
-                        Color.rgb(107,9,78),
-                        Color.rgb(32,3,37),
-                        Color.rgb(255,71,179),
-                        18,100,1,0,1,8
+                        Color.rgb(226,184,173),
+                        Color.rgb(248,224,218),
+                        Color.rgb(171,105,90),
+                        24,98,1,1,29,3
                 };
 
-            case 10: // Moonlight Galaxy
+            case 110:
                 return new int[]{
-                        Color.rgb(33,26,93),
-                        Color.rgb(3,4,18),
-                        Color.rgb(145,112,255),
-                        15,100,1,0,7,7
+                        Color.rgb(210,191,250),
+                        Color.rgb(248,238,255),
+                        Color.rgb(135,93,190),
+                        24,98,1,1,30,3
                 };
 
-            case 11: // Aqua Wave
+            case 111:
                 return new int[]{
-                        Color.rgb(19,129,176),
-                        Color.rgb(3,48,79),
-                        Color.rgb(82,234,255),
-                        22,94,1,0,5,2
+                        Color.rgb(255,183,204),
+                        Color.rgb(255,232,225),
+                        Color.rgb(225,80,126),
+                        24,98,1,1,31,8
                 };
 
-            case 12: // RGB Arcade
+            case 112:
                 return new int[]{
-                        Color.rgb(44,5,65),
-                        Color.rgb(3,5,18),
-                        Color.rgb(50,255,184),
-                        8,100,1,0,4,1
+                        Color.rgb(83,171,246),
+                        Color.rgb(185,230,255),
+                        Color.rgb(50,143,226),
+                        24,98,1,1,32,6
                 };
 
-            case 13: // Purple Lightning
+            case 113:
                 return new int[]{
-                        Color.rgb(75,9,143),
-                        Color.rgb(7,3,28),
-                        Color.rgb(191,76,255),
-                        11,100,1,0,4,7
+                        Color.rgb(126,84,62),
+                        Color.rgb(205,164,133),
+                        Color.rgb(188,128,84),
+                        22,100,1,0,33,5
                 };
 
-            case 14: // Starfall Blue
+            case 114:
                 return new int[]{
-                        Color.rgb(7,63,126),
-                        Color.rgb(2,9,28),
-                        Color.rgb(82,189,255),
-                        16,100,1,0,7,7
+                        Color.rgb(255,173,211),
+                        Color.rgb(255,231,244),
+                        Color.rgb(226,80,150),
+                        25,100,1,1,34,8
                 };
 
-            case 15: // Black Crystal
+            case 115:
                 return new int[]{
-                        Color.rgb(32,34,44),
-                        Color.rgb(4,4,7),
-                        Color.rgb(176,198,255),
-                        14,92,1,0,2,2
+                        Color.rgb(203,220,255),
+                        Color.rgb(247,250,255),
+                        Color.rgb(66,108,181),
+                        18,100,1,1,35,6
                 };
 
-            case 16: // Glitter Pink
+            case 116:
                 return new int[]{
-                        Color.rgb(255,91,175),
-                        Color.rgb(111,20,122),
-                        Color.rgb(255,187,231),
-                        23,100,1,0,2,8
+                        Color.rgb(219,202,246),
+                        Color.rgb(247,239,255),
+                        Color.rgb(127,83,171),
+                        20,96,1,1,36,2
                 };
 
-            case 17: // Blue Dream
+            case 117:
                 return new int[]{
-                        Color.rgb(75,151,255),
-                        Color.rgb(38,45,142),
-                        Color.rgb(128,211,255),
-                        24,100,1,0,2,6
+                        Color.rgb(241,229,215),
+                        Color.rgb(255,249,242),
+                        Color.rgb(168,126,98),
+                        20,100,1,1,37,3
                 };
 
-            case 18: // Halloween Flame
+            case 118:
                 return new int[]{
-                        Color.rgb(78,17,90),
-                        Color.rgb(10,4,14),
-                        Color.rgb(255,118,25),
-                        12,100,1,0,7,4
+                        Color.rgb(46,32,28),
+                        Color.rgb(8,7,7),
+                        Color.rgb(204,142,83),
+                        16,100,1,0,38,5
                 };
 
-            case 19: // Christmas Glow
+            case 119:
                 return new int[]{
-                        Color.rgb(18,101,66),
-                        Color.rgb(94,10,26),
-                        Color.rgb(255,224,79),
-                        18,100,1,0,10,5
-                };
-
-            case 20: // Emerald Cyber
-                return new int[]{
-                        Color.rgb(5,65,44),
-                        Color.rgb(2,8,8),
-                        Color.rgb(49,255,166),
-                        9,100,1,0,4,1
-                };
-
-            case 21: // Rose Crystal
-                return new int[]{
-                        Color.rgb(217,126,159),
-                        Color.rgb(255,226,238),
-                        Color.rgb(198,94,134),
-                        24,90,1,1,5,2
-                };
-
-            case 22: // Sunset Neon
-                return new int[]{
-                        Color.rgb(255,91,100),
-                        Color.rgb(92,15,135),
-                        Color.rgb(255,186,63),
-                        16,100,1,0,6,3
-                };
-
-            case 23: // Starry Black
-                return new int[]{
-                        Color.rgb(20,20,29),
-                        Color.rgb(0,0,2),
-                        Color.rgb(121,151,255),
-                        12,100,1,0,7,5
+                        Color.rgb(210,235,255),
+                        Color.rgb(245,239,255),
+                        Color.rgb(224,88,119),
+                        22,98,1,1,39,6
                 };
 
             default:
-                return stylePackSpec(0);
+                return stylePackSpec(100);
         }
     }
 
@@ -3616,91 +3584,76 @@ public class SettingsActivity extends Activity {
     private String stylePackName(
             int pack
     ) {
-        String[] names=new String[]{
-                "Neon Aurora",
-                "Pink Pop",
-                "Galaxy Blue",
-                "Sakura Glow",
-                "Cyber Purple",
-                "Black Red Pulse",
-                "Gold Luxe",
-                "Crystal Ice",
-                "Kawaii Candy",
-                "Love Neon",
-                "Moonlight Galaxy",
-                "Aqua Wave",
-                "RGB Arcade",
-                "Purple Lightning",
-                "Starfall Blue",
-                "Black Crystal",
-                "Glitter Pink",
-                "Blue Dream",
-                "Halloween Flame",
-                "Christmas Glow",
-                "Emerald Cyber",
-                "Rose Crystal",
-                "Sunset Neon",
-                "Starry Black"
-        };
-
-        return names[
-                Math.max(
-                        0,
-                        Math.min(
-                                names.length-1,
-                                pack
-                        )
-                )
-        ];
+        switch(pack) {
+            case 100: return "Cherry Blossom Love";
+            case 101: return "Blueberry Jelly Sky";
+            case 102: return "Matcha Bunny Café";
+            case 103: return "Peach Teddy Dessert";
+            case 104: return "Lilac Butterfly Diary";
+            case 105: return "Midnight Neon Arcade";
+            case 106: return "Strawberry Ribbon Milk";
+            case 107: return "Cloudy Moon Sleep";
+            case 108: return "Mint Frog Garden";
+            case 109: return "Rosy Bear Picnic";
+            case 110: return "Lavender Lace Dream";
+            case 111: return "Sakura Cherry Soda";
+            case 112: return "Ocean Jelly Star";
+            case 113: return "Cozy Cocoa Bunny";
+            case 114: return "Pink Kitty Bow";
+            case 115: return "Blue Porcelain Bloom";
+            case 116: return "Purple Lotus Watercolor";
+            case 117: return "Cream Heart Minimal";
+            case 118: return "Brown Butterfly Noir";
+            case 119: return "Snowy Pastel Christmas";
+            default: return "Aesthetic Theme";
+        }
     }
 
 
     private String stylePackSubtitle(
             int pack
     ) {
-        String[] values=new String[]{
-                "Electric cyan glow on deep purple",
-                "Glossy hot-pink kawaii keys",
-                "Blue galaxy with glowing stars",
-                "Pink blossom glow with heart keys",
-                "Purple cyber grid with cyan glow",
-                "Red pulse gamer keyboard",
-                "Luxury black keys with gold trim",
-                "Icy crystal glass keyboard",
-                "Candy pastel kawaii keyboard",
-                "Dark neon love and heart glow",
-                "Moonlit purple galaxy keyboard",
-                "Aqua glass and water glow",
-                "Arcade RGB-inspired cyber keys",
-                "Electric violet lightning style",
-                "Deep blue starfall glow",
-                "Smoky black crystal glass",
-                "Sparkly pink night keyboard",
-                "Dreamy electric blue glass",
-                "Purple-orange spooky gamer",
-                "Dark holiday red-green gold",
-                "Black emerald cyber keyboard",
-                "Soft rose crystal glass",
-                "Orange-purple neon sunset",
-                "Black night with blue stars"
-        };
-
-        return values[
-                Math.max(
-                        0,
-                        Math.min(
-                                values.length-1,
-                                pack
-                        )
-                )
-        ];
+        switch(pack) {
+            case 100: return "Cherry blossoms, ribbons and soft love details";
+            case 101: return "Blue jelly sky with clouds, stars and moon";
+            case 102: return "Matcha café greens with bunny and leaf accents";
+            case 103: return "Peach dessert palette with teddy details";
+            case 104: return "Lilac diary style with butterflies and lace mood";
+            case 105: return "Dark arcade keyboard with electric neon accents";
+            case 106: return "Strawberry milk pink with bows and hearts";
+            case 107: return "Sleepy clouds, moon and dreamy night stars";
+            case 108: return "Fresh mint garden with frog and leaf details";
+            case 109: return "Rosy picnic browns with bears, ribbons and hearts";
+            case 110: return "Lavender lace with butterflies and tiny blooms";
+            case 111: return "Sakura pink with cherry soda accents";
+            case 112: return "Ocean blue jelly look with bubbles and stars";
+            case 113: return "Warm cocoa café with bunny and bear details";
+            case 114: return "Cute pink cat-bow keyboard with glossy keys";
+            case 115: return "Blue porcelain floral keyboard with elegant details";
+            case 116: return "Purple lotus watercolor with butterfly accents";
+            case 117: return "Cream minimal keyboard with hearts and bows";
+            case 118: return "Dark brown noir with gold butterfly details";
+            case 119: return "Snowy pastel holiday keyboard with winter details";
+            default: return "Illustrated KeyKii aesthetic theme";
+        }
     }
 
 
     private boolean stylePackPro(
             int pack
     ) {
-        return pack>=3;
+        switch(pack) {
+            case 100:
+            case 102:
+            case 106:
+            case 108:
+            case 113:
+            case 117:
+                return false;
+
+            default:
+                return pack>=100 && pack<=119;
+        }
     }
 
 
@@ -3869,7 +3822,260 @@ public class SettingsActivity extends Activity {
                         );
                     }
                     break;
+
+                case 20:
+                case 26:
+                case 31:
+                    paint.setColor(accentSoft);
+                    previewFlower(canvas,w*.10f,h*.19f,dp(8));
+                    previewFlower(canvas,w*.88f,h*.22f,dp(10));
+                    previewHeart(canvas,w*.75f,h*.80f,dp(7));
+                    break;
+
+                case 21:
+                case 27:
+                    paint.setColor(whiteSoft);
+                    previewCloud(canvas,w*.12f,h*.20f,dp(9));
+                    previewCloud(canvas,w*.84f,h*.22f,dp(11));
+                    previewStar(canvas,w*.73f,h*.80f,dp(7));
+                    break;
+
+                case 22:
+                case 28:
+                    paint.setColor(accentSoft);
+                    previewLeaf(canvas,w*.10f,h*.20f,dp(9));
+                    previewLeaf(canvas,w*.88f,h*.22f,dp(10));
+                    previewFlower(canvas,w*.75f,h*.80f,dp(7));
+                    break;
+
+                case 23:
+                case 29:
+                case 33:
+                    paint.setColor(accentSoft);
+                    previewBear(canvas,w*.12f,h*.20f,dp(9));
+                    previewBear(canvas,w*.86f,h*.22f,dp(10));
+                    previewHeart(canvas,w*.74f,h*.80f,dp(7));
+                    break;
+
+                case 24:
+                case 30:
+                case 36:
+                case 38:
+                    paint.setColor(accentSoft);
+                    previewButterfly(canvas,w*.11f,h*.20f,dp(9));
+                    previewButterfly(canvas,w*.87f,h*.23f,dp(10));
+                    previewSpark(canvas,w*.74f,h*.80f,dp(6));
+                    break;
+
+                case 25:
+                    paint.setColor(accentSoft);
+                    previewSpark(canvas,w*.11f,h*.19f,dp(8));
+                    previewStar(canvas,w*.87f,h*.22f,dp(10));
+                    paint.setStrokeWidth(dp(2));
+                    canvas.drawLine(w*.70f,h*.82f,w*.92f,h*.74f,paint);
+                    break;
+
+                case 32:
+                    paint.setStyle(android.graphics.Paint.Style.STROKE);
+                    paint.setStrokeWidth(dp(1));
+                    paint.setColor(whiteSoft);
+                    canvas.drawCircle(w*.12f,h*.20f,dp(9),paint);
+                    canvas.drawCircle(w*.87f,h*.22f,dp(12),paint);
+                    canvas.drawCircle(w*.75f,h*.80f,dp(7),paint);
+                    paint.setStyle(android.graphics.Paint.Style.FILL);
+                    break;
+
+                case 34:
+                    paint.setColor(accentSoft);
+                    previewBow(canvas,w*.11f,h*.20f,dp(9));
+                    previewBow(canvas,w*.87f,h*.22f,dp(10));
+                    previewHeart(canvas,w*.75f,h*.80f,dp(7));
+                    break;
+
+                case 35:
+                    paint.setColor(accentSoft);
+                    previewFlower(canvas,w*.10f,h*.20f,dp(9));
+                    previewFlower(canvas,w*.88f,h*.22f,dp(10));
+                    previewFlower(canvas,w*.75f,h*.80f,dp(7));
+                    break;
+
+                case 37:
+                    paint.setColor(accentSoft);
+                    previewHeart(canvas,w*.11f,h*.20f,dp(8));
+                    previewHeart(canvas,w*.88f,h*.22f,dp(9));
+                    previewBow(canvas,w*.75f,h*.80f,dp(7));
+                    break;
+
+                case 39:
+                    paint.setColor(whiteSoft);
+                    previewSnow(canvas,w*.11f,h*.20f,dp(8));
+                    previewSnow(canvas,w*.87f,h*.22f,dp(10));
+                    previewSnow(canvas,w*.75f,h*.80f,dp(7));
+                    break;
             }
+        }
+
+
+        void previewFlower(
+                android.graphics.Canvas canvas,
+                float cx,
+                float cy,
+                float size
+        ) {
+            for(int i=0;i<5;i++) {
+                double a=
+                        -Math.PI/2+
+                        i*Math.PI*2/5;
+
+                canvas.drawCircle(
+                        cx+(float)Math.cos(a)*size*.55f,
+                        cy+(float)Math.sin(a)*size*.55f,
+                        size*.36f,
+                        paint
+                );
+            }
+
+            canvas.drawCircle(
+                    cx,cy,
+                    size*.23f,
+                    paint
+            );
+        }
+
+
+        void previewCloud(
+                android.graphics.Canvas canvas,
+                float cx,
+                float cy,
+                float size
+        ) {
+            canvas.drawCircle(cx-size*.45f,cy,size*.42f,paint);
+            canvas.drawCircle(cx,cy-size*.18f,size*.56f,paint);
+            canvas.drawCircle(cx+size*.46f,cy,size*.38f,paint);
+            canvas.drawRect(
+                    cx-size*.76f,
+                    cy,
+                    cx+size*.78f,
+                    cy+size*.34f,
+                    paint
+            );
+        }
+
+
+        void previewLeaf(
+                android.graphics.Canvas canvas,
+                float cx,
+                float cy,
+                float size
+        ) {
+            android.graphics.RectF oval=
+                    new android.graphics.RectF(
+                            cx-size*.40f,
+                            cy-size,
+                            cx+size*.40f,
+                            cy+size
+                    );
+
+            canvas.save();
+            canvas.rotate(-32,cx,cy);
+            canvas.drawOval(oval,paint);
+            canvas.restore();
+        }
+
+
+        void previewBear(
+                android.graphics.Canvas canvas,
+                float cx,
+                float cy,
+                float size
+        ) {
+            canvas.drawCircle(cx,cy,size*.66f,paint);
+            canvas.drawCircle(cx-size*.52f,cy-size*.48f,size*.30f,paint);
+            canvas.drawCircle(cx+size*.52f,cy-size*.48f,size*.30f,paint);
+        }
+
+
+        void previewButterfly(
+                android.graphics.Canvas canvas,
+                float cx,
+                float cy,
+                float size
+        ) {
+            canvas.drawOval(
+                    new android.graphics.RectF(
+                            cx-size,
+                            cy-size*.65f,
+                            cx-size*.08f,
+                            cy+size*.22f
+                    ),
+                    paint
+            );
+
+            canvas.drawOval(
+                    new android.graphics.RectF(
+                            cx+size*.08f,
+                            cy-size*.65f,
+                            cx+size,
+                            cy+size*.22f
+                    ),
+                    paint
+            );
+
+            canvas.drawRect(
+                    cx-size*.06f,
+                    cy-size*.36f,
+                    cx+size*.06f,
+                    cy+size*.55f,
+                    paint
+            );
+        }
+
+
+        void previewBow(
+                android.graphics.Canvas canvas,
+                float cx,
+                float cy,
+                float size
+        ) {
+            android.graphics.Path left=
+                    new android.graphics.Path();
+
+            left.moveTo(cx,cy);
+            left.lineTo(cx-size,cy-size*.55f);
+            left.lineTo(cx-size*.82f,cy+size*.55f);
+            left.close();
+            canvas.drawPath(left,paint);
+
+            android.graphics.Path right=
+                    new android.graphics.Path();
+
+            right.moveTo(cx,cy);
+            right.lineTo(cx+size,cy-size*.55f);
+            right.lineTo(cx+size*.82f,cy+size*.55f);
+            right.close();
+            canvas.drawPath(right,paint);
+
+            canvas.drawCircle(cx,cy,size*.24f,paint);
+        }
+
+
+        void previewSnow(
+                android.graphics.Canvas canvas,
+                float cx,
+                float cy,
+                float size
+        ) {
+            paint.setStyle(android.graphics.Paint.Style.STROKE);
+            paint.setStrokeWidth(dp(1));
+
+            for(int i=0;i<3;i++) {
+                double a=i*Math.PI/3;
+                float dx=(float)Math.cos(a)*size;
+                float dy=(float)Math.sin(a)*size;
+                canvas.drawLine(cx-dx,cy-dy,cx+dx,cy+dy,paint);
+            }
+
+            paint.setStyle(android.graphics.Paint.Style.FILL);
         }
 
 
