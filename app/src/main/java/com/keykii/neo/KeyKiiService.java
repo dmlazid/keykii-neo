@@ -4568,9 +4568,13 @@ public class KeyKiiService extends InputMethodService {
                 return R.drawable.theme_motif_star;
 
             case 102:
+                if(right) return R.drawable.theme_motif_leaf;
+                if(center) return R.drawable.theme_motif_cup;
                 return R.drawable.theme_motif_bunny;
 
             case 103:
+                if(right) return R.drawable.theme_motif_cake;
+                if(center) return R.drawable.theme_motif_heart;
                 return R.drawable.theme_motif_bear;
 
             case 104:
@@ -4581,14 +4585,17 @@ public class KeyKiiService extends InputMethodService {
                 return R.drawable.theme_motif_star;
 
             case 106:
-                if(center) return R.drawable.theme_motif_heart;
-                return R.drawable.theme_motif_bow;
+                if(left) return R.drawable.theme_motif_strawberry;
+                if(right) return R.drawable.theme_motif_bow;
+                return R.drawable.theme_motif_heart;
 
             case 107:
                 if(center) return R.drawable.theme_motif_moonstar;
                 return R.drawable.theme_motif_cloud;
 
             case 108:
+                if(right) return R.drawable.theme_motif_leaf;
+                if(center) return R.drawable.theme_motif_flower;
                 return R.drawable.theme_motif_frog;
 
             case 109:
@@ -4608,8 +4615,9 @@ public class KeyKiiService extends InputMethodService {
                 return R.drawable.theme_motif_bubble;
 
             case 113:
-                if(center) return R.drawable.theme_motif_bear;
-                return R.drawable.theme_motif_bunny;
+                if(left) return R.drawable.theme_motif_bunny;
+                if(right) return R.drawable.theme_motif_cup;
+                return R.drawable.theme_motif_bear;
 
             case 114:
                 if(center) return R.drawable.theme_motif_heart;
@@ -4631,40 +4639,139 @@ public class KeyKiiService extends InputMethodService {
                 return R.drawable.theme_motif_butterfly;
 
             case 119:
-                return R.drawable.theme_motif_snow;
+                if(left) return R.drawable.theme_motif_snow;
+                if(right) return R.drawable.theme_motif_gift;
+                return R.drawable.theme_motif_bow;
         }
 
         return 0;
     }
 
 
-    int themeDecorAssetRes(
-        int style
+    int themeDecorPrimaryAssetRes(
+        int pack
     ) {
-        switch(style) {
-            case 20: return R.drawable.theme_motif_flower;
-            case 21: return R.drawable.theme_motif_moonstar;
-            case 22: return R.drawable.theme_motif_bunny;
-            case 23: return R.drawable.theme_motif_bear;
-            case 24: return R.drawable.theme_motif_butterfly;
-            case 25: return R.drawable.theme_motif_star;
-            case 26: return R.drawable.theme_motif_bow;
-            case 27: return R.drawable.theme_motif_cloud;
-            case 28: return R.drawable.theme_motif_frog;
-            case 29: return R.drawable.theme_motif_bear;
-            case 30: return R.drawable.theme_motif_butterfly;
-            case 31: return R.drawable.theme_motif_cherry;
-            case 32: return R.drawable.theme_motif_bubble;
-            case 33: return R.drawable.theme_motif_bunny;
-            case 34: return R.drawable.theme_motif_cat;
-            case 35: return R.drawable.theme_motif_flower;
-            case 36: return R.drawable.theme_motif_lotus;
-            case 37: return R.drawable.theme_motif_heart;
-            case 38: return R.drawable.theme_motif_butterfly;
-            case 39: return R.drawable.theme_motif_snow;
+        switch(pack) {
+            case 100: return R.drawable.theme_motif_flower;
+            case 101: return R.drawable.theme_motif_moonstar;
+            case 102: return R.drawable.theme_motif_bunny;
+            case 103: return R.drawable.theme_motif_bear;
+            case 104: return R.drawable.theme_motif_butterfly;
+            case 105: return R.drawable.theme_motif_star;
+            case 106: return R.drawable.theme_motif_strawberry;
+            case 107: return R.drawable.theme_motif_cloud;
+            case 108: return R.drawable.theme_motif_frog;
+            case 109: return R.drawable.theme_motif_bear;
+            case 110: return R.drawable.theme_motif_butterfly;
+            case 111: return R.drawable.theme_motif_flower;
+            case 112: return R.drawable.theme_motif_bubble;
+            case 113: return R.drawable.theme_motif_bunny;
+            case 114: return R.drawable.theme_motif_cat;
+            case 115: return R.drawable.theme_motif_flower;
+            case 116: return R.drawable.theme_motif_lotus;
+            case 117: return R.drawable.theme_motif_heart;
+            case 118: return R.drawable.theme_motif_butterfly;
+            case 119: return R.drawable.theme_motif_snow;
         }
 
         return 0;
+    }
+
+
+    int themeDecorSecondaryAssetRes(
+        int pack
+    ) {
+        switch(pack) {
+            case 100: return R.drawable.theme_motif_cherry;
+            case 101: return R.drawable.theme_motif_cloud;
+            case 102: return R.drawable.theme_motif_leaf;
+            case 103: return R.drawable.theme_motif_cake;
+            case 104: return R.drawable.theme_motif_bow;
+            case 105: return R.drawable.theme_motif_moonstar;
+            case 106: return R.drawable.theme_motif_bow;
+            case 107: return R.drawable.theme_motif_moonstar;
+            case 108: return R.drawable.theme_motif_leaf;
+            case 109: return R.drawable.theme_motif_bow;
+            case 110: return R.drawable.theme_motif_flower;
+            case 111: return R.drawable.theme_motif_cherry;
+            case 112: return R.drawable.theme_motif_star;
+            case 113: return R.drawable.theme_motif_bear;
+            case 114: return R.drawable.theme_motif_bow;
+            case 115: return R.drawable.theme_motif_lotus;
+            case 116: return R.drawable.theme_motif_butterfly;
+            case 117: return R.drawable.theme_motif_bow;
+            case 118: return R.drawable.theme_motif_star;
+            case 119: return R.drawable.theme_motif_gift;
+        }
+
+        return 0;
+    }
+
+
+    int themeDecorTertiaryAssetRes(
+        int pack
+    ) {
+        switch(pack) {
+            case 100: return R.drawable.theme_motif_heart;
+            case 101: return R.drawable.theme_motif_star;
+            case 102: return R.drawable.theme_motif_cup;
+            case 103: return R.drawable.theme_motif_heart;
+            case 104: return R.drawable.theme_motif_flower;
+            case 105: return R.drawable.theme_motif_bubble;
+            case 106: return R.drawable.theme_motif_heart;
+            case 107: return R.drawable.theme_motif_star;
+            case 108: return R.drawable.theme_motif_flower;
+            case 109: return R.drawable.theme_motif_heart;
+            case 110: return R.drawable.theme_motif_bow;
+            case 111: return R.drawable.theme_motif_cup;
+            case 112: return R.drawable.theme_motif_moonstar;
+            case 113: return R.drawable.theme_motif_cup;
+            case 114: return R.drawable.theme_motif_heart;
+            case 115: return R.drawable.theme_motif_star;
+            case 116: return R.drawable.theme_motif_lotus;
+            case 117: return R.drawable.theme_motif_flower;
+            case 118: return R.drawable.theme_motif_heart;
+            case 119: return R.drawable.theme_motif_bow;
+        }
+
+        return 0;
+    }
+
+
+    void drawTintedThemeAsset(
+        android.graphics.Canvas canvas,
+        int res,
+        int tint,
+        int alpha,
+        float x,
+        float y,
+        int size
+    ) {
+        android.graphics.drawable.Drawable drawable=
+            getDrawable(res);
+
+        if(drawable==null)
+            return;
+
+        drawable=drawable.mutate();
+        drawable.setTint(tint);
+        drawable.setAlpha(
+            Math.max(
+                0,
+                Math.min(
+                    255,
+                    alpha
+                )
+            )
+        );
+
+        drawMotifAsset(
+            canvas,
+            drawable,
+            x,
+            y,
+            size
+        );
     }
 
 
@@ -15173,7 +15280,11 @@ public class KeyKiiService extends InputMethodService {
                         bg,
                         new KeyKiiThemeDecorDrawable(
                             decorStyle,
-                            accentColor()
+                            accentColor(),
+                            p.getInt(
+                                "keykii_style_pack",
+                                -1
+                            )
                         )
                     }
                 );
@@ -15190,6 +15301,7 @@ public class KeyKiiService extends InputMethodService {
 
         final int style;
         final int accent;
+        final int pack;
         final android.graphics.Paint paint=
             new android.graphics.Paint(
                 android.graphics.Paint.ANTI_ALIAS_FLAG
@@ -15197,10 +15309,12 @@ public class KeyKiiService extends InputMethodService {
 
         KeyKiiThemeDecorDrawable(
             int style,
-            int accent
+            int accent,
+            int pack
         ) {
             this.style=style;
             this.accent=accent;
+            this.pack=pack;
         }
 
 
@@ -15238,59 +15352,111 @@ public class KeyKiiService extends InputMethodService {
                 style>=20 &&
                 style<=39
             ) {
-                int res=
-                    themeDecorAssetRes(style);
+                if(pack==116) {
+                    int res=
+                        R.drawable.theme_motif_lotus;
 
-                android.graphics.drawable.Drawable motif=
-                    res==0
-                        ? null
-                        : getDrawable(res);
+                    android.graphics.drawable.Drawable motif=
+                        getDrawable(res);
 
-                if(motif!=null) {
-                    motif=
-                        motif.mutate();
+                    if(motif!=null) {
+                        motif=motif.mutate();
+                        motif.setTint(accent);
+                        motif.setAlpha(
+                            theme==1
+                                ? 155
+                                : 175
+                        );
 
-                    motif.setTint(accent);
-                    motif.setAlpha(
-                        theme==1
-                            ? 155
-                            : 175
+                        drawMotifAsset(canvas,motif,w*.08f,h*.10f,dp(34));
+                        drawMotifAsset(canvas,motif,w*.83f,h*.10f,dp(42));
+                        drawMotifAsset(canvas,motif,w*.72f,h*.72f,dp(36));
+                        drawMotifAsset(canvas,motif,w*.14f,h*.72f,dp(30));
+
+                        return;
+                    }
+                }
+
+                int primary=
+                    themeDecorPrimaryAssetRes(pack);
+
+                int secondary=
+                    themeDecorSecondaryAssetRes(pack);
+
+                int tertiary=
+                    themeDecorTertiaryAssetRes(pack);
+
+                if(primary!=0) {
+                    drawTintedThemeAsset(
+                        canvas,
+                        primary,
+                        accent,
+                        theme==1 ? 160 : 185,
+                        w*.04f,
+                        h*.08f,
+                        dp(38)
                     );
 
-                    drawMotifAsset(
+                    drawTintedThemeAsset(
                         canvas,
-                        motif,
-                        w*.08f,
-                        h*.10f,
-                        dp(34)
-                    );
-
-                    drawMotifAsset(
-                        canvas,
-                        motif,
-                        w*.83f,
-                        h*.10f,
+                        primary,
+                        accent,
+                        theme==1 ? 135 : 160,
+                        w*.76f,
+                        h*.70f,
                         dp(42)
                     );
-
-                    drawMotifAsset(
-                        canvas,
-                        motif,
-                        w*.72f,
-                        h*.72f,
-                        dp(36)
-                    );
-
-                    drawMotifAsset(
-                        canvas,
-                        motif,
-                        w*.14f,
-                        h*.72f,
-                        dp(30)
-                    );
-
-                    return;
                 }
+
+                if(secondary!=0) {
+                    int secondaryTint=
+                        blendThemeColor(
+                            accent,
+                            Color.WHITE,
+                            theme==1 ? 58 : 38
+                        );
+
+                    drawTintedThemeAsset(
+                        canvas,
+                        secondary,
+                        secondaryTint,
+                        theme==1 ? 175 : 200,
+                        w*.79f,
+                        h*.06f,
+                        dp(46)
+                    );
+
+                    drawTintedThemeAsset(
+                        canvas,
+                        secondary,
+                        secondaryTint,
+                        theme==1 ? 130 : 155,
+                        w*.12f,
+                        h*.72f,
+                        dp(31)
+                    );
+                }
+
+                if(tertiary!=0) {
+                    int tertiaryTint=
+                        blendThemeColor(
+                            accent,
+                            Color.WHITE,
+                            theme==1 ? 35 : 22
+                        );
+
+                    drawTintedThemeAsset(
+                        canvas,
+                        tertiary,
+                        tertiaryTint,
+                        theme==1 ? 150 : 180,
+                        w*.46f,
+                        h*.10f,
+                        dp(26)
+                    );
+                }
+
+                return;
             }
 
             switch(style) {
