@@ -54,6 +54,11 @@ public class KeyKiiService extends InputMethodService {
     // Voice typing only runs when the mic is tapped, so normal typing stays fast.
     android.speech.SpeechRecognizer voiceRecognizer=null;
     boolean voiceListening=false;
+    boolean voiceProcessing=false;
+    LinearLayout voiceStatusRow=null;
+    LinearLayout toolbarRow=null;
+    TextView voiceStatusText=null;
+    TextView voiceStatusMic=null;
 
     boolean clipboardShortcutMode=false;
 
@@ -174,6 +179,7 @@ public class KeyKiiService extends InputMethodService {
 
             voiceRecognizer=null;
             voiceListening=false;
+            voiceProcessing=false;
         }
 
         super.onDestroy();
@@ -521,7 +527,9 @@ public class KeyKiiService extends InputMethodService {
         }
 
         addHandle();
+        addVoiceStatusRow();
         addToolbar();
+        updateVoiceStatusUi();
 
         body=new LinearLayout(this);
         body.setOrientation(
@@ -722,11 +730,187 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    void addVoiceStatusRow() {
+
+        LinearLayout row=
+            new LinearLayout(this);
+
+        voiceStatusRow=row;
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(
+            dp(6),
+            0,
+            dp(6),
+            0
+        );
+
+        row.setBackground(
+            round(
+                keyColor(false),
+                18,
+                borderColor()
+            )
+        );
+
+        TextView back=
+            new TextView(this);
+
+        back.setText("←");
+        back.setTextSize(26);
+        back.setTextColor(textColor());
+        back.setGravity(Gravity.CENTER);
+        back.setOnClickListener(v -> cancelVoiceTyping());
+
+        voiceStatusText=
+            new TextView(this);
+
+        voiceStatusText.setText("Speak now");
+        voiceStatusText.setTextSize(18);
+        voiceStatusText.setTextColor(textColor());
+        voiceStatusText.setGravity(Gravity.CENTER);
+        voiceStatusText.setTypeface(
+            android.graphics.Typeface.DEFAULT,
+            android.graphics.Typeface.BOLD
+        );
+
+        voiceStatusMic=
+            new TextView(this);
+
+        voiceStatusMic.setText("🎙");
+        voiceStatusMic.setTextSize(22);
+        voiceStatusMic.setTextColor(textColor());
+        voiceStatusMic.setGravity(Gravity.CENTER);
+        voiceStatusMic.setBackground(
+            round(
+                accentFillColor(),
+                18,
+                accentColor()
+            )
+        );
+
+        voiceStatusMic.setOnClickListener(v -> {
+            if(voiceListening) {
+                try {
+                    if(voiceRecognizer!=null)
+                        voiceRecognizer.stopListening();
+                } catch(Exception ignored) {
+                }
+
+                voiceListening=false;
+                voiceProcessing=true;
+                updateVoiceStatusUi();
+
+            } else if(voiceProcessing) {
+                cancelVoiceTyping();
+
+            } else {
+                toggleVoiceTyping();
+            }
+        });
+
+        row.addView(
+            back,
+            new LinearLayout.LayoutParams(
+                dp(48),
+                dp(44)
+            )
+        );
+
+        row.addView(
+            voiceStatusText,
+            new LinearLayout.LayoutParams(
+                0,
+                dp(44),
+                1
+            )
+        );
+
+        LinearLayout.LayoutParams micParams=
+            new LinearLayout.LayoutParams(
+                dp(48),
+                dp(40)
+            );
+
+        micParams.setMargins(
+            dp(2),
+            dp(2),
+            dp(2),
+            dp(2)
+        );
+
+        row.addView(
+            voiceStatusMic,
+            micParams
+        );
+
+        panel.addView(
+            row,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(46)
+            )
+        );
+    }
+
+
+    void updateVoiceStatusUi() {
+        boolean active=
+            voiceListening ||
+            voiceProcessing;
+
+        if(voiceStatusRow!=null) {
+            voiceStatusRow.setVisibility(
+                active
+                ? View.VISIBLE
+                : View.GONE
+            );
+        }
+
+        if(toolbarRow!=null) {
+            toolbarRow.setVisibility(
+                active
+                ? View.GONE
+                : View.VISIBLE
+            );
+        }
+
+        if(voiceStatusText!=null) {
+            voiceStatusText.setText(
+                voiceProcessing
+                ? "Processing…"
+                : "Speak now"
+            );
+        }
+
+        if(voiceStatusMic!=null) {
+            voiceStatusMic.setAlpha(
+                active
+                ? 1f
+                : .75f
+            );
+        }
+    }
+
+
+    void cancelVoiceTyping() {
+        try {
+            if(voiceRecognizer!=null)
+                voiceRecognizer.cancel();
+        } catch(Exception ignored) {
+        }
+
+        voiceListening=false;
+        voiceProcessing=false;
+        updateVoiceStatusUi();
+    }
+
+
     void addToolbar() {
 
         LinearLayout r=
             new LinearLayout(this);
 
+        toolbarRow=r;
         r.setGravity(Gravity.CENTER);
 
         SharedPreferences toolbarPrefs=
@@ -1087,6 +1271,8 @@ public class KeyKiiService extends InputMethodService {
             }
 
             voiceListening=false;
+            voiceProcessing=true;
+            updateVoiceStatusUi();
             return;
         }
 
@@ -1138,10 +1324,16 @@ public class KeyKiiService extends InputMethodService {
                         android.os.Bundle params
                     ) {
                         voiceListening=true;
+                        voiceProcessing=false;
+                        updateVoiceStatusUi();
                     }
 
                     @Override
                     public void onBeginningOfSpeech() {
+                        voiceListening=true;
+                        voiceProcessing=false;
+                        updateVoiceStatusUi();
+
                     }
 
                     @Override
@@ -1155,11 +1347,15 @@ public class KeyKiiService extends InputMethodService {
                     @Override
                     public void onEndOfSpeech() {
                         voiceListening=false;
+                        voiceProcessing=true;
+                        updateVoiceStatusUi();
                     }
 
                     @Override
                     public void onError(int error) {
                         voiceListening=false;
+                        voiceProcessing=false;
+                        updateVoiceStatusUi();
 
                         if(
                             error!=
@@ -1178,6 +1374,8 @@ public class KeyKiiService extends InputMethodService {
                         android.os.Bundle results
                     ) {
                         voiceListening=false;
+                        voiceProcessing=false;
+                        updateVoiceStatusUi();
 
                         java.util.ArrayList<String> matches=
                             results.getStringArrayList(
@@ -1259,7 +1457,8 @@ public class KeyKiiService extends InputMethodService {
             );
 
             voiceListening=true;
-            voiceToast("Listening…");
+            voiceProcessing=false;
+            updateVoiceStatusUi();
 
             voiceRecognizer.startListening(
                 listenIntent
@@ -1267,6 +1466,8 @@ public class KeyKiiService extends InputMethodService {
 
         } catch(Exception e) {
             voiceListening=false;
+            voiceProcessing=false;
+            updateVoiceStatusUi();
             voiceToast(
                 "Unable to start voice typing."
             );
