@@ -5,6 +5,7 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
+    <!-- Same compact logo scale as the preferred 2.25.4 look, but with NO badge/background. -->
     <group
         android:pivotX="54"
         android:pivotY="54"
@@ -12,7 +13,6 @@
         android:scaleY="0.72"
         android:rotation="-7">
 
-        <!-- keyboard body -->
         <path
             android:pathData="M20,43 C20,37 25,33 31,33 H77 C83,33 88,37 88,43 V70 C88,76 83,80 77,80 H31 C25,80 20,76 20,70 Z"
             android:fillColor="@android:color/transparent"
@@ -21,7 +21,6 @@
             android:strokeLineCap="round"
             android:strokeLineJoin="round"/>
 
-        <!-- top row: five keys -->
         <path android:pathData="M28,42 H36 V51 H28 Z"
             android:fillColor="@android:color/transparent"
             android:strokeColor="#FFFFFFFF" android:strokeWidth="3"/>
@@ -38,7 +37,6 @@
             android:fillColor="@android:color/transparent"
             android:strokeColor="#FFFFFFFF" android:strokeWidth="3"/>
 
-        <!-- lower keys -->
         <path android:pathData="M28,59 H38 V69 H28 Z"
             android:fillColor="@android:color/transparent"
             android:strokeColor="#FFFFFFFF" android:strokeWidth="3"/>
@@ -50,7 +48,6 @@
             android:strokeColor="#FFFFFFFF" android:strokeWidth="3"/>
     </group>
 
-    <!-- left accent strokes -->
     <path
         android:pathData="M25,37 L19,32 M32,33 L29,25"
         android:fillColor="@android:color/transparent"
@@ -58,10 +55,10 @@
         android:strokeWidth="4"
         android:strokeLineCap="round"/>
 
-    <!-- sparkles -->
     <path
         android:pathData="M79,18 C80,24 84,28 90,29 C84,30 80,34 79,40 C78,34 74,30 68,29 C74,28 78,24 79,18 Z"
         android:fillColor="#FFFFFFFF"/>
+
     <path
         android:pathData="M92,34 C93,38 95,40 99,41 C95,42 93,44 92,48 C91,44 89,42 85,41 C89,40 91,38 92,34 Z"
         android:fillColor="#FFFFFFFF"/>
