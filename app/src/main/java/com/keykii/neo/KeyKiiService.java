@@ -16069,7 +16069,7 @@ public class KeyKiiService extends InputMethodService {
             );
             for(float y=dp(12);y<h;y+=dp(step))
                 for(float x=dp(12);x<w;x+=dp(step))
-                    canvas.drawCircle(x,y,dp(1.6f),paint);
+                    canvas.drawCircle(x,y,dp(2),paint);
         }
 
 
