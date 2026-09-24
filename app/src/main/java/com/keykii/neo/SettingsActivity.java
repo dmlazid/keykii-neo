@@ -314,14 +314,6 @@ public class SettingsActivity extends Activity {
 
         addSwitchRow(
                 page,
-                "🕶  Incognito",
-                "Show the privacy mode button",
-                "toolbar_incognito",
-                true
-        );
-
-        addSwitchRow(
-                page,
                 "◐  Theme",
                 "Show the quick theme switch button",
                 "toolbar_theme",
@@ -373,13 +365,12 @@ public class SettingsActivity extends Activity {
                             .putBoolean("toolbar_clipboard", true)
                             .putBoolean("toolbar_actions", true)
                             .putBoolean("toolbar_voice", true)
-                            .putBoolean("toolbar_incognito", true)
                             .putBoolean("toolbar_theme", true)
                             .putBoolean("toolbar_width", false)
                             .putBoolean("toolbar_hand", false)
                             .putString(
                                     "toolbar_order",
-                                    "emoji,clipboard,actions,voice,incognito,theme,width,hand"
+                                    "emoji,clipboard,actions,voice,theme,width,hand"
                             )
                             .apply();
 
@@ -417,7 +408,6 @@ public class SettingsActivity extends Activity {
                     item.equals("clipboard") ||
                     item.equals("actions") ||
                     item.equals("voice") ||
-                    item.equals("incognito") ||
                     item.equals("theme") ||
                     item.equals("width") ||
                     item.equals("hand")
@@ -431,7 +421,6 @@ public class SettingsActivity extends Activity {
         clean.add("clipboard");
         clean.add("actions");
         clean.add("voice");
-        clean.add("incognito");
         clean.add("theme");
         clean.add("width");
         clean.add("hand");
@@ -667,9 +656,6 @@ public class SettingsActivity extends Activity {
         if(id.equals("voice"))
             return "🎙";
 
-        if(id.equals("incognito"))
-            return "🕶";
-
         if(id.equals("theme"))
             return "◐";
 
@@ -697,9 +683,6 @@ public class SettingsActivity extends Activity {
 
         if(id.equals("voice"))
             return "Voice typing";
-
-        if(id.equals("incognito"))
-            return "Incognito";
 
         if(id.equals("theme"))
             return "Theme";
