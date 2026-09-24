@@ -15352,31 +15352,6 @@ public class KeyKiiService extends InputMethodService {
                 style>=20 &&
                 style<=39
             ) {
-                if(pack==116) {
-                    int res=
-                        R.drawable.theme_motif_lotus;
-
-                    android.graphics.drawable.Drawable motif=
-                        getDrawable(res);
-
-                    if(motif!=null) {
-                        motif=motif.mutate();
-                        motif.setTint(accent);
-                        motif.setAlpha(
-                            theme==1
-                                ? 155
-                                : 175
-                        );
-
-                        drawMotifAsset(canvas,motif,w*.08f,h*.10f,dp(34));
-                        drawMotifAsset(canvas,motif,w*.83f,h*.10f,dp(42));
-                        drawMotifAsset(canvas,motif,w*.72f,h*.72f,dp(36));
-                        drawMotifAsset(canvas,motif,w*.14f,h*.72f,dp(30));
-
-                        return;
-                    }
-                }
-
                 int primary=
                     themeDecorPrimaryAssetRes(pack);
 
