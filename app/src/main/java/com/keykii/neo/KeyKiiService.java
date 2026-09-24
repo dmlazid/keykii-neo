@@ -3059,18 +3059,10 @@ public class KeyKiiService extends InputMethodService {
             if(action.equals("SPACE"))
                 return handleSpacebarTouch(v,e);
 
-            if(isGlideLetterAction(action)) {
-                boolean glideConsumed=
-                    handleGlideKeyTouch(
-                        v,
-                        e,
-                        action
-                    );
-
-                if(glideConsumed)
-                    return true;
-            }
-
+            // Long-press alternative selection owns the gesture once its
+            // popup appears. This must run before glide typing; otherwise
+            // MOVE/UP can be stolen by glide, leaving the popup stuck and
+            // corrupting later key gestures.
             if(dragChoiceActive) {
                 int a=e.getActionMasked();
 
@@ -3098,6 +3090,18 @@ public class KeyKiiService extends InputMethodService {
 
                     return handleDragChoiceTouch(e);
                 }
+            }
+
+            if(isGlideLetterAction(action)) {
+                boolean glideConsumed=
+                    handleGlideKeyTouch(
+                        v,
+                        e,
+                        action
+                    );
+
+                if(glideConsumed)
+                    return true;
             }
 
             if(e.getAction()==MotionEvent.ACTION_DOWN) {
@@ -7972,6 +7976,12 @@ public class KeyKiiService extends InputMethodService {
         dragChoiceIndex=-1;
         dragChoiceActive=false;
         dragChoiceMode="";
+
+        repeatBackspaceHandler.removeCallbacks(
+            repeatBackspaceRunnable
+        );
+        backspaceRepeating=false;
+        backspaceSwipeActive=false;
     }
 
 
@@ -8054,6 +8064,8 @@ public class KeyKiiService extends InputMethodService {
         String value=dragChoiceValues.get(dragChoiceIndex);
         String mode=dragChoiceMode;
 
+        glideDecodeSession++;
+        lastGlideEndTime=0L;
         dismissDragChoicePopup();
 
         if(mode.equals("TEXT")) {
@@ -8159,6 +8171,24 @@ public class KeyKiiService extends InputMethodService {
 
         dismissDragChoicePopup();
         dismissKeyPreview();
+
+        // A long press and a glide both start from the same letter touch.
+        // Once the chooser opens, cancel glide/backspace state completely
+        // so releasing on an alternate character cannot leave KeyKii in a
+        // stuck gesture that affects later typing.
+        glideTracking=false;
+        glideActive=false;
+        glideGestureLetters.setLength(0);
+        lastGlideEndTime=0L;
+        hideGlideTrail();
+        resetGlideKeyVisuals();
+
+        repeatBackspaceHandler.removeCallbacks(
+            repeatBackspaceRunnable
+        );
+        backspaceRepeating=false;
+        backspaceSwipeActive=false;
+        suppressBackspaceClick=false;
 
         int columns=labels.size()<=6
             ? labels.size()
