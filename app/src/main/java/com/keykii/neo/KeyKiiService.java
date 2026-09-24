@@ -1117,39 +1117,6 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
-    boolean hasNextWordContext() {
-        InputConnection ic=getCurrentInputConnection();
-        if(ic==null)
-            return false;
-
-        try {
-            CharSequence before=ic.getTextBeforeCursor(128,0);
-            if(before==null || before.length()==0)
-                return false;
-
-            String s=before.toString();
-
-            // Never show idle suggestions in a completely empty field.
-            if(s.trim().isEmpty())
-                return false;
-
-            // Next-word suggestions only make sense after the user has
-            // finished a word and inserted whitespace/punctuation.
-            char last=s.charAt(s.length()-1);
-
-            return Character.isWhitespace(last) ||
-                last=='.' ||
-                last=='!' ||
-                last=='?' ||
-                last==',' ||
-                last==';' ||
-                last==':';
-        } catch(Exception ignored) {
-            return false;
-        }
-    }
-
-
     java.util.ArrayList<String> loadLearnedWords() {
         SharedPreferences sp=
             getSharedPreferences(
@@ -1345,7 +1312,7 @@ public class KeyKiiService extends InputMethodService {
         java.util.ArrayList<String> dictionary=loadPredictionDictionary();
 
         if(q.isEmpty()) {
-            if(nextWordSuggestions && hasNextWordContext()) {
+            if(nextWordSuggestions) {
                 String[] starters={"I","the","you"};
                 for(String s:starters)
                     out.add(s);
@@ -1529,7 +1496,7 @@ public class KeyKiiService extends InputMethodService {
             !values.isEmpty() &&
             (
                 (prefix!=null && !prefix.isEmpty()) ||
-                (nextWordSuggestions && hasNextWordContext())
+                nextWordSuggestions
             );
 
         suggestionBar.setVisibility(
