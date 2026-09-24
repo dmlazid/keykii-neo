@@ -285,7 +285,45 @@ public class KeyKiiService extends InputMethodService {
         super.onDestroy();
     }
 
+    boolean isIncognitoMode() {
+        return getSharedPreferences(
+            "keykii_prefs",
+            MODE_PRIVATE
+        ).getBoolean(
+            "incognito_mode",
+            false
+        );
+    }
+
+
+    void toggleIncognitoMode() {
+        boolean next=
+            !isIncognitoMode();
+
+        getSharedPreferences(
+            "keykii_prefs",
+            MODE_PRIVATE
+        ).edit()
+         .putBoolean(
+             "incognito_mode",
+             next
+         )
+         .apply();
+
+        voiceToast(
+            next
+            ? "Incognito on • history saving paused"
+            : "Incognito off • normal saving restored"
+        );
+
+        buildShell();
+    }
+
+
     void captureClipboard(){
+
+        if(isIncognitoMode())
+            return;
 
         if(
             clipboardManager==null ||
@@ -1073,7 +1111,7 @@ public class KeyKiiService extends InputMethodService {
         String orderText=
             toolbarPrefs.getString(
                 "toolbar_order",
-                "emoji,clipboard,actions,voice,theme,width,hand"
+                "emoji,clipboard,actions,voice,incognito,theme,width,hand"
             );
 
         java.util.LinkedHashSet<String> order=
@@ -1088,6 +1126,7 @@ public class KeyKiiService extends InputMethodService {
                     clean.equals("clipboard") ||
                     clean.equals("actions") ||
                     clean.equals("voice") ||
+                    clean.equals("incognito") ||
                     clean.equals("theme") ||
                     clean.equals("width") ||
                     clean.equals("hand")
@@ -1103,6 +1142,7 @@ public class KeyKiiService extends InputMethodService {
         order.add("clipboard");
         order.add("actions");
         order.add("voice");
+        order.add("incognito");
         order.add("theme");
         order.add("width");
         order.add("hand");
@@ -1148,6 +1188,19 @@ public class KeyKiiService extends InputMethodService {
                 )
             ) {
                 tool(r,"🎙",8);
+
+            } else if(
+                id.equals("incognito") &&
+                toolbarPrefs.getBoolean(
+                    "toolbar_incognito",
+                    true
+                )
+            ) {
+                tool(
+                    r,
+                    "🕶",
+                    9
+                );
 
             } else if(
                 id.equals("theme") &&
@@ -1219,6 +1272,19 @@ public class KeyKiiService extends InputMethodService {
         v.setTextSize(18);
         v.setGravity(Gravity.CENTER);
         v.setClickable(true);
+
+        if(
+            action==9 &&
+            isIncognitoMode()
+        ) {
+            v.setBackground(
+                round(
+                    accentFillColor(),
+                    16,
+                    accentColor()
+                )
+            );
+        }
 
         v.setOnClickListener(x -> {
 
@@ -1359,6 +1425,10 @@ public class KeyKiiService extends InputMethodService {
             } else if(action==8) {
 
                 toggleVoiceTyping();
+
+            } else if(action==9) {
+
+                toggleIncognitoMode();
             }
         });;
 
@@ -3675,6 +3745,9 @@ public class KeyKiiService extends InputMethodService {
 
     void rememberFastRecent(String emoji) {
 
+        if(isIncognitoMode())
+            return;
+
         if(emoji==null || emoji.isEmpty())
             return;
 
@@ -5659,6 +5732,9 @@ public class KeyKiiService extends InputMethodService {
         String emoji
     ) {
 
+        if(isIncognitoMode())
+            return;
+
         if(
             emoji==null ||
             emoji.trim().isEmpty()
@@ -7295,6 +7371,9 @@ public class KeyKiiService extends InputMethodService {
 
 
     void rememberClip(String text) {
+
+        if(isIncognitoMode())
+            return;
 
         if(
             text==null ||
