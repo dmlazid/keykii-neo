@@ -91,7 +91,7 @@ public class KeyKiiService extends InputMethodService {
     > emojiGroupsCache=null;
 
     int keyHeight=46;
-    int floatGap=96;
+    int floatGap=14;
 
     boolean haptic=false;
     boolean keySound=false;
@@ -432,6 +432,11 @@ public class KeyKiiService extends InputMethodService {
             46
         );
 
+        floatGap=keykiiPrefs.getInt(
+            "float_gap",
+            14
+        );
+
         haptic=keykiiPrefs.getBoolean(
             "haptic",
             false
@@ -541,7 +546,41 @@ public class KeyKiiService extends InputMethodService {
 
         theme=resolvedTheme(p);
         keyHeight=p.getInt("key_height",46);
-        floatGap=p.getInt("float_gap",96);
+
+        if(
+            !p.getBoolean(
+                "gboard_bottom_gap_migrated",
+                false
+            )
+        ) {
+            int oldGap=
+                p.getInt(
+                    "float_gap",
+                    96
+                );
+
+            if(oldGap>=32) {
+                p.edit()
+                 .putInt(
+                     "float_gap",
+                     14
+                 )
+                 .putBoolean(
+                     "gboard_bottom_gap_migrated",
+                     true
+                 )
+                 .apply();
+            } else {
+                p.edit()
+                 .putBoolean(
+                     "gboard_bottom_gap_migrated",
+                     true
+                 )
+                 .apply();
+            }
+        }
+
+        floatGap=p.getInt("float_gap",14);
         haptic=p.getBoolean("haptic",false);
         keySound=p.getBoolean("key_sound",false);
         keySoundVolume=p.getInt(
@@ -642,10 +681,10 @@ public class KeyKiiService extends InputMethodService {
 
         int bottomPadding=
             wideMode
-            ? 30
+            ? Math.min(floatGap,8)
             : hand!=0
-                ? Math.min(floatGap,48)
-                : Math.min(floatGap,52);
+                ? Math.min(floatGap,10)
+                : Math.min(floatGap,20);
 
         root.setPadding(
             dp(sidePadding),
@@ -3115,7 +3154,9 @@ public class KeyKiiService extends InputMethodService {
             r,
             symbols ? "ABC" : "?123",
             symbols ? "ABC" : "123",
-            1f,
+            page==0 && !symbols
+            ? 1.12f
+            : 1f,
             true
         );
 
@@ -3150,7 +3191,9 @@ public class KeyKiiService extends InputMethodService {
                 r,
                 ",",
                 ",",
-                .62f,
+                page==0 && !symbols
+                ? .58f
+                : .62f,
                 false
             );
 
@@ -3162,7 +3205,7 @@ public class KeyKiiService extends InputMethodService {
                     r,
                     "🌐",
                     "LANG",
-                    .62f,
+                    .68f,
                     true
                 );
             }
@@ -3174,7 +3217,7 @@ public class KeyKiiService extends InputMethodService {
                 : "KeyKii",
                 "SPACE",
                 page==0 && !symbols
-                ? 2.25f
+                ? 2.80f
                 : 2.75f,
                 false
             );
@@ -3183,7 +3226,9 @@ public class KeyKiiService extends InputMethodService {
                 r,
                 ".",
                 ".",
-                .58f,
+                page==0 && !symbols
+                ? .58f
+                : .58f,
                 false
             );
         }
@@ -3192,7 +3237,9 @@ public class KeyKiiService extends InputMethodService {
             r,
             enterLabel(),
             "ENTER",
-            1.05f,
+            page==0 && !symbols
+            ? 1.12f
+            : 1.05f,
             true
         );
 
@@ -3293,12 +3340,27 @@ public class KeyKiiService extends InputMethodService {
         boolean space=
             action.equals("SPACE");
 
-        box.setBackground(
-            keyBackground(
-                special,
-                space
-            )
-        );
+        boolean gboardBottomPlain=
+            page==0 &&
+            !symbols &&
+            (
+                action.equals(",") ||
+                action.equals("LANG") ||
+                action.equals(".")
+            );
+
+        if(gboardBottomPlain) {
+            box.setBackgroundColor(
+                Color.TRANSPARENT
+            );
+        } else {
+            box.setBackground(
+                keyBackground(
+                    special,
+                    space
+                )
+            );
+        }
 
         box.addView(
             main,
@@ -12054,8 +12116,8 @@ public class KeyKiiService extends InputMethodService {
                 "↑  Higher"
             },
             new Runnable[]{
-                () -> resizeKeyboardBy(0,-16),
-                () -> resizeKeyboardBy(0,16)
+                () -> resizeKeyboardBy(0,-4),
+                () -> resizeKeyboardBy(0,4)
             }
         );
 
@@ -12067,7 +12129,7 @@ public class KeyKiiService extends InputMethodService {
             new Runnable[]{
                 () -> {
                     keyHeight=46;
-                    floatGap=96;
+                    floatGap=14;
 
                     getSharedPreferences(
                         "keykii_prefs",
@@ -12110,9 +12172,9 @@ public class KeyKiiService extends InputMethodService {
 
         floatGap=
             Math.max(
-                32,
+                4,
                 Math.min(
-                    160,
+                    32,
                     floatGap+gapDelta
                 )
             );
