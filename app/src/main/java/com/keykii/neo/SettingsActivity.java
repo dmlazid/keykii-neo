@@ -187,6 +187,13 @@ public class SettingsActivity extends Activity {
                 "Auto-capitalization, double-space period and key preview",
                 v -> showSmartTyping()
         );
+        addRow(
+                page,
+                "A✓",
+                "Corrections & suggestions",
+                "Suggestion strip, word suggestions and learned words",
+                v -> showCorrectionsAndSuggestions()
+        );
         addRow(page, "〰", "Glide typing", "Swipe typing is not enabled yet", v -> showComing(
                 "Glide typing",
                 "Glide typing needs a gesture decoder and language model. The setting is shown here now so the structure is ready, but it is not enabled yet."
@@ -1023,13 +1030,95 @@ public class SettingsActivity extends Activity {
 
         addInfoCard(
                 page,
-                "About suggestions",
-                "These helpers work locally. Full word suggestions and auto-correction are still planned for a later update."
+                "More typing controls",
+                "Word prediction settings are available under Corrections & suggestions."
         );
 
         setContentView(
                 wrap(page)
         );
+    }
+
+
+    private void showCorrectionsAndSuggestions() {
+        screen = "corrections_suggestions";
+
+        LinearLayout page = page(
+                "Corrections & suggestions",
+                "Control KeyKii word prediction and local learning",
+                true
+        );
+
+        addSection(page, "Automatic corrections");
+
+        addSwitchRow(
+                page,
+                "Auto-capitalization",
+                "Capitalize the first word of each sentence",
+                "auto_capitalization",
+                true
+        );
+
+        addSection(page, "Suggestions");
+
+        addSwitchRow(
+                page,
+                "Suggestion strip",
+                "Show prediction choices above the keys while typing",
+                "suggestion_strip",
+                true
+        );
+
+        addSwitchRow(
+                page,
+                "Word suggestions",
+                "Show matching and spelling suggestions as you type",
+                "word_suggestions",
+                true
+        );
+
+        addSwitchRow(
+                page,
+                "Next-word suggestions",
+                "Show starter suggestions between words",
+                "next_word_suggestions",
+                false
+        );
+
+        addSection(page, "Personalization");
+
+        addSwitchRow(
+                page,
+                "Learn typed words",
+                "Remember words you type for better local suggestions",
+                "learn_typed_words",
+                true
+        );
+
+        addActionButton(
+                page,
+                "Clear learned words",
+                v -> new AlertDialog.Builder(this)
+                        .setTitle("Clear learned words?")
+                        .setMessage("This removes words KeyKii learned from your typing on this device.")
+                        .setNegativeButton("Cancel", null)
+                        .setPositiveButton("Clear", (d, which) -> {
+                            getSharedPreferences(
+                                    "keykii_predictions",
+                                    MODE_PRIVATE
+                            ).edit().clear().apply();
+                            toast("Learned words cleared");
+                        })
+                        .show()
+        );
+
+        addInfoCard(
+                page,
+                "Private by default",
+                "Prediction and learned-word data stay in KeyKii's local app data on this device."
+        );
+
+        setContentView(wrap(page));
     }
 
 
