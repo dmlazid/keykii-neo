@@ -23,6 +23,7 @@ public class KeyKiiService extends InputMethodService {
     // 2.27.0 local word suggestions / prediction bar.
     LinearLayout suggestionBar=null;
     TextView[] suggestionViews=new TextView[3];
+    java.util.ArrayList<String> predictionDictionary=null;
     android.os.Handler suggestionHandler=
         new android.os.Handler(android.os.Looper.getMainLooper());
 
@@ -1154,48 +1155,207 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    java.util.ArrayList<String> loadPredictionDictionary() {
+        if(predictionDictionary!=null)
+            return predictionDictionary;
+
+        predictionDictionary=new java.util.ArrayList<>();
+
+        try {
+            java.io.BufferedReader r=
+                new java.io.BufferedReader(
+                    new java.io.InputStreamReader(
+                        getAssets().open("keykii-english-10000.txt"),
+                        "UTF-8"
+                    )
+                );
+
+            String line;
+            while((line=r.readLine())!=null) {
+                String w=line.trim().toLowerCase(java.util.Locale.ROOT);
+                if(w.isEmpty() || w.length()>32)
+                    continue;
+
+                boolean ok=true;
+                for(int i=0;i<w.length();i++) {
+                    char ch=w.charAt(i);
+                    if(!Character.isLetter(ch) && ch!='\'') {
+                        ok=false;
+                        break;
+                    }
+                }
+
+                if(ok && !predictionDictionary.contains(w))
+                    predictionDictionary.add(w);
+            }
+
+            r.close();
+        } catch(Exception ignored) {
+        }
+
+        return predictionDictionary;
+    }
+
+
+    int predictionEditDistance(String a, String b, int maxDistance) {
+        if(a==null || b==null)
+            return maxDistance+1;
+
+        int la=a.length();
+        int lb=b.length();
+
+        if(Math.abs(la-lb)>maxDistance)
+            return maxDistance+1;
+
+        int[] prev=new int[lb+1];
+        int[] curr=new int[lb+1];
+
+        for(int j=0;j<=lb;j++)
+            prev[j]=j;
+
+        for(int i=1;i<=la;i++) {
+            curr[0]=i;
+            int rowMin=curr[0];
+
+            for(int j=1;j<=lb;j++) {
+                int cost=a.charAt(i-1)==b.charAt(j-1) ? 0 : 1;
+
+                curr[j]=Math.min(
+                    Math.min(
+                        curr[j-1]+1,
+                        prev[j]+1
+                    ),
+                    prev[j-1]+cost
+                );
+
+                rowMin=Math.min(rowMin,curr[j]);
+            }
+
+            if(rowMin>maxDistance)
+                return maxDistance+1;
+
+            int[] swap=prev;
+            prev=curr;
+            curr=swap;
+        }
+
+        return prev[lb];
+    }
+
+
+    void addPredictionCandidate(
+        java.util.ArrayList<String> out,
+        String word,
+        String prefix
+    ) {
+        if(word==null || word.isEmpty() || out.size()>=3)
+            return;
+
+        String shown=suggestionCase(word,prefix);
+
+        if(shown!=null && !shown.isEmpty() && !out.contains(shown))
+            out.add(shown);
+    }
+
+
     java.util.ArrayList<String> predictionSuggestions(String prefix) {
         java.util.ArrayList<String> out=new java.util.ArrayList<>();
-        String q=prefix==null
-            ? ""
-            : prefix.toLowerCase(java.util.Locale.ROOT);
 
-        java.util.ArrayList<String> candidates=loadLearnedWords();
+        String typed=prefix==null ? "" : prefix;
+        String q=typed.toLowerCase(java.util.Locale.ROOT);
 
-        String[] common={
-            "the","to","and","a","i","you","it","is","in","that",
-            "for","of","on","this","with","my","we","are","be","have",
-            "not","was","but","what","can","me","your","so","do","if",
-            "just","like","how","yes","no","okay","ok","please","thanks","thank",
-            "good","great","hello","hi","hey","love","want","need","know","think",
-            "today","tomorrow","now","later","time","more","very","really","still","already",
-            "make","made","work","working","done","next","update","keyboard","clipboard","shortcut",
-            "where","when","why","who","which","there","here","from","about","because",
-            "could","would","should","will","may","maybe","also","only","back","again",
-            "new","same","right","left","first","last","before","after","much","many"
-        };
-
-        for(String w:common)
-            if(!candidates.contains(w))
-                candidates.add(w);
+        java.util.ArrayList<String> learned=loadLearnedWords();
+        java.util.ArrayList<String> dictionary=loadPredictionDictionary();
 
         if(q.isEmpty()) {
             String[] starters={"I","the","you"};
-            for(String s:starters) out.add(s);
+            for(String s:starters)
+                out.add(s);
             return out;
         }
 
-        for(String word:candidates) {
+        // Like Gboard: keep what the user actually typed available.
+        if(q.length()>=2)
+            addPredictionCandidate(out,q,typed);
+
+        // Personal words come first.
+        for(String word:learned) {
             if(word==null || word.isEmpty()) continue;
+
             String lower=word.toLowerCase(java.util.Locale.ROOT);
 
-            if(lower.startsWith(q) && !lower.equals(q)) {
-                String shown=suggestionCase(lower,prefix);
-                if(!out.contains(shown))
-                    out.add(shown);
+            if(lower.startsWith(q) && !lower.equals(q))
+                addPredictionCandidate(out,lower,typed);
+
+            if(out.size()>=3)
+                return out;
+        }
+
+        // Frequency-ordered 10k English dictionary for normal completions.
+        for(String word:dictionary) {
+            if(word==null || word.isEmpty()) continue;
+
+            if(word.startsWith(q) && !word.equals(q))
+                addPredictionCandidate(out,word,typed);
+
+            if(out.size()>=3)
+                return out;
+        }
+
+        // If the typed text is misspelled or random-looking, offer nearby words.
+        // This makes strings such as "bjjkll" still produce useful candidates.
+        if(q.length()>=3) {
+            int maxDistance=
+                q.length()>=6 ? 3 :
+                q.length()>=4 ? 2 : 1;
+
+            java.util.ArrayList<String> fuzzyWords=
+                new java.util.ArrayList<>();
+            java.util.ArrayList<Integer> fuzzyScores=
+                new java.util.ArrayList<>();
+
+            for(String word:dictionary) {
+                if(word==null || word.isEmpty())
+                    continue;
+
+                if(Math.abs(word.length()-q.length())>maxDistance)
+                    continue;
+
+                if(
+                    word.length()>0 &&
+                    q.length()>0 &&
+                    word.charAt(0)!=q.charAt(0)
+                )
+                    continue;
+
+                int score=predictionEditDistance(q,word,maxDistance);
+
+                if(score>maxDistance)
+                    continue;
+
+                int insertAt=fuzzyScores.size();
+
+                for(int i=0;i<fuzzyScores.size();i++) {
+                    if(score<fuzzyScores.get(i)) {
+                        insertAt=i;
+                        break;
+                    }
+                }
+
+                fuzzyScores.add(insertAt,score);
+                fuzzyWords.add(insertAt,word);
+
+                if(fuzzyWords.size()>12) {
+                    fuzzyWords.remove(fuzzyWords.size()-1);
+                    fuzzyScores.remove(fuzzyScores.size()-1);
+                }
             }
 
-            if(out.size()>=3) break;
+            for(String word:fuzzyWords) {
+                addPredictionCandidate(out,word,typed);
+                if(out.size()>=3)
+                    break;
+            }
         }
 
         return out;
@@ -1289,7 +1449,7 @@ public class KeyKiiService extends InputMethodService {
         suggestionHandler.removeCallbacksAndMessages(null);
         suggestionHandler.postDelayed(
             () -> updateSuggestionBar(),
-            20
+            45
         );
     }
 
