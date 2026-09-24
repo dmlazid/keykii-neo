@@ -2472,8 +2472,14 @@ public class KeyKiiService extends InputMethodService {
             glideTracking=false;
             glideActive=false;
             glideGestureLetters.setLength(0);
-            hideGlideTrail();
-            resetGlideKeyVisuals();
+
+            if(
+                wasActive ||
+                type==MotionEvent.ACTION_CANCEL
+            ) {
+                hideGlideTrail();
+                resetGlideKeyVisuals();
+            }
 
             if(
                 wasActive &&
@@ -3145,9 +3151,11 @@ public class KeyKiiService extends InputMethodService {
 
             if(
                 isGlideLetterAction(action) &&
+                lastGlideEndTime>0L &&
                 android.os.SystemClock.uptimeMillis()-
-                    lastGlideEndTime<90
+                    lastGlideEndTime<70
             ) {
+                lastGlideEndTime=0L;
                 return;
             }
 
@@ -3157,6 +3165,12 @@ public class KeyKiiService extends InputMethodService {
             ){
                 suppressBackspaceClick=false;
                 return;
+            }
+
+            if(isGlideLetterAction(action)) {
+                glideTracking=false;
+                glideActive=false;
+                glideGestureLetters.setLength(0);
             }
 
             press(action);
