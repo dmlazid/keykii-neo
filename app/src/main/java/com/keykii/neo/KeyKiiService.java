@@ -1780,6 +1780,9 @@ public class KeyKiiService extends InputMethodService {
         else if(page==6)
             buildCalculatorPanel();
 
+        else if(page==7)
+            buildTextCasePanel();
+
         else
             buildKeyboard();
     }
@@ -7484,6 +7487,19 @@ public class KeyKiiService extends InputMethodService {
             }
         );
 
+        toolsSlideRow(
+            mainSlide,
+            new String[]{
+                "🧮  Calculator"
+            },
+            new Runnable[]{
+                () -> {
+                    page=6;
+                    buildShell();
+                }
+            }
+        );
+
         LinearLayout moreSlide=
             new LinearLayout(this);
 
@@ -7520,11 +7536,11 @@ public class KeyKiiService extends InputMethodService {
         toolsSlideRow(
             moreSlide,
             new String[]{
-                "🧮  Calculator"
+                "Aa  Text case"
             },
             new Runnable[]{
                 () -> {
-                    page=6;
+                    page=7;
                     buildShell();
                 }
             }
@@ -7962,6 +7978,282 @@ public class KeyKiiService extends InputMethodService {
 
         buildShell();
     }
+
+    void buildTextCasePanel() {
+
+        TextView heading=
+            title("Text case");
+
+        heading.setTextSize(12);
+        heading.setAlpha(.62f);
+
+        body.addView(
+            heading,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(24)
+            )
+        );
+
+        TextView info=
+            new TextView(this);
+
+        info.setText(
+            "Select text in the app, then choose how you want to change it."
+        );
+
+        info.setTextColor(
+            textColor()
+        );
+
+        info.setTextSize(12);
+        info.setAlpha(.70f);
+        info.setGravity(
+            Gravity.CENTER
+        );
+
+        info.setPadding(
+            dp(12),
+            dp(6),
+            dp(12),
+            dp(8)
+        );
+
+        body.addView(
+            info,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(54)
+            )
+        );
+
+        toolsRow(
+            new String[]{
+                "ABC  UPPERCASE",
+                "abc  lowercase"
+            },
+            new Runnable[]{
+                () -> applySelectedTextCase("upper"),
+                () -> applySelectedTextCase("lower")
+            }
+        );
+
+        toolsRow(
+            new String[]{
+                "Ab  Title Case",
+                "Aa  Sentence case"
+            },
+            new Runnable[]{
+                () -> applySelectedTextCase("title"),
+                () -> applySelectedTextCase("sentence")
+            }
+        );
+
+        TextView note=
+            new TextView(this);
+
+        note.setText(
+            "The selected text is replaced directly. Nothing is saved."
+        );
+
+        note.setTextColor(
+            textColor()
+        );
+
+        note.setTextSize(11);
+        note.setAlpha(.52f);
+        note.setGravity(
+            Gravity.CENTER
+        );
+
+        body.addView(
+            note,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(46)
+            )
+        );
+    }
+
+
+    void applySelectedTextCase(
+        String mode
+    ) {
+        InputConnection ic=
+            getCurrentInputConnection();
+
+        if(ic==null) {
+            voiceToast(
+                "No text field available"
+            );
+            return;
+        }
+
+        CharSequence selected=null;
+
+        try {
+            selected=
+                ic.getSelectedText(0);
+        } catch(Exception ignored) {
+        }
+
+        if(
+            selected==null ||
+            selected.length()==0
+        ) {
+            voiceToast(
+                "Select some text first"
+            );
+            return;
+        }
+
+        String source=
+            selected.toString();
+
+        String converted;
+
+        if("upper".equals(mode)) {
+            converted=
+                source.toUpperCase(
+                    java.util.Locale.getDefault()
+                );
+
+        } else if("lower".equals(mode)) {
+            converted=
+                source.toLowerCase(
+                    java.util.Locale.getDefault()
+                );
+
+        } else if("title".equals(mode)) {
+            converted=
+                titleCaseText(source);
+
+        } else {
+            converted=
+                sentenceCaseText(source);
+        }
+
+        ic.commitText(
+            converted,
+            1
+        );
+
+        voiceToast(
+            "Text case changed"
+        );
+
+        page=0;
+        buildShell();
+    }
+
+
+    String titleCaseText(
+        String text
+    ) {
+        if(text==null || text.isEmpty())
+            return "";
+
+        String lower=
+            text.toLowerCase(
+                java.util.Locale.getDefault()
+            );
+
+        StringBuilder out=
+            new StringBuilder(
+                lower.length()
+            );
+
+        boolean newWord=true;
+
+        for(int i=0;i<lower.length();i++) {
+            char ch=
+                lower.charAt(i);
+
+            if(
+                Character.isLetter(ch) &&
+                newWord
+            ) {
+                out.append(
+                    Character.toUpperCase(ch)
+                );
+
+                newWord=false;
+
+            } else {
+                out.append(ch);
+
+                if(Character.isLetterOrDigit(ch))
+                    newWord=false;
+            }
+
+            if(
+                Character.isWhitespace(ch) ||
+                ch=='-' ||
+                ch=='/' ||
+                ch=='\\'
+            ) {
+                newWord=true;
+            }
+        }
+
+        return out.toString();
+    }
+
+
+    String sentenceCaseText(
+        String text
+    ) {
+        if(text==null || text.isEmpty())
+            return "";
+
+        String lower=
+            text.toLowerCase(
+                java.util.Locale.getDefault()
+            );
+
+        StringBuilder out=
+            new StringBuilder(
+                lower.length()
+            );
+
+        boolean capitalizeNext=true;
+
+        for(int i=0;i<lower.length();i++) {
+            char ch=
+                lower.charAt(i);
+
+            if(
+                capitalizeNext &&
+                Character.isLetter(ch)
+            ) {
+                out.append(
+                    Character.toUpperCase(ch)
+                );
+
+                capitalizeNext=false;
+
+            } else {
+                out.append(ch);
+            }
+
+            if(
+                ch=='.' ||
+                ch=='!' ||
+                ch=='?' ||
+                ch=='\n'
+            ) {
+                capitalizeNext=true;
+            } else if(
+                !Character.isWhitespace(ch)
+            ) {
+                if(!capitalizeNext)
+                    capitalizeNext=false;
+            }
+        }
+
+        return out.toString();
+    }
+
 
     void buildCalculatorPanel() {
 
