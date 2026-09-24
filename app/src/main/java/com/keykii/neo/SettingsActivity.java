@@ -1982,15 +1982,37 @@ public class SettingsActivity extends Activity {
                 dp(285)
         );
 
-        addThemeSection(page, "Style packs");
+        addThemeStoreHero(page);
 
-        addInfoCard(
+        addThemeSection(page, "Featured");
+        addStylePackGrid(
                 page,
-                "Free + Pro preview",
-                "All packs are unlocked in this test build. Packs marked PRO PREVIEW are the designs we can later lock behind KeyKii Pro with Google Play Billing."
+                new int[]{0,3,4,6}
         );
 
-        addKeyboardStylePackGrid(page);
+        addThemeSection(page, "Cute & Pastel");
+        addStylePackGrid(
+                page,
+                new int[]{8,12,13,14,15,11}
+        );
+
+        addThemeSection(page, "Gaming & Dark");
+        addStylePackGrid(
+                page,
+                new int[]{2,9,10,16,17,4}
+        );
+
+        addThemeSection(page, "Glass & Minimal");
+        addStylePackGrid(
+                page,
+                new int[]{1,5,6,18,19,0}
+        );
+
+        addThemeSection(page, "Seasonal");
+        addStylePackGrid(
+                page,
+                new int[]{7,20,21,22,23}
+        );
 
         addThemeSection(page, "My themes");
         addMyThemeTiles(page);
@@ -2564,17 +2586,112 @@ public class SettingsActivity extends Activity {
     }
 
 
-    private void addKeyboardStylePackGrid(LinearLayout page) {
-        for(int pack=0;pack<12;pack+=2) {
-            LinearLayout row=new LinearLayout(this);
-            row.setOrientation(LinearLayout.HORIZONTAL);
+    private void addThemeStoreHero(
+            LinearLayout page
+    ) {
+        LinearLayout hero=
+                new LinearLayout(this);
 
-            addStylePackTileToRow(row,createStylePackTile(pack));
+        hero.setOrientation(
+                LinearLayout.VERTICAL
+        );
 
-            if(pack+1<12) {
+        hero.setPadding(
+                dp(18),
+                dp(17),
+                dp(18),
+                dp(16)
+        );
+
+        GradientDrawable bg=
+                new GradientDrawable(
+                        GradientDrawable.Orientation.LEFT_RIGHT,
+                        new int[]{
+                            Color.rgb(246,221,255),
+                            Color.rgb(255,225,239),
+                            Color.rgb(224,242,255)
+                        }
+                );
+
+        bg.setCornerRadius(dp(25));
+        hero.setBackground(bg);
+
+        TextView title=
+                new TextView(this);
+
+        title.setText(
+                "✨ KeyKii Theme Shop"
+        );
+
+        title.setTextColor(TEXT);
+        title.setTextSize(20);
+        title.setTypeface(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+        );
+
+        hero.addView(title);
+
+        TextView sub=
+                new TextView(this);
+
+        sub.setText(
+                "24 keyboard designs • Free + Pro preview\nTap any theme to preview before applying."
+        );
+
+        sub.setTextColor(MUTED);
+        sub.setTextSize(12);
+        sub.setPadding(
+                0,
+                dp(5),
+                0,
+                0
+        );
+
+        hero.addView(sub);
+
+        LinearLayout.LayoutParams p=
+                new LinearLayout.LayoutParams(
+                        -1,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+
+        p.setMargins(
+                0,
+                dp(2),
+                0,
+                dp(6)
+        );
+
+        page.addView(hero,p);
+    }
+
+
+    private void addStylePackGrid(
+            LinearLayout page,
+            int[] packs
+    ) {
+        for(int index=0;index<packs.length;index+=2) {
+            LinearLayout row=
+                    new LinearLayout(this);
+
+            row.setOrientation(
+                    LinearLayout.HORIZONTAL
+            );
+
+            addStylePackTileToRow(
+                    row,
+                    createStylePackTile(
+                            packs[index]
+                    )
+            );
+
+            if(index+1<packs.length) {
                 addStylePackTileToRow(
                         row,
-                        createStylePackTile(pack+1)
+                        createStylePackTile(
+                                packs[index+1]
+                        )
                 );
             } else {
                 addStylePackSpacer(row);
@@ -2595,54 +2712,134 @@ public class SettingsActivity extends Activity {
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         1f
                 );
-        p.setMargins(dp(4),dp(5),dp(4),dp(5));
+
+        p.setMargins(
+                dp(4),
+                dp(5),
+                dp(4),
+                dp(5)
+        );
+
         row.addView(tile,p);
     }
 
 
-    private void addStylePackSpacer(LinearLayout row) {
-        View spacer=new View(this);
+    private void addStylePackSpacer(
+            LinearLayout row
+    ) {
+        View spacer=
+                new View(this);
+
         LinearLayout.LayoutParams p=
-                new LinearLayout.LayoutParams(0,1,1f);
-        p.setMargins(dp(4),0,dp(4),0);
+                new LinearLayout.LayoutParams(
+                        0,
+                        1,
+                        1f
+                );
+
+        p.setMargins(
+                dp(4),
+                0,
+                dp(4),
+                0
+        );
+
         row.addView(spacer,p);
     }
 
 
-    private LinearLayout createStylePackTile(int pack) {
-        LinearLayout tile=new LinearLayout(this);
-        tile.setOrientation(LinearLayout.VERTICAL);
-        tile.setPadding(dp(7),dp(7),dp(7),dp(9));
+    private LinearLayout createStylePackTile(
+            int pack
+    ) {
+        LinearLayout tile=
+                new LinearLayout(this);
 
-        GradientDrawable cardBg=round(Color.WHITE,18);
-        cardBg.setStroke(dp(1),BORDER);
-        tile.setBackground(cardBg);
-
-        tile.addView(
-                buildStylePackMiniKeyboard(pack,false),
-                new LinearLayout.LayoutParams(-1,dp(112))
+        tile.setOrientation(
+                LinearLayout.VERTICAL
         );
 
-        TextView name=new TextView(this);
-        name.setText(stylePackName(pack));
+        tile.setPadding(
+                dp(7),
+                dp(7),
+                dp(7),
+                dp(9)
+        );
+
+        GradientDrawable cardBg=
+                round(
+                        Color.WHITE,
+                        20
+                );
+
+        cardBg.setStroke(
+                dp(1),
+                BORDER
+        );
+
+        tile.setBackground(cardBg);
+        tile.setElevation(dp(1));
+
+        tile.addView(
+                buildStylePackMiniKeyboard(
+                        pack,
+                        false
+                ),
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(116)
+                )
+        );
+
+        TextView name=
+                new TextView(this);
+
+        name.setText(
+                stylePackName(pack)
+        );
+
         name.setTextColor(TEXT);
         name.setTextSize(13);
         name.setGravity(Gravity.CENTER);
         name.setMaxLines(1);
-        tile.addView(name,new LinearLayout.LayoutParams(-1,dp(25)));
 
-        TextView badge=new TextView(this);
-        badge.setText(stylePackPro(pack) ? "PRO PREVIEW" : "FREE");
+        tile.addView(
+                name,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(25)
+                )
+        );
+
+        TextView badge=
+                new TextView(this);
+
+        badge.setText(
+                stylePackPro(pack)
+                        ? "✦ PRO PREVIEW"
+                        : "FREE"
+        );
+
         badge.setTextColor(
                 stylePackPro(pack)
-                        ? Color.rgb(145,83,173)
+                        ? Color.rgb(149,76,177)
                         : Color.rgb(58,131,82)
         );
+
         badge.setTextSize(10);
         badge.setGravity(Gravity.CENTER);
-        tile.addView(badge,new LinearLayout.LayoutParams(-1,dp(20)));
 
-        tile.setOnClickListener(v -> showStylePackPreview(pack));
+        tile.addView(
+                badge,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(20)
+                )
+        );
+
+        tile.setOnClickListener(
+                v -> showStylePackPreview(pack)
+        );
+
         return tile;
     }
 
@@ -2651,7 +2848,8 @@ public class SettingsActivity extends Activity {
             int pack,
             boolean large
     ) {
-        int[] spec=stylePackSpec(pack);
+        int[] spec=
+                stylePackSpec(pack);
 
         int start=spec[0];
         int end=spec[1];
@@ -2659,9 +2857,15 @@ public class SettingsActivity extends Activity {
         int corner=spec[3];
         boolean borders=spec[5]==1;
         boolean dark=spec[6]==0;
+        int decor=spec[7];
 
-        LinearLayout keyboard=new LinearLayout(this);
-        keyboard.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout keyboard=
+                new LinearLayout(this);
+
+        keyboard.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
         keyboard.setPadding(
                 dp(large ? 9 : 6),
                 dp(large ? 9 : 6),
@@ -2672,78 +2876,143 @@ public class SettingsActivity extends Activity {
         GradientDrawable panelBg=
                 new GradientDrawable(
                         GradientDrawable.Orientation.TL_BR,
-                        new int[]{start,end}
+                        new int[]{
+                            start,
+                            end
+                        }
                 );
-        panelBg.setCornerRadius(dp(large ? 22 : 15));
-        keyboard.setBackground(panelBg);
 
-        // Themes deliberately use the currently selected font.
-        Typeface currentFont=settingsKeyboardTypeface(
-                prefs.getInt("keyboard_font_style",0)
+        panelBg.setCornerRadius(
+                dp(large ? 22 : 15)
         );
 
-        String[][] rows=new String[][]{
-                {"q","w","e","r","t","y"},
-                {"a","s","d","f","g","h"},
-                {"⇧","z","x","c","v","⌫"},
-                {"123",",","KeyKii",".","↵"}
-        };
+        if(decor>0) {
+            android.graphics.drawable.LayerDrawable layers=
+                    new android.graphics.drawable.LayerDrawable(
+                            new android.graphics.drawable.Drawable[]{
+                                panelBg,
+                                new ThemePreviewDecorDrawable(
+                                        decor,
+                                        accent,
+                                        dark
+                                )
+                            }
+                    );
+
+            keyboard.setBackground(layers);
+        } else {
+            keyboard.setBackground(panelBg);
+        }
+
+        Typeface currentFont=
+                settingsKeyboardTypeface(
+                        prefs.getInt(
+                                "keyboard_font_style",
+                                0
+                        )
+                );
+
+        String[][] rows=
+                new String[][]{
+                        {"q","w","e","r","t","y"},
+                        {"a","s","d","f","g","h"},
+                        {"⇧","z","x","c","v","⌫"},
+                        {"123",",","KeyKii",".","↵"}
+                };
 
         for(int r=0;r<rows.length;r++) {
-            LinearLayout row=new LinearLayout(this);
-            row.setGravity(Gravity.CENTER);
+            LinearLayout row=
+                    new LinearLayout(this);
+
+            row.setGravity(
+                    Gravity.CENTER
+            );
 
             for(int k=0;k<rows[r].length;k++) {
-                String value=rows[r][k];
+                String value=
+                        rows[r][k];
 
-                TextView key=new TextView(this);
+                TextView key=
+                        new TextView(this);
+
                 key.setText(value);
                 key.setGravity(Gravity.CENTER);
                 key.setTextSize(
                         large
-                                ? (value.length()>2 ? 10 : 14)
-                                : (value.length()>2 ? 7 : 10)
+                                ? (
+                                    value.length()>2
+                                            ? 10
+                                            : 14
+                                )
+                                : (
+                                    value.length()>2
+                                            ? 7
+                                            : 10
+                                )
                 );
+
                 key.setTypeface(currentFont);
 
                 boolean special=
-                        r==2 && (k==0 || k==rows[r].length-1);
+                        r==2 &&
+                        (
+                            k==0 ||
+                            k==rows[r].length-1
+                        );
 
                 key.setTextColor(
                         dark
                                 ? Color.WHITE
-                                : Color.rgb(53,53,57)
+                                : Color.rgb(
+                                    53,53,57
+                                )
                 );
 
                 int keyFill=
                         special
                                 ? Color.argb(
-                                        large ? 220 : 205,
-                                        Color.red(accent),
-                                        Color.green(accent),
-                                        Color.blue(accent)
+                                    large ? 222 : 210,
+                                    Color.red(accent),
+                                    Color.green(accent),
+                                    Color.blue(accent)
                                 )
                                 : dark
                                         ? Color.argb(
-                                                borders ? 145 : 72,
-                                                255,255,255
+                                            borders
+                                                ? 150
+                                                : 82,
+                                            255,255,255
                                         )
                                         : Color.argb(
-                                                borders ? 214 : 116,
-                                                255,255,255
+                                            borders
+                                                ? 220
+                                                : 135,
+                                            255,255,255
                                         );
 
-                GradientDrawable keyBg=round(
-                        keyFill,
-                        Math.max(5,large ? corner : corner-3)
-                );
+                GradientDrawable keyBg=
+                        round(
+                            keyFill,
+                            Math.max(
+                                5,
+                                large
+                                    ? corner
+                                    : corner-3
+                            )
+                        );
 
                 if(borders) {
                     keyBg.setStroke(
                             dp(1),
                             dark
-                                    ? Color.argb(65,255,255,255)
-                                    : Color.argb(55,70,70,75)
+                                    ? Color.argb(
+                                        70,
+                                        255,255,255
+                                    )
+                                    : Color.argb(
+                                        58,
+                                        70,70,75
+                                    )
                     );
                 }
 
@@ -2752,9 +3021,16 @@ public class SettingsActivity extends Activity {
                 LinearLayout.LayoutParams kp=
                         new LinearLayout.LayoutParams(
                                 0,
-                                dp(large ? 41 : 24),
-                                value.equals("KeyKii") ? 2.5f : 1f
+                                dp(
+                                    large
+                                        ? 41
+                                        : 25
+                                ),
+                                value.equals("KeyKii")
+                                        ? 2.5f
+                                        : 1f
                         );
+
                 kp.setMargins(
                         dp(large ? 2 : 1),
                         dp(large ? 2 : 1),
@@ -2762,14 +3038,21 @@ public class SettingsActivity extends Activity {
                         dp(large ? 2 : 1)
                 );
 
-                row.addView(key,kp);
+                row.addView(
+                        key,
+                        kp
+                );
             }
 
             keyboard.addView(
                     row,
                     new LinearLayout.LayoutParams(
                             -1,
-                            dp(large ? 45 : 27)
+                            dp(
+                                large
+                                    ? 45
+                                    : 27
+                            )
                     )
             );
         }
@@ -2778,65 +3061,147 @@ public class SettingsActivity extends Activity {
     }
 
 
-    private void showStylePackPreview(int pack) {
+    private void showStylePackPreview(
+            int pack
+    ) {
         final android.app.Dialog dialog=
                 new android.app.Dialog(this);
 
-        LinearLayout sheet=new LinearLayout(this);
-        sheet.setOrientation(LinearLayout.VERTICAL);
-        sheet.setPadding(dp(16),dp(15),dp(16),dp(18));
-        sheet.setBackground(round(Color.WHITE,26));
+        LinearLayout sheet=
+                new LinearLayout(this);
 
-        TextView title=new TextView(this);
-        title.setText(stylePackName(pack));
+        sheet.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        sheet.setPadding(
+                dp(16),
+                dp(15),
+                dp(16),
+                dp(18)
+        );
+
+        sheet.setBackground(
+                round(
+                        Color.WHITE,
+                        26
+                )
+        );
+
+        TextView title=
+                new TextView(this);
+
+        title.setText(
+                stylePackName(pack)
+        );
+
         title.setTextColor(TEXT);
         title.setTextSize(22);
         title.setGravity(Gravity.CENTER);
-        sheet.addView(title,new LinearLayout.LayoutParams(-1,dp(40)));
-
-        TextView badge=new TextView(this);
-        badge.setText(stylePackPro(pack) ? "PRO PREVIEW" : "FREE");
-        badge.setTextColor(
-                stylePackPro(pack)
-                        ? Color.rgb(145,83,173)
-                        : Color.rgb(58,131,82)
-        );
-        badge.setTextSize(11);
-        badge.setGravity(Gravity.CENTER);
-        sheet.addView(badge,new LinearLayout.LayoutParams(-1,dp(26)));
 
         sheet.addView(
-                buildStylePackMiniKeyboard(pack,true),
-                new LinearLayout.LayoutParams(-1,dp(208))
+                title,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(40)
+                )
         );
 
-        TextView sub=new TextView(this);
-        sub.setText(stylePackSubtitle(pack)+"\nUses your current font");
+        TextView badge=
+                new TextView(this);
+
+        badge.setText(
+                stylePackPro(pack)
+                        ? "✦ KEYKII PRO PREVIEW"
+                        : "FREE THEME"
+        );
+
+        badge.setTextColor(
+                stylePackPro(pack)
+                        ? Color.rgb(149,76,177)
+                        : Color.rgb(58,131,82)
+        );
+
+        badge.setTextSize(11);
+        badge.setGravity(Gravity.CENTER);
+
+        sheet.addView(
+                badge,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(26)
+                )
+        );
+
+        sheet.addView(
+                buildStylePackMiniKeyboard(
+                        pack,
+                        true
+                ),
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(208)
+                )
+        );
+
+        TextView sub=
+                new TextView(this);
+
+        sub.setText(
+                stylePackSubtitle(pack)+
+                "\nUses your current font • Fonts stay separate"
+        );
+
         sub.setTextColor(MUTED);
         sub.setTextSize(12);
         sub.setGravity(Gravity.CENTER);
-        sheet.addView(sub,new LinearLayout.LayoutParams(-1,dp(50)));
 
-        LinearLayout buttons=new LinearLayout(this);
-
-        TextView cancel=textButton("Cancel");
-        TextView apply=textButton(
-                stylePackPro(pack)
-                        ? "Apply preview"
-                        : "Apply"
+        sheet.addView(
+                sub,
+                new LinearLayout.LayoutParams(
+                        -1,
+                        dp(52)
+                )
         );
+
+        LinearLayout buttons=
+                new LinearLayout(this);
+
+        TextView cancel=
+                textButton("Cancel");
+
+        TextView apply=
+                textButton(
+                        stylePackPro(pack)
+                                ? "Apply for testing"
+                                : "Apply"
+                );
+
         cancel.setTextSize(16);
         apply.setTextSize(16);
 
-        cancel.setOnClickListener(v -> dialog.dismiss());
+        cancel.setOnClickListener(
+                v -> dialog.dismiss()
+        );
+
         apply.setOnClickListener(v -> {
             applyKeyboardStylePack(pack);
             dialog.dismiss();
         });
 
         LinearLayout.LayoutParams p=
-                new LinearLayout.LayoutParams(0,dp(56),1f);
-        p.setMargins(dp(4),dp(8),dp(4),0);
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(56),
+                        1f
+                );
+
+        p.setMargins(
+                dp(4),
+                dp(8),
+                dp(4),
+                0
+        );
 
         buttons.addView(cancel,p);
         buttons.addView(apply,p);
@@ -2878,161 +3243,623 @@ public class SettingsActivity extends Activity {
     }
 
 
-    private void applyKeyboardStylePack(int pack) {
-        int[] spec=stylePackSpec(pack);
+    private void applyKeyboardStylePack(
+            int pack
+    ) {
+        int[] spec=
+                stylePackSpec(pack);
 
         prefs.edit()
-                .putInt("theme_surface_mode",2)
-                .putInt("theme",spec[6])
-                .putInt("theme_custom_start",spec[0])
-                .putInt("theme_custom_end",spec[1])
-                .putInt("accent_color",spec[2])
-                .putInt("key_corner_radius",spec[3])
-                .putInt("theme_transparency",spec[4])
-                .putBoolean("theme_key_borders",spec[5]==1)
-                .putBoolean("photo_key_borders",spec[5]==1)
-                .putBoolean("theme_auto_day_night",false)
-                .putInt("keykii_style_pack",pack)
-                // Themes must never overwrite keyboard_font_style.
+                .putInt(
+                        "theme_surface_mode",
+                        2
+                )
+                .putInt(
+                        "theme",
+                        spec[6]
+                )
+                .putInt(
+                        "theme_custom_start",
+                        spec[0]
+                )
+                .putInt(
+                        "theme_custom_end",
+                        spec[1]
+                )
+                .putInt(
+                        "accent_color",
+                        spec[2]
+                )
+                .putInt(
+                        "key_corner_radius",
+                        spec[3]
+                )
+                .putInt(
+                        "theme_transparency",
+                        spec[4]
+                )
+                .putBoolean(
+                        "theme_key_borders",
+                        spec[5]==1
+                )
+                .putBoolean(
+                        "photo_key_borders",
+                        spec[5]==1
+                )
+                .putInt(
+                        "theme_decor_style",
+                        spec[7]
+                )
+                .putBoolean(
+                        "theme_auto_day_night",
+                        false
+                )
+                .putInt(
+                        "keykii_style_pack",
+                        pack
+                )
                 .apply();
 
-        toast(stylePackName(pack)+" theme applied");
+        toast(
+                stylePackName(pack)+
+                " theme applied"
+        );
+
         showTheme();
     }
 
 
-    private int[] stylePackSpec(int pack) {
+    private int[] stylePackSpec(
+            int pack
+    ) {
         switch(pack) {
             case 0:
                 return new int[]{
                         Color.rgb(217,238,255),
                         Color.rgb(249,252,255),
                         Color.rgb(81,128,204),
-                        18,96,1,1
+                        18,96,1,1,2
                 };
+
             case 1:
                 return new int[]{
                         Color.rgb(218,241,204),
                         Color.rgb(247,246,218),
                         Color.rgb(78,144,78),
-                        22,96,1,1
+                        22,96,1,1,8
                 };
+
             case 2:
                 return new int[]{
                         Color.rgb(33,48,74),
                         Color.rgb(10,17,29),
                         Color.rgb(98,149,229),
-                        15,100,1,0
+                        15,100,1,0,7
                 };
+
             case 3:
                 return new int[]{
-                        Color.rgb(255,197,224),
-                        Color.rgb(255,240,249),
-                        Color.rgb(222,92,147),
-                        24,96,1,1
+                        Color.rgb(255,194,222),
+                        Color.rgb(255,242,249),
+                        Color.rgb(225,83,143),
+                        25,96,1,1,1
                 };
+
             case 4:
                 return new int[]{
-                        Color.rgb(60,16,92),
-                        Color.rgb(3,30,50),
-                        Color.rgb(44,223,235),
-                        13,96,1,0
+                        Color.rgb(65,13,98),
+                        Color.rgb(2,30,52),
+                        Color.rgb(39,224,238),
+                        12,97,1,0,4
                 };
+
             case 5:
                 return new int[]{
-                        Color.rgb(239,188,185),
-                        Color.rgb(255,239,219),
-                        Color.rgb(173,88,98),
-                        19,98,1,1
+                        Color.rgb(241,190,187),
+                        Color.rgb(255,240,220),
+                        Color.rgb(174,88,99),
+                        19,98,1,1,2
                 };
+
             case 6:
                 return new int[]{
-                        Color.rgb(172,235,241),
-                        Color.rgb(207,225,255),
-                        Color.rgb(32,146,170),
-                        26,80,1,1
+                        Color.rgb(167,234,242),
+                        Color.rgb(208,227,255),
+                        Color.rgb(31,148,173),
+                        26,82,1,1,5
                 };
+
             case 7:
                 return new int[]{
-                        Color.rgb(255,195,115),
-                        Color.rgb(246,105,127),
-                        Color.rgb(211,72,50),
-                        20,95,1,1
+                        Color.rgb(255,197,116),
+                        Color.rgb(246,106,135),
+                        Color.rgb(213,72,54),
+                        21,95,1,1,6
                 };
+
             case 8:
                 return new int[]{
-                        Color.rgb(220,201,255),
-                        Color.rgb(252,229,249),
-                        Color.rgb(132,92,194),
-                        26,95,1,1
+                        Color.rgb(220,199,255),
+                        Color.rgb(253,230,250),
+                        Color.rgb(135,92,198),
+                        27,95,1,1,1
                 };
+
             case 9:
                 return new int[]{
                         Color.rgb(0,0,0),
                         Color.rgb(0,0,0),
-                        Color.rgb(115,115,124),
-                        11,100,0,0
+                        Color.rgb(130,130,140),
+                        10,100,0,0,2
                 };
+
             case 10:
                 return new int[]{
-                        Color.rgb(24,24,27),
-                        Color.rgb(2,2,3),
-                        Color.rgb(226,44,55),
-                        7,100,1,0
+                        Color.rgb(25,25,29),
+                        Color.rgb(2,2,4),
+                        Color.rgb(229,42,55),
+                        7,100,1,0,4
                 };
+
+            case 11:
+                return new int[]{
+                        Color.rgb(142,96,71),
+                        Color.rgb(62,38,29),
+                        Color.rgb(229,177,126),
+                        19,98,1,0,1
+                };
+
+            case 12:
+                return new int[]{
+                        Color.rgb(255,190,207),
+                        Color.rgb(255,239,235),
+                        Color.rgb(232,85,119),
+                        27,96,1,1,1
+                };
+
+            case 13:
+                return new int[]{
+                        Color.rgb(185,207,255),
+                        Color.rgb(239,241,255),
+                        Color.rgb(83,115,199),
+                        28,95,1,1,2
+                };
+
+            case 14:
+                return new int[]{
+                        Color.rgb(188,244,226),
+                        Color.rgb(240,255,246),
+                        Color.rgb(65,166,135),
+                        28,90,1,1,3
+                };
+
+            case 15:
+                return new int[]{
+                        Color.rgb(255,206,174),
+                        Color.rgb(255,241,225),
+                        Color.rgb(225,122,91),
+                        28,96,1,1,6
+                };
+
+            case 16:
+                return new int[]{
+                        Color.rgb(28,20,72),
+                        Color.rgb(3,5,20),
+                        Color.rgb(138,91,255),
+                        13,100,1,0,7
+                };
+
+            case 17:
+                return new int[]{
+                        Color.rgb(18,28,20),
+                        Color.rgb(3,5,4),
+                        Color.rgb(165,255,70),
+                        9,100,1,0,4
+                };
+
+            case 18:
+                return new int[]{
+                        Color.rgb(196,226,247),
+                        Color.rgb(239,246,255),
+                        Color.rgb(94,145,185),
+                        27,68,1,1,5
+                };
+
+            case 19:
+                return new int[]{
+                        Color.rgb(245,240,233),
+                        Color.rgb(255,253,249),
+                        Color.rgb(173,152,126),
+                        18,98,0,1,2
+                };
+
+            case 20:
+                return new int[]{
+                        Color.rgb(205,244,210),
+                        Color.rgb(255,239,247),
+                        Color.rgb(101,174,105),
+                        26,95,1,1,8
+                };
+
+            case 21:
+                return new int[]{
+                        Color.rgb(64,31,83),
+                        Color.rgb(13,8,19),
+                        Color.rgb(255,132,53),
+                        13,100,1,0,7
+                };
+
+            case 22:
+                return new int[]{
+                        Color.rgb(214,244,224),
+                        Color.rgb(255,226,231),
+                        Color.rgb(201,46,58),
+                        22,96,1,1,10
+                };
+
+            case 23:
+                return new int[]{
+                        Color.rgb(28,26,39),
+                        Color.rgb(4,4,8),
+                        Color.rgb(241,191,68),
+                        15,100,1,0,11
+                };
+
             default:
                 return new int[]{
-                        Color.rgb(132,88,66),
-                        Color.rgb(57,36,28),
-                        Color.rgb(222,170,121),
-                        17,98,1,0
+                        Color.rgb(217,238,255),
+                        Color.rgb(249,252,255),
+                        Color.rgb(81,128,204),
+                        18,96,1,1,0
                 };
         }
     }
 
 
-    private String stylePackName(int pack) {
-        String[] names=new String[]{
-                "Cloud Blue",
-                "Matcha Cream",
-                "Midnight",
-                "Sakura Pink",
-                "Neon Night",
-                "Rose Gold",
-                "Ocean Glass",
-                "Sunset Pop",
-                "Lavender Dream",
-                "AMOLED Black",
-                "Gaming Red",
-                "Cocoa"
-        };
+    private String stylePackName(
+            int pack
+    ) {
+        String[] names=
+                new String[]{
+                        "Cloud Blue",
+                        "Matcha Cream",
+                        "Midnight",
+                        "Sakura Hearts",
+                        "Cyber Neon",
+                        "Rose Gold",
+                        "Ocean Glass",
+                        "Sunset Candy",
+                        "Lavender Bunny",
+                        "AMOLED Black",
+                        "Gamer Red",
+                        "Cocoa Bear",
+                        "Strawberry Milk",
+                        "Blueberry Cloud",
+                        "Mint Bubbles",
+                        "Peach Mochi",
+                        "Galaxy Spark",
+                        "Electric Lime",
+                        "Frosted Glass",
+                        "Pearl Minimal",
+                        "Spring Bloom",
+                        "Spooky Night",
+                        "Candy Christmas",
+                        "Golden New Year"
+                };
 
-        return names[Math.max(0,Math.min(names.length-1,pack))];
+        return names[
+                Math.max(
+                        0,
+                        Math.min(
+                                names.length-1,
+                                pack
+                        )
+                )
+        ];
     }
 
 
-    private String stylePackSubtitle(int pack) {
-        String[] values=new String[]{
-                "Clean blue and white",
-                "Soft green and cream",
-                "Deep navy night",
-                "Cute pink pastel",
-                "Purple and cyan glow",
-                "Warm elegant rose",
-                "Fresh aqua glass",
-                "Bright coral sunset",
-                "Soft purple pastel",
-                "Pure black minimal",
-                "Black and red gaming",
-                "Warm coffee brown"
-        };
+    private String stylePackSubtitle(
+            int pack
+    ) {
+        String[] values=
+                new String[]{
+                        "Clean blue with soft sparkles",
+                        "Creamy matcha with leaf accents",
+                        "Deep navy with tiny stars",
+                        "Pink pastel with floating hearts",
+                        "Purple-cyan cyber lines",
+                        "Warm rose with elegant shimmer",
+                        "Aqua glass with frosted highlights",
+                        "Coral sunset with confetti",
+                        "Lavender pastel with heart accents",
+                        "Pure black with subtle sparkle",
+                        "Black and red cyber gaming",
+                        "Warm cocoa with cute heart accents",
+                        "Sweet strawberry pink hearts",
+                        "Soft blueberry cloud sparkles",
+                        "Fresh mint bubble accents",
+                        "Peach pastel confetti",
+                        "Dark galaxy with glowing stars",
+                        "Black and electric lime cyber",
+                        "Cool translucent glass highlights",
+                        "Clean pearl minimal sparkle",
+                        "Fresh floral spring accents",
+                        "Purple-orange spooky night",
+                        "Red-green candy stripes",
+                        "Black and gold celebration rays"
+                };
 
-        return values[Math.max(0,Math.min(values.length-1,pack))];
+        return values[
+                Math.max(
+                        0,
+                        Math.min(
+                                values.length-1,
+                                pack
+                        )
+                )
+        ];
     }
 
 
-    private boolean stylePackPro(int pack) {
+    private boolean stylePackPro(
+            int pack
+    ) {
         return pack>=3;
+    }
+
+
+    class ThemePreviewDecorDrawable
+        extends android.graphics.drawable.Drawable {
+
+        final int style;
+        final int accent;
+        final boolean dark;
+
+        final android.graphics.Paint paint=
+                new android.graphics.Paint(
+                        android.graphics.Paint.ANTI_ALIAS_FLAG
+                );
+
+        ThemePreviewDecorDrawable(
+                int style,
+                int accent,
+                boolean dark
+        ) {
+            this.style=style;
+            this.accent=accent;
+            this.dark=dark;
+        }
+
+
+        @Override
+        public void draw(
+                android.graphics.Canvas canvas
+        ) {
+            android.graphics.Rect b=
+                    getBounds();
+
+            float w=b.width();
+            float h=b.height();
+
+            if(w<=0 || h<=0)
+                return;
+
+            int accentSoft=
+                    Color.argb(
+                            48,
+                            Color.red(accent),
+                            Color.green(accent),
+                            Color.blue(accent)
+                    );
+
+            int whiteSoft=
+                    Color.argb(
+                            dark ? 48 : 88,
+                            255,255,255
+                    );
+
+            paint.setStyle(
+                    android.graphics.Paint.Style.FILL
+            );
+
+            switch(style) {
+                case 1:
+                    paint.setColor(accentSoft);
+                    previewHeart(canvas,w*.12f,h*.22f,dp(8));
+                    previewHeart(canvas,w*.87f,h*.25f,dp(7));
+                    previewHeart(canvas,w*.74f,h*.80f,dp(10));
+                    break;
+
+                case 2:
+                    paint.setColor(whiteSoft);
+                    previewSpark(canvas,w*.12f,h*.20f,dp(7));
+                    previewSpark(canvas,w*.86f,h*.22f,dp(10));
+                    previewSpark(canvas,w*.72f,h*.80f,dp(7));
+                    break;
+
+                case 3:
+                    paint.setStyle(
+                            android.graphics.Paint.Style.STROKE
+                    );
+                    paint.setStrokeWidth(dp(1));
+                    paint.setColor(whiteSoft);
+                    canvas.drawCircle(w*.11f,h*.22f,dp(10),paint);
+                    canvas.drawCircle(w*.86f,h*.23f,dp(15),paint);
+                    canvas.drawCircle(w*.72f,h*.80f,dp(12),paint);
+                    paint.setStyle(
+                            android.graphics.Paint.Style.FILL
+                    );
+                    break;
+
+                case 4:
+                    paint.setColor(accentSoft);
+                    paint.setStrokeWidth(dp(2));
+                    for(int i=0;i<5;i++) {
+                        float y=h*(.12f+i*.19f);
+                        canvas.drawLine(w*.02f,y,w*.20f,y-dp(8),paint);
+                        canvas.drawLine(w*.80f,y+dp(6),w*.98f,y-dp(2),paint);
+                    }
+                    break;
+
+                case 5:
+                    paint.setColor(whiteSoft);
+                    canvas.drawCircle(w*.10f,h*.18f,dp(25),paint);
+                    canvas.drawCircle(w*.91f,h*.30f,dp(34),paint);
+                    canvas.drawCircle(w*.63f,h*.88f,dp(38),paint);
+                    break;
+
+                case 6:
+                    paint.setStrokeWidth(dp(2));
+                    for(int i=0;i<10;i++) {
+                        paint.setColor(
+                                i%2==0
+                                        ? accentSoft
+                                        : whiteSoft
+                        );
+                        float x=w*(.05f+(i%5)*.22f);
+                        float y=h*(i<5 ? .15f : .83f);
+                        canvas.drawLine(x,y,x+dp(5),y+dp(7),paint);
+                    }
+                    break;
+
+                case 7:
+                    paint.setColor(whiteSoft);
+                    previewStar(canvas,w*.12f,h*.20f,dp(8));
+                    previewStar(canvas,w*.86f,h*.23f,dp(11));
+                    previewStar(canvas,w*.72f,h*.80f,dp(7));
+                    break;
+
+                case 8:
+                    paint.setColor(accentSoft);
+                    for(int i=0;i<4;i++) {
+                        float x=w*(.14f+i*.24f);
+                        android.graphics.RectF oval=
+                                new android.graphics.RectF(
+                                        x-dp(4),
+                                        h*.12f-dp(8),
+                                        x+dp(4),
+                                        h*.12f+dp(8)
+                                );
+                        canvas.drawOval(oval,paint);
+                    }
+                    break;
+
+                case 9:
+                    paint.setColor(whiteSoft);
+                    previewSpark(canvas,w*.14f,h*.20f,dp(7));
+                    previewSpark(canvas,w*.84f,h*.23f,dp(10));
+                    break;
+
+                case 10:
+                    paint.setColor(accentSoft);
+                    paint.setStrokeWidth(dp(5));
+                    for(float x=-w*.10f;x<w*1.1f;x+=dp(30)) {
+                        canvas.drawLine(x,h,x+w*.28f,0,paint);
+                    }
+                    break;
+
+                case 11:
+                    paint.setColor(whiteSoft);
+                    paint.setStrokeWidth(dp(1));
+                    float cx=w*.86f;
+                    float cy=h*.19f;
+                    for(int i=0;i<8;i++) {
+                        double a=Math.PI*2*i/8.0;
+                        canvas.drawLine(
+                                cx,cy,
+                                cx+(float)Math.cos(a)*dp(22),
+                                cy+(float)Math.sin(a)*dp(22),
+                                paint
+                        );
+                    }
+                    break;
+            }
+        }
+
+
+        void previewHeart(
+                android.graphics.Canvas canvas,
+                float cx,
+                float cy,
+                float size
+        ) {
+            android.graphics.Path path=
+                    new android.graphics.Path();
+
+            path.moveTo(cx,cy+size*.7f);
+            path.cubicTo(cx-size,cy,cx-size*.65f,cy-size*.75f,cx,cy-size*.22f);
+            path.cubicTo(cx+size*.65f,cy-size*.75f,cx+size,cy,cx,cy+size*.7f);
+            canvas.drawPath(path,paint);
+        }
+
+
+        void previewSpark(
+                android.graphics.Canvas canvas,
+                float cx,
+                float cy,
+                float size
+        ) {
+            android.graphics.Path path=
+                    new android.graphics.Path();
+
+            path.moveTo(cx,cy-size);
+            path.lineTo(cx+size*.22f,cy-size*.22f);
+            path.lineTo(cx+size,cy);
+            path.lineTo(cx+size*.22f,cy+size*.22f);
+            path.lineTo(cx,cy+size);
+            path.lineTo(cx-size*.22f,cy+size*.22f);
+            path.lineTo(cx-size,cy);
+            path.lineTo(cx-size*.22f,cy-size*.22f);
+            path.close();
+            canvas.drawPath(path,paint);
+        }
+
+
+        void previewStar(
+                android.graphics.Canvas canvas,
+                float cx,
+                float cy,
+                float radius
+        ) {
+            android.graphics.Path path=
+                    new android.graphics.Path();
+
+            for(int i=0;i<10;i++) {
+                double a=-Math.PI/2+i*Math.PI/5;
+                float r=i%2==0 ? radius : radius*.42f;
+                float x=cx+(float)Math.cos(a)*r;
+                float y=cy+(float)Math.sin(a)*r;
+
+                if(i==0)
+                    path.moveTo(x,y);
+                else
+                    path.lineTo(x,y);
+            }
+
+            path.close();
+            canvas.drawPath(path,paint);
+        }
+
+
+        @Override
+        public void setAlpha(int alpha) {
+            paint.setAlpha(alpha);
+        }
+
+
+        @Override
+        public void setColorFilter(
+                android.graphics.ColorFilter filter
+        ) {
+            paint.setColorFilter(filter);
+        }
+
+
+        @Override
+        public int getOpacity() {
+            return android.graphics.PixelFormat.TRANSLUCENT;
+        }
     }
 
 
@@ -5473,7 +6300,17 @@ public class SettingsActivity extends Activity {
                     themeDraftStylePack
             );
 
+            e.putInt(
+                    "theme_decor_style",
+                    pack[7]
+            );
+
             // Theme packs never change keyboard_font_style.
+        } else {
+            e.putInt(
+                    "theme_decor_style",
+                    0
+            );
         }
 
         if(
