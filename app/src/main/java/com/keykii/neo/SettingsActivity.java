@@ -3287,7 +3287,7 @@ public class SettingsActivity extends Activity {
     }
 
 
-    private GradientDrawable previewThemeKeyBackground(
+    private android.graphics.drawable.Drawable previewThemeKeyBackground(
             int style,
             int accent,
             int corner,
@@ -3298,6 +3298,25 @@ public class SettingsActivity extends Activity {
             int transparency,
             int pack
     ) {
+        if(IllustratedThemeAssets.isNewPack(pack)) {
+            int res=
+                    wideKey
+                        ? IllustratedThemeAssets.space(pack)
+                        : (
+                            special
+                                ? IllustratedThemeAssets.special(pack)
+                                : IllustratedThemeAssets.key(pack)
+                          );
+
+            if(res!=0) {
+                android.graphics.drawable.Drawable exact=
+                        getDrawable(res);
+
+                if(exact!=null)
+                    return exact.mutate();
+            }
+        }
+
         int white=Color.WHITE;
         int black=Color.rgb(10,10,14);
 
@@ -4000,13 +4019,16 @@ public class SettingsActivity extends Activity {
         }
 
         if(IllustratedThemeAssets.isNewPack(pack)) {
-            if(left)
+            if(value.equals("⇧"))
                 return IllustratedThemeAssets.primarySticker(pack);
 
-            if(right)
+            if(value.equals("⌫"))
                 return IllustratedThemeAssets.secondarySticker(pack);
 
-            return IllustratedThemeAssets.tertiarySticker(pack);
+            if(value.equals("KeyKii"))
+                return IllustratedThemeAssets.tertiarySticker(pack);
+
+            return 0;
         }
 
         if(pack==116) {

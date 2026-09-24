@@ -4655,13 +4655,16 @@ public class KeyKiiService extends InputMethodService {
         }
 
         if(IllustratedThemeAssets.isNewPack(pack)) {
-            if(left)
+            if(action.equals("SHIFT"))
                 return IllustratedThemeAssets.primarySticker(pack);
 
-            if(right)
+            if(action.equals("BACK"))
                 return IllustratedThemeAssets.secondarySticker(pack);
 
-            return IllustratedThemeAssets.tertiarySticker(pack);
+            if(action.equals("SPACE"))
+                return IllustratedThemeAssets.tertiarySticker(pack);
+
+            return 0;
         }
 
         switch(pack) {
@@ -17285,6 +17288,57 @@ public class KeyKiiService extends InputMethodService {
             );
 
             return state;
+        }
+
+        int activeIllustratedPack=
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            ).getInt(
+                "keykii_style_pack",
+                -1
+            );
+
+        if(IllustratedThemeAssets.isNewPack(activeIllustratedPack)) {
+            int res=
+                space
+                    ? IllustratedThemeAssets.space(activeIllustratedPack)
+                    : (
+                        special
+                            ? IllustratedThemeAssets.special(activeIllustratedPack)
+                            : IllustratedThemeAssets.key(activeIllustratedPack)
+                      );
+
+            if(res!=0) {
+                android.graphics.drawable.Drawable normal=
+                    getDrawable(res);
+
+                android.graphics.drawable.Drawable pressed=
+                    getDrawable(res);
+
+                if(normal!=null && pressed!=null) {
+                    normal=normal.mutate();
+                    pressed=pressed.mutate();
+                    pressed.setAlpha(205);
+
+                    StateListDrawable exact=
+                        new StateListDrawable();
+
+                    exact.addState(
+                        new int[]{
+                            android.R.attr.state_pressed
+                        },
+                        pressed
+                    );
+
+                    exact.addState(
+                        new int[]{},
+                        normal
+                    );
+
+                    return exact;
+                }
+            }
         }
 
         boolean borders=
