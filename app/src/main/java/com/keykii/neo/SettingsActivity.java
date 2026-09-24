@@ -90,6 +90,9 @@ public class SettingsActivity extends Activity {
         } else if ("theme".equals(openScreen)) {
             showTheme();
 
+        } else if ("fonts".equals(openScreen)) {
+            showFonts();
+
         } else if ("toolbar".equals(openScreen)) {
             showToolbar();
 
@@ -216,7 +219,8 @@ public class SettingsActivity extends Activity {
         addSection(page, "Keyboard");
         addRow(page, "⌨", "Languages", "Add and switch KeyKii keyboard layouts", v -> showLanguages());
         addRow(page, "⚙", "Preferences", "Size, spacing, haptics and default width", v -> showPreferences());
-        addRow(page, "◐", "Theme", themeName(), v -> showTheme());
+        addRow(page, "◐", "Themes", "Backgrounds, colours and key shapes", v -> showTheme());
+        addRow(page, "Aa", "Fonts", keyboardFontName(), v -> showFonts());
         addRow(page, "☰", "Toolbar buttons", "Choose which tools appear above the keys", v -> showToolbar());
 
         addSection(page, "Typing");
@@ -1275,8 +1279,8 @@ public class SettingsActivity extends Activity {
         }
 
         LinearLayout page = page(
-                "Theme",
-                "",
+                "Themes",
+                "Tap a design to preview it before applying",
                 true
         );
 
@@ -1296,7 +1300,7 @@ public class SettingsActivity extends Activity {
                 "All packs are unlocked in this test build. Packs marked PRO PREVIEW are the designs we can later lock behind KeyKii Pro with Google Play Billing."
         );
 
-        addKeyboardStylePackRows(page);
+        addKeyboardStylePackGrid(page);
 
         addThemeSection(page, "My themes");
         addMyThemeTiles(page);
@@ -1428,20 +1432,6 @@ public class SettingsActivity extends Activity {
                 },
                 "accent_color",
                 Color.rgb(93,118,171),
-                this::updateThemePreview
-        );
-
-        addChoiceRow(
-                page,
-                "Keyboard font",
-                keyboardFontName(),
-                new String[]{
-                        "System","Rounded","Serif","Mono",
-                        "Condensed","Casual","Medium"
-                },
-                new int[]{0,1,2,3,4,5,6},
-                "keyboard_font_style",
-                0,
                 this::updateThemePreview
         );
 
