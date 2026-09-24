@@ -3387,6 +3387,66 @@ public class SettingsActivity extends Activity {
                 strokeWidth=2;
                 break;
 
+            case 9:
+                start=
+                        special || wideKey
+                                ? blendPreviewColor(accent,white,76)
+                                : Color.rgb(250,252,255);
+                end=blendPreviewColor(accent,white,90);
+                stroke=blendPreviewColor(accent,black,12);
+                strokeWidth=1;
+                break;
+
+            case 10:
+                start=
+                        special || wideKey
+                                ? blendPreviewColor(accent,white,38)
+                                : blendPreviewColor(accent,white,68);
+                end=blendPreviewColor(accent,white,54);
+                stroke=blendPreviewColor(accent,black,28);
+                strokeWidth=1;
+                break;
+
+            case 11:
+                start=Color.argb(
+                        special || wideKey ? 220 : 170,
+                        Color.red(blendPreviewColor(accent,white,45)),
+                        Color.green(blendPreviewColor(accent,white,45)),
+                        Color.blue(blendPreviewColor(accent,white,45))
+                );
+                end=Color.argb(
+                        special || wideKey ? 205 : 145,
+                        255,255,255
+                );
+                stroke=Color.WHITE;
+                strokeWidth=2;
+                break;
+
+            case 12:
+                start=blendPreviewColor(accent,white,82);
+                end=blendPreviewColor(accent,white,67);
+                stroke=blendPreviewColor(accent,white,22);
+                strokeWidth=1;
+                break;
+
+            case 13:
+                start=blendPreviewColor(accent,white,74);
+                end=blendPreviewColor(
+                        accent,
+                        Color.rgb(255,224,240),
+                        45
+                );
+                stroke=Color.WHITE;
+                strokeWidth=2;
+                break;
+
+            case 14:
+                start=Color.rgb(250,253,255);
+                end=blendPreviewColor(accent,white,82);
+                stroke=blendPreviewColor(accent,white,42);
+                strokeWidth=2;
+                break;
+
             default:
                 start=dark
                         ? Color.argb(
