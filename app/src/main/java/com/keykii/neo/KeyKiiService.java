@@ -1900,6 +1900,9 @@ public class KeyKiiService extends InputMethodService {
         else if(page==9)
             buildGrammarPanel();
 
+        else if(page==10)
+            buildSmartTextPanel();
+
         else
             buildKeyboard();
     }
@@ -8207,11 +8210,16 @@ public class KeyKiiService extends InputMethodService {
         toolsSlideRow(
             moreSlide,
             new String[]{
-                "Aa  Text case"
+                "Aa  Text case",
+                "✦  Smart text"
             },
             new Runnable[]{
                 () -> {
                     page=7;
+                    buildShell();
+                },
+                () -> {
+                    page=10;
                     buildShell();
                 }
             }
@@ -11727,6 +11735,291 @@ public class KeyKiiService extends InputMethodService {
         }
 
         return out.toString();
+    }
+
+
+    void buildSmartTextPanel() {
+
+        TextView heading=
+            title("Smart text");
+
+        heading.setTextSize(12);
+        heading.setAlpha(.62f);
+
+        body.addView(
+            heading,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(24)
+            )
+        );
+
+        TextView info=
+            new TextView(this);
+
+        info.setText(
+            "Select text in the app, then use an offline tool. Nothing is uploaded."
+        );
+        info.setTextColor(textColor());
+        info.setTextSize(12);
+        info.setAlpha(.70f);
+        info.setGravity(Gravity.CENTER);
+        info.setPadding(
+            dp(12),
+            dp(4),
+            dp(12),
+            dp(6)
+        );
+
+        body.addView(
+            info,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(48)
+            )
+        );
+
+        toolsRow(
+            new String[]{
+                "✨  Clean spacing",
+                "↔  Join lines"
+            },
+            new Runnable[]{
+                () -> applySelectedSmartText("clean"),
+                () -> applySelectedSmartText("join")
+            }
+        );
+
+        toolsRow(
+            new String[]{
+                "•  Bullet list",
+                "1.  Number list"
+            },
+            new Runnable[]{
+                () -> applySelectedSmartText("bullets"),
+                () -> applySelectedSmartText("numbers")
+            }
+        );
+
+        toolsRow(
+            new String[]{
+                "A-Z  Sort lines",
+                "≠  Remove duplicates"
+            },
+            new Runnable[]{
+                () -> applySelectedSmartText("sort"),
+                () -> applySelectedSmartText("dedupe")
+            }
+        );
+
+        toolsRow(
+            new String[]{
+                "☐  Checklist",
+                "123  Text stats"
+            },
+            new Runnable[]{
+                () -> applySelectedSmartText("checklist"),
+                () -> applySelectedSmartText("stats")
+            }
+        );
+    }
+
+
+    void applySelectedSmartText(
+        String mode
+    ) {
+        InputConnection ic=
+            getCurrentInputConnection();
+
+        if(ic==null) {
+            voiceToast("No text field available");
+            return;
+        }
+
+        CharSequence selected=null;
+
+        try {
+            selected=ic.getSelectedText(0);
+        } catch(Exception ignored) {
+        }
+
+        if(
+            selected==null ||
+            selected.length()==0
+        ) {
+            voiceToast("Select some text first");
+            return;
+        }
+
+        String source=
+            selected.toString();
+
+        if("stats".equals(mode)) {
+            String trimmed=source.trim();
+
+            int words=
+                trimmed.isEmpty()
+                ? 0
+                : trimmed.split("\\s+").length;
+
+            int lines=
+                source.isEmpty()
+                ? 0
+                : source.split("\\r?\\n",-1).length;
+
+            voiceToast(
+                words+" words • "+
+                source.length()+" characters • "+
+                lines+" lines"
+            );
+            return;
+        }
+
+        String converted=
+            smartTextTransform(
+                source,
+                mode
+            );
+
+        if(converted.equals(source)) {
+            voiceToast("Text already looks good");
+            return;
+        }
+
+        ic.commitText(
+            converted,
+            1
+        );
+
+        voiceToast("Smart text applied");
+
+        page=0;
+        buildShell();
+    }
+
+
+    String smartTextTransform(
+        String source,
+        String mode
+    ) {
+        if(source==null)
+            return "";
+
+        String normalized=
+            source
+                .replace("\r\n","\n")
+                .replace('\r','\n');
+
+        if("join".equals(mode)) {
+            return normalized
+                .replaceAll("\\s*\\n+\\s*"," ")
+                .replaceAll("[\\t ]+"," ")
+                .trim();
+        }
+
+        String[] rawLines=
+            normalized.split("\\n",-1);
+
+        if("clean".equals(mode)) {
+            StringBuilder out=
+                new StringBuilder();
+
+            boolean previousBlank=false;
+
+            for(String raw:rawLines) {
+                String line=
+                    raw.trim()
+                       .replaceAll("[\\t ]+"," ");
+
+                boolean blank=line.isEmpty();
+
+                if(blank && previousBlank)
+                    continue;
+
+                if(out.length()>0)
+                    out.append('\n');
+
+                out.append(line);
+                previousBlank=blank;
+            }
+
+            return out.toString().trim();
+        }
+
+        java.util.ArrayList<String> lines=
+            new java.util.ArrayList<>();
+
+        for(String raw:rawLines) {
+            String line=raw.trim();
+
+            if(!line.isEmpty())
+                lines.add(line);
+        }
+
+        if("sort".equals(mode)) {
+            java.util.Collections.sort(
+                lines,
+                String.CASE_INSENSITIVE_ORDER
+            );
+
+        } else if("dedupe".equals(mode)) {
+            java.util.LinkedHashSet<String> unique=
+                new java.util.LinkedHashSet<>(lines);
+
+            lines.clear();
+            lines.addAll(unique);
+
+        } else if(
+            "bullets".equals(mode) ||
+            "numbers".equals(mode) ||
+            "checklist".equals(mode)
+        ) {
+            java.util.ArrayList<String> formatted=
+                new java.util.ArrayList<>();
+
+            for(int i=0;i<lines.size();i++) {
+                String line=
+                    stripSmartListPrefix(
+                        lines.get(i)
+                    );
+
+                if("bullets".equals(mode))
+                    formatted.add("• "+line);
+
+                else if("numbers".equals(mode))
+                    formatted.add((i+1)+". "+line);
+
+                else
+                    formatted.add("☐ "+line);
+            }
+
+            lines=formatted;
+        }
+
+        StringBuilder out=
+            new StringBuilder();
+
+        for(int i=0;i<lines.size();i++) {
+            if(i>0)
+                out.append('\n');
+
+            out.append(lines.get(i));
+        }
+
+        return out.toString();
+    }
+
+
+    String stripSmartListPrefix(
+        String line
+    ) {
+        if(line==null)
+            return "";
+
+        return line.replaceFirst(
+            "^\\s*(?:(?:[•*\\-☐☑✓])|(?:\\d+[.)]))\\s+",
+            ""
+        );
     }
 
 
