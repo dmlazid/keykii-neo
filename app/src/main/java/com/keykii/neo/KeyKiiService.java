@@ -6816,6 +6816,71 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    java.util.ArrayList<String> loadRecentKaomoji() {
+        SharedPreferences sp=
+            getSharedPreferences(
+                "keykii_kaomoji_recent",
+                MODE_PRIVATE
+            );
+
+        java.util.ArrayList<String> out=
+            new java.util.ArrayList<>();
+
+        for(int i=0;i<20;i++) {
+            String value=sp.getString("k"+i,"");
+
+            if(
+                value!=null &&
+                !value.isEmpty() &&
+                !out.contains(value)
+            ) {
+                out.add(value);
+            }
+        }
+
+        return out;
+    }
+
+
+    void rememberKaomoji(String value) {
+        if(
+            value==null ||
+            value.isEmpty() ||
+            isIncognitoMode()
+        ) {
+            return;
+        }
+
+        SharedPreferences sp=
+            getSharedPreferences(
+                "keykii_kaomoji_recent",
+                MODE_PRIVATE
+            );
+
+        java.util.ArrayList<String> recent=
+            loadRecentKaomoji();
+
+        recent.remove(value);
+        recent.add(0,value);
+
+        while(recent.size()>20)
+            recent.remove(recent.size()-1);
+
+        SharedPreferences.Editor e=sp.edit();
+
+        for(int i=0;i<20;i++)
+            e.remove("k"+i);
+
+        for(int i=0;i<recent.size();i++)
+            e.putString("k"+i,recent.get(i));
+
+        e.apply();
+
+        // Reopening kaomoji starts on the freshly updated Recent section.
+        kaomojiCategory=0;
+    }
+
+
     void buildKaomojiPanel() {
 
         loadFullKaomoji();
@@ -6825,6 +6890,19 @@ public class KeyKiiService extends InputMethodService {
             fullKaomojiCategories.isEmpty()
         )
             return;
+
+        // 2.36.0: show recently used kaomoji first without changing
+        // the existing asset-backed categories or keyboard dimensions.
+        fullKaomoji.remove("Recent");
+        fullKaomojiCategories.remove("Recent");
+
+        java.util.ArrayList<String> recentKaomoji=
+            loadRecentKaomoji();
+
+        if(!recentKaomoji.isEmpty()) {
+            fullKaomoji.put("Recent",recentKaomoji);
+            fullKaomojiCategories.add(0,"Recent");
+        }
 
         if(
             kaomojiCategory<0 ||
@@ -7049,6 +7127,8 @@ public class KeyKiiService extends InputMethodService {
                                         value,
                                         1
                                     );
+
+                                rememberKaomoji(value);
                             });
                         }
 
