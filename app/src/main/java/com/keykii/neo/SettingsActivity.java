@@ -2797,7 +2797,8 @@ public class SettingsActivity extends Activity {
                                 new ThemePreviewDecorDrawable(
                                         decor,
                                         accent,
-                                        dark
+                                        dark,
+                                        pack
                                 )
                             }
                     );
@@ -2896,6 +2897,48 @@ public class SettingsActivity extends Activity {
                                 borders
                         )
                 );
+
+                int stickerRes=
+                        previewKeyStickerRes(
+                                pack,
+                                value
+                        );
+
+                if(stickerRes!=0) {
+                    android.graphics.drawable.Drawable sticker=
+                            getDrawable(stickerRes);
+
+                    if(sticker!=null) {
+                        sticker=sticker.mutate();
+                        sticker.setTint(accent);
+
+                        int stickerSize=
+                                dp(
+                                    large
+                                        ? 9
+                                        : 6
+                                );
+
+                        sticker.setBounds(
+                                0,0,
+                                stickerSize,
+                                stickerSize
+                        );
+
+                        key.setCompoundDrawablePadding(
+                                large
+                                    ? dp(1)
+                                    : 0
+                        );
+
+                        key.setCompoundDrawables(
+                                null,
+                                sticker,
+                                null,
+                                null
+                        );
+                    }
+                }
 
                 float weight=
                         value.equals("KeyKii")
@@ -3668,33 +3711,136 @@ public class SettingsActivity extends Activity {
     }
 
 
-    private int themePreviewAssetRes(
-            int style
+    private int previewThemePrimaryAssetRes(
+            int pack
     ) {
-        switch(style) {
-            case 20: return R.drawable.theme_motif_flower;
-            case 21: return R.drawable.theme_motif_moonstar;
-            case 22: return R.drawable.theme_motif_bunny;
-            case 23: return R.drawable.theme_motif_bear;
-            case 24: return R.drawable.theme_motif_butterfly;
-            case 25: return R.drawable.theme_motif_star;
-            case 26: return R.drawable.theme_motif_bow;
-            case 27: return R.drawable.theme_motif_cloud;
-            case 28: return R.drawable.theme_motif_frog;
-            case 29: return R.drawable.theme_motif_bear;
-            case 30: return R.drawable.theme_motif_butterfly;
-            case 31: return R.drawable.theme_motif_cherry;
-            case 32: return R.drawable.theme_motif_bubble;
-            case 33: return R.drawable.theme_motif_bunny;
-            case 34: return R.drawable.theme_motif_cat;
-            case 35: return R.drawable.theme_motif_flower;
-            case 36: return R.drawable.theme_motif_lotus;
-            case 37: return R.drawable.theme_motif_heart;
-            case 38: return R.drawable.theme_motif_butterfly;
-            case 39: return R.drawable.theme_motif_snow;
+        switch(pack) {
+            case 100: return R.drawable.theme_motif_flower;
+            case 101: return R.drawable.theme_motif_moonstar;
+            case 102: return R.drawable.theme_motif_bunny;
+            case 103: return R.drawable.theme_motif_bear;
+            case 104: return R.drawable.theme_motif_butterfly;
+            case 105: return R.drawable.theme_motif_star;
+            case 106: return R.drawable.theme_motif_strawberry;
+            case 107: return R.drawable.theme_motif_cloud;
+            case 108: return R.drawable.theme_motif_frog;
+            case 109: return R.drawable.theme_motif_bear;
+            case 110: return R.drawable.theme_motif_butterfly;
+            case 111: return R.drawable.theme_motif_flower;
+            case 112: return R.drawable.theme_motif_bubble;
+            case 113: return R.drawable.theme_motif_bunny;
+            case 114: return R.drawable.theme_motif_cat;
+            case 115: return R.drawable.theme_motif_flower;
+            case 116: return R.drawable.theme_motif_lotus;
+            case 117: return R.drawable.theme_motif_heart;
+            case 118: return R.drawable.theme_motif_butterfly;
+            case 119: return R.drawable.theme_motif_snow;
         }
 
         return 0;
+    }
+
+
+    private int previewThemeSecondaryAssetRes(
+            int pack
+    ) {
+        switch(pack) {
+            case 100: return R.drawable.theme_motif_cherry;
+            case 101: return R.drawable.theme_motif_cloud;
+            case 102: return R.drawable.theme_motif_leaf;
+            case 103: return R.drawable.theme_motif_cake;
+            case 104: return R.drawable.theme_motif_bow;
+            case 105: return R.drawable.theme_motif_moonstar;
+            case 106: return R.drawable.theme_motif_bow;
+            case 107: return R.drawable.theme_motif_moonstar;
+            case 108: return R.drawable.theme_motif_leaf;
+            case 109: return R.drawable.theme_motif_bow;
+            case 110: return R.drawable.theme_motif_flower;
+            case 111: return R.drawable.theme_motif_cherry;
+            case 112: return R.drawable.theme_motif_star;
+            case 113: return R.drawable.theme_motif_bear;
+            case 114: return R.drawable.theme_motif_bow;
+            case 115: return R.drawable.theme_motif_lotus;
+            case 116: return R.drawable.theme_motif_butterfly;
+            case 117: return R.drawable.theme_motif_bow;
+            case 118: return R.drawable.theme_motif_star;
+            case 119: return R.drawable.theme_motif_gift;
+        }
+
+        return 0;
+    }
+
+
+    private int previewThemeTertiaryAssetRes(
+            int pack
+    ) {
+        switch(pack) {
+            case 100: return R.drawable.theme_motif_heart;
+            case 101: return R.drawable.theme_motif_star;
+            case 102: return R.drawable.theme_motif_cup;
+            case 103: return R.drawable.theme_motif_heart;
+            case 104: return R.drawable.theme_motif_flower;
+            case 105: return R.drawable.theme_motif_bubble;
+            case 106: return R.drawable.theme_motif_heart;
+            case 107: return R.drawable.theme_motif_star;
+            case 108: return R.drawable.theme_motif_flower;
+            case 109: return R.drawable.theme_motif_heart;
+            case 110: return R.drawable.theme_motif_bow;
+            case 111: return R.drawable.theme_motif_cup;
+            case 112: return R.drawable.theme_motif_moonstar;
+            case 113: return R.drawable.theme_motif_cup;
+            case 114: return R.drawable.theme_motif_heart;
+            case 115: return R.drawable.theme_motif_star;
+            case 116: return R.drawable.theme_motif_lotus;
+            case 117: return R.drawable.theme_motif_flower;
+            case 118: return R.drawable.theme_motif_heart;
+            case 119: return R.drawable.theme_motif_bow;
+        }
+
+        return 0;
+    }
+
+
+    private int previewKeyStickerRes(
+            int pack,
+            String value
+    ) {
+        boolean left=
+                value.equals("q") ||
+                value.equals("1") ||
+                value.equals("⇧");
+
+        boolean right=
+                value.equals("p") ||
+                value.equals("0") ||
+                value.equals("⌫");
+
+        boolean center=
+                value.equals("KeyKii") ||
+                value.equals("5");
+
+        if(
+                !left &&
+                !right &&
+                !center
+        ) {
+            return 0;
+        }
+
+        if(pack==116) {
+            if(right)
+                return R.drawable.theme_motif_butterfly;
+
+            return R.drawable.theme_motif_lotus;
+        }
+
+        if(left)
+            return previewThemePrimaryAssetRes(pack);
+
+        if(right)
+            return previewThemeSecondaryAssetRes(pack);
+
+        return previewThemeTertiaryAssetRes(pack);
     }
 
 
@@ -3704,6 +3850,7 @@ public class SettingsActivity extends Activity {
         final int style;
         final int accent;
         final boolean dark;
+        final int pack;
 
         final android.graphics.Paint paint=
                 new android.graphics.Paint(
@@ -3713,11 +3860,13 @@ public class SettingsActivity extends Activity {
         ThemePreviewDecorDrawable(
                 int style,
                 int accent,
-                boolean dark
+                boolean dark,
+                int pack
         ) {
             this.style=style;
             this.accent=accent;
             this.dark=dark;
+            this.pack=pack;
         }
 
 
@@ -3756,49 +3905,94 @@ public class SettingsActivity extends Activity {
                     style>=20 &&
                     style<=39
             ) {
-                int res=
-                        themePreviewAssetRes(style);
+                if(pack==116) {
+                    int res=
+                            R.drawable.theme_motif_lotus;
 
-                android.graphics.drawable.Drawable motif=
-                        res==0
-                                ? null
-                                : SettingsActivity.this.getDrawable(res);
+                    android.graphics.drawable.Drawable motif=
+                            SettingsActivity.this.getDrawable(res);
 
-                if(motif!=null) {
-                    motif=motif.mutate();
-                    motif.setTint(accent);
-                    motif.setAlpha(
-                            dark
-                                    ? 205
-                                    : 180
-                    );
+                    if(motif!=null) {
+                        motif=motif.mutate();
+                        motif.setTint(accent);
+                        motif.setAlpha(180);
 
-                    drawPreviewAsset(
-                            canvas,
-                            motif,
-                            w*.03f,
-                            h*.04f,
-                            previewAssetSize(w,h,false)
-                    );
+                        drawPreviewAsset(
+                                canvas,
+                                motif,
+                                w*.03f,
+                                h*.04f,
+                                previewAssetSize(w,h,false)
+                        );
 
-                    drawPreviewAsset(
-                            canvas,
-                            motif,
-                            w*.78f,
-                            h*.04f,
-                            previewAssetSize(w,h,true)
-                    );
+                        drawPreviewAsset(
+                                canvas,
+                                motif,
+                                w*.78f,
+                                h*.04f,
+                                previewAssetSize(w,h,true)
+                        );
 
-                    drawPreviewAsset(
-                            canvas,
-                            motif,
-                            w*.72f,
-                            h*.69f,
-                            previewAssetSize(w,h,false)
-                    );
+                        drawPreviewAsset(
+                                canvas,
+                                motif,
+                                w*.72f,
+                                h*.69f,
+                                previewAssetSize(w,h,false)
+                        );
 
-                    return;
+                        return;
+                    }
                 }
+
+                int primary=
+                        previewThemePrimaryAssetRes(pack);
+
+                int secondary=
+                        previewThemeSecondaryAssetRes(pack);
+
+                int tertiary=
+                        previewThemeTertiaryAssetRes(pack);
+
+                drawPreviewTintedAsset(
+                        canvas,
+                        primary,
+                        accent,
+                        dark ? 210 : 185,
+                        w*.02f,
+                        h*.04f,
+                        previewAssetSize(w,h,false)
+                );
+
+                drawPreviewTintedAsset(
+                        canvas,
+                        secondary,
+                        blendPreviewColor(
+                                accent,
+                                Color.WHITE,
+                                dark ? 45 : 58
+                        ),
+                        dark ? 220 : 195,
+                        w*.78f,
+                        h*.03f,
+                        previewAssetSize(w,h,true)
+                );
+
+                drawPreviewTintedAsset(
+                        canvas,
+                        tertiary,
+                        blendPreviewColor(
+                                accent,
+                                Color.WHITE,
+                                dark ? 20 : 35
+                        ),
+                        dark ? 200 : 175,
+                        w*.70f,
+                        h*.70f,
+                        previewAssetSize(w,h,false)
+                );
+
+                return;
             }
 
             switch(style) {
@@ -4003,6 +4197,46 @@ public class SettingsActivity extends Activity {
                     previewSnow(canvas,w*.75f,h*.80f,dp(7));
                     break;
             }
+        }
+
+
+        void drawPreviewTintedAsset(
+                android.graphics.Canvas canvas,
+                int res,
+                int tint,
+                int alpha,
+                float x,
+                float y,
+                int size
+        ) {
+            if(res==0)
+                return;
+
+            android.graphics.drawable.Drawable drawable=
+                    SettingsActivity.this.getDrawable(res);
+
+            if(drawable==null)
+                return;
+
+            drawable=drawable.mutate();
+            drawable.setTint(tint);
+            drawable.setAlpha(
+                    Math.max(
+                            0,
+                            Math.min(
+                                    255,
+                                    alpha
+                            )
+                    )
+            );
+
+            drawPreviewAsset(
+                    canvas,
+                    drawable,
+                    x,
+                    y,
+                    size
+            );
         }
 
 
