@@ -1543,10 +1543,18 @@ public class SettingsActivity extends Activity {
                 true
         );
 
+        addSwitchRow(
+                page,
+                "Word suggestions",
+                "Show three offline word predictions above the English keyboard",
+                "word_suggestions",
+                true
+        );
+
         addInfoCard(
                 page,
-                "About suggestions",
-                "These helpers work locally. Full word suggestions and auto-correction are still planned for a later update."
+                "Private suggestions",
+                "KeyKii 2.38 uses its local English dictionary for suggestions. Typed text is not uploaded, and suggestions are hidden in password fields."
         );
 
         setContentView(
