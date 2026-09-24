@@ -2790,16 +2790,26 @@ public class SettingsActivity extends Activity {
                 panelBg;
 
         if(decor>0) {
+            android.graphics.drawable.Drawable themeArt=
+                    pack==116
+                            ? new ThemePreviewDecorDrawable(
+                                    decor,
+                                    accent,
+                                    dark,
+                                    pack
+                              )
+                            : new ThemeSceneDrawable(
+                                    this,
+                                    pack,
+                                    accent,
+                                    dark
+                              );
+
             background=
                     new android.graphics.drawable.LayerDrawable(
                             new android.graphics.drawable.Drawable[]{
                                 panelBg,
-                                new ThemePreviewDecorDrawable(
-                                        decor,
-                                        accent,
-                                        dark,
-                                        pack
-                                )
+                                themeArt
                             }
                     );
         }

@@ -15379,18 +15379,42 @@ public class KeyKiiService extends InputMethodService {
         }
 
         if(decorStyle>0) {
+            int stylePack=
+                p.getInt(
+                    "keykii_style_pack",
+                    -1
+                );
+
+            android.graphics.drawable.Drawable themeArt;
+
+            if(
+                decorStyle>=20 &&
+                decorStyle<=39 &&
+                stylePack>=100 &&
+                stylePack<=119 &&
+                stylePack!=116
+            ) {
+                themeArt=
+                    new ThemeSceneDrawable(
+                        this,
+                        stylePack,
+                        accentColor(),
+                        theme==0
+                    );
+            } else {
+                themeArt=
+                    new KeyKiiThemeDecorDrawable(
+                        decorStyle,
+                        accentColor(),
+                        stylePack
+                    );
+            }
+
             android.graphics.drawable.LayerDrawable layers=
                 new android.graphics.drawable.LayerDrawable(
                     new android.graphics.drawable.Drawable[]{
                         bg,
-                        new KeyKiiThemeDecorDrawable(
-                            decorStyle,
-                            accentColor(),
-                            p.getInt(
-                                "keykii_style_pack",
-                                -1
-                            )
-                        )
+                        themeArt
                     }
                 );
 
