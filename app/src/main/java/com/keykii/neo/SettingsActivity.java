@@ -1984,140 +1984,40 @@ public class SettingsActivity extends Activity {
 
         addThemeStoreHero(page);
 
-        addThemeSection(page, "Featured");
+        addThemeSection(page, "🔥 Trending");
         addStylePackGrid(
                 page,
-                new int[]{0,3,4,6}
+                new int[]{0,3,5,10}
         );
 
-        addThemeSection(page, "Cute & Pastel");
+        addThemeSection(page, "💖 Cute & Kawaii");
         addStylePackGrid(
                 page,
-                new int[]{8,12,13,14,15,11}
+                new int[]{1,8,9,16,21,22}
         );
 
-        addThemeSection(page, "Gaming & Dark");
+        addThemeSection(page, "⚡ Neon & Gaming");
         addStylePackGrid(
                 page,
-                new int[]{2,9,10,16,17,4}
+                new int[]{0,4,5,12,13,20}
         );
 
-        addThemeSection(page, "Glass & Minimal");
+        addThemeSection(page, "🌙 Galaxy & Fantasy");
         addStylePackGrid(
                 page,
-                new int[]{1,5,6,18,19,0}
+                new int[]{2,10,11,14,17,23}
         );
 
-        addThemeSection(page, "Seasonal");
+        addThemeSection(page, "✨ Glass & Luxury");
         addStylePackGrid(
                 page,
-                new int[]{7,20,21,22,23}
+                new int[]{6,7,15,18,19,21}
         );
 
         addThemeSection(page, "My themes");
         addMyThemeTiles(page);
 
-        addThemeSection(page, "Default");
-        addDefaultThemeGallery(page);
-
-        addThemeSection(page, "Colours");
-
-        String[] colorNames = new String[]{
-                "Snow","Silver","Stone",
-                "Charcoal","Black","Navy",
-                "Royal","Blue","Sky",
-                "Cyan","Aqua","Teal",
-                "Emerald","Green","Lime",
-                "Olive","Yellow","Gold",
-                "Amber","Orange","Coral",
-                "Red","Crimson","Wine",
-                "Rose","Pink","Blush",
-                "Magenta","Purple","Violet",
-                "Indigo","Brown","Cocoa",
-                "Sand","Cream","Mint"
-        };
-
-        int[] colors = new int[]{
-                Color.rgb(248,249,250), Color.rgb(213,219,224), Color.rgb(151,157,162),
-                Color.rgb(55,61,66), Color.rgb(12,12,14), Color.rgb(22,45,78),
-
-                Color.rgb(42,105,196), Color.rgb(48,126,226), Color.rgb(105,190,235),
-                Color.rgb(55,202,222), Color.rgb(100,218,222), Color.rgb(19,126,116),
-
-                Color.rgb(36,145,83), Color.rgb(64,168,75), Color.rgb(150,198,64),
-                Color.rgb(113,124,48), Color.rgb(247,205,70), Color.rgb(219,166,48),
-
-                Color.rgb(237,174,57), Color.rgb(230,132,52), Color.rgb(240,112,90),
-                Color.rgb(210,45,48), Color.rgb(174,31,55), Color.rgb(111,29,47),
-
-                Color.rgb(207,65,101), Color.rgb(235,112,164), Color.rgb(244,171,190),
-                Color.rgb(194,32,128), Color.rgb(128,60,181), Color.rgb(108,72,201),
-
-                Color.rgb(64,55,172), Color.rgb(103,69,56), Color.rgb(113,77,63),
-                Color.rgb(210,190,166), Color.rgb(246,238,218), Color.rgb(157,222,191)
-        };
-
-        addColorThemeGrid(page,colorNames,colors);
-
-        addThemeSection(page, "Light gradient");
-
-        addGradientThemeGrid(
-                page,
-                new String[]{
-                        "Cotton candy","Sea glass","Lavender",
-                        "Peach sky","Lemon mint","Ocean pearl",
-                        "Pink cloud","Blue blush","Spring",
-                        "Sunrise","Ice","Pastel"
-                },
-                new int[]{
-                        Color.rgb(255,184,196), Color.rgb(207,231,255),
-                        Color.rgb(218,235,227), Color.rgb(199,226,220),
-                        Color.rgb(225,209,247), Color.rgb(245,225,239),
-
-                        Color.rgb(255,205,177), Color.rgb(255,238,201),
-                        Color.rgb(241,229,129), Color.rgb(190,234,188),
-                        Color.rgb(195,225,244), Color.rgb(236,238,255),
-
-                        Color.rgb(251,193,213), Color.rgb(255,229,237),
-                        Color.rgb(206,224,251), Color.rgb(250,209,226),
-                        Color.rgb(211,239,189), Color.rgb(179,226,205),
-
-                        Color.rgb(255,205,151), Color.rgb(250,231,166),
-                        Color.rgb(202,232,255), Color.rgb(221,246,248),
-                        Color.rgb(255,209,223), Color.rgb(207,236,255)
-                }
-        );
-
-        addThemeSection(page, "Dark gradient");
-
-        addGradientThemeGrid(
-                page,
-                new String[]{
-                        "Midnight","Graphite","Coffee",
-                        "Deep ocean","Forest night","Electric",
-                        "Plum night","Storm","Black glass",
-                        "Burgundy","Deep teal","Indigo dusk"
-                },
-                new int[]{
-                        Color.rgb(56,20,103), Color.rgb(164,54,141),
-                        Color.rgb(78,84,88), Color.rgb(10,12,14),
-                        Color.rgb(91,59,48), Color.rgb(40,24,22),
-
-                        Color.rgb(36,71,86), Color.rgb(14,31,40),
-                        Color.rgb(30,92,76), Color.rgb(12,42,37),
-                        Color.rgb(21,88,190), Color.rgb(16,48,103),
-
-                        Color.rgb(96,31,91), Color.rgb(32,19,52),
-                        Color.rgb(77,92,106), Color.rgb(28,35,43),
-                        Color.rgb(42,42,44), Color.rgb(4,4,5),
-
-                        Color.rgb(105,30,49), Color.rgb(45,15,23),
-                        Color.rgb(17,111,105), Color.rgb(9,45,49),
-                        Color.rgb(70,62,145), Color.rgb(28,26,65)
-                }
-        );
-
-        addThemeSection(page, "More options");
+        addThemeSection(page, "Fine tune");
 
         addChoiceRow(
                 page,
@@ -2636,7 +2536,7 @@ public class SettingsActivity extends Activity {
                 new TextView(this);
 
         sub.setText(
-                "24 keyboard designs • Free + Pro preview\nTap any theme to preview before applying."
+                "Bold visual keyboards • Neon, kawaii, galaxy, glass & gaming\nTap any design to preview before applying."
         );
 
         sub.setTextColor(MUTED);
@@ -2968,55 +2868,20 @@ public class SettingsActivity extends Activity {
                                 )
                 );
 
-                int keyFill=
-                        special
-                                ? Color.argb(
-                                    large ? 222 : 210,
-                                    Color.red(accent),
-                                    Color.green(accent),
-                                    Color.blue(accent)
-                                )
-                                : dark
-                                        ? Color.argb(
-                                            borders
-                                                ? 150
-                                                : 82,
-                                            255,255,255
-                                        )
-                                        : Color.argb(
-                                            borders
-                                                ? 220
-                                                : 135,
-                                            255,255,255
-                                        );
+                int keyStyle=spec[8];
 
-                GradientDrawable keyBg=
-                        round(
-                            keyFill,
-                            Math.max(
-                                5,
-                                large
-                                    ? corner
-                                    : corner-3
-                            )
-                        );
-
-                if(borders) {
-                    keyBg.setStroke(
-                            dp(1),
-                            dark
-                                    ? Color.argb(
-                                        70,
-                                        255,255,255
-                                    )
-                                    : Color.argb(
-                                        58,
-                                        70,70,75
-                                    )
-                    );
-                }
-
-                key.setBackground(keyBg);
+                key.setBackground(
+                        previewThemeKeyBackground(
+                                keyStyle,
+                                accent,
+                                corner,
+                                dark,
+                                special,
+                                value.equals("KeyKii") ||
+                                value.equals("123"),
+                                borders
+                        )
+                );
 
                 LinearLayout.LayoutParams kp=
                         new LinearLayout.LayoutParams(
@@ -3290,6 +3155,10 @@ public class SettingsActivity extends Activity {
                         "theme_decor_style",
                         spec[7]
                 )
+                .putInt(
+                        "theme_key_style",
+                        spec[8]
+                )
                 .putBoolean(
                         "theme_auto_day_night",
                         false
@@ -3309,209 +3178,437 @@ public class SettingsActivity extends Activity {
     }
 
 
+    private GradientDrawable previewThemeKeyBackground(
+            int style,
+            int accent,
+            int corner,
+            boolean dark,
+            boolean special,
+            boolean wideKey,
+            boolean borders
+    ) {
+        int white=Color.WHITE;
+        int black=Color.rgb(10,10,14);
+
+        int start;
+        int end;
+        int stroke;
+        int strokeWidth=1;
+
+        switch(style) {
+            case 1:
+                start=special || wideKey
+                        ? Color.argb(
+                            205,
+                            Color.red(accent),
+                            Color.green(accent),
+                            Color.blue(accent)
+                        )
+                        : Color.argb(190,12,14,28);
+
+                end=Color.argb(
+                        150,
+                        Color.red(accent),
+                        Color.green(accent),
+                        Color.blue(accent)
+                );
+
+                stroke=accent;
+                strokeWidth=2;
+                break;
+
+            case 2:
+                start=Color.argb(
+                        special || wideKey
+                                ? 175
+                                : 112,
+                        255,255,255
+                );
+
+                end=Color.argb(
+                        special || wideKey
+                                ? 110
+                                : 62,
+                        Color.red(accent),
+                        Color.green(accent),
+                        Color.blue(accent)
+                );
+
+                stroke=Color.argb(215,255,255,255);
+                break;
+
+            case 3:
+                start=blendPreviewColor(
+                        accent,
+                        white,
+                        special || wideKey
+                                ? 42
+                                : 72
+                );
+
+                end=blendPreviewColor(
+                        accent,
+                        white,
+                        special || wideKey
+                                ? 20
+                                : 54
+                );
+
+                stroke=Color.WHITE;
+                strokeWidth=2;
+                break;
+
+            case 4:
+                start=special || wideKey
+                        ? accent
+                        : Color.rgb(18,18,24);
+
+                end=Color.rgb(4,4,7);
+                stroke=accent;
+                strokeWidth=2;
+                break;
+
+            case 5:
+                start=special || wideKey
+                        ? blendPreviewColor(
+                            accent,
+                            black,
+                            28
+                        )
+                        : Color.rgb(25,22,26);
+
+                end=Color.rgb(4,4,7);
+                stroke=accent;
+                strokeWidth=2;
+                break;
+
+            case 6:
+                start=Color.rgb(235,249,255);
+                end=blendPreviewColor(
+                        accent,
+                        white,
+                        62
+                );
+                stroke=Color.WHITE;
+                strokeWidth=2;
+                break;
+
+            case 7:
+                start=Color.argb(
+                        special || wideKey
+                                ? 215
+                                : 175,
+                        27,18,58
+                );
+
+                end=Color.argb(
+                        180,
+                        Color.red(accent),
+                        Color.green(accent),
+                        Color.blue(accent)
+                );
+
+                stroke=accent;
+                strokeWidth=2;
+                break;
+
+            case 8:
+                start=blendPreviewColor(
+                        accent,
+                        Color.rgb(255,235,246),
+                        special || wideKey
+                                ? 35
+                                : 67
+                );
+
+                end=blendPreviewColor(
+                        accent,
+                        white,
+                        special || wideKey
+                                ? 18
+                                : 52
+                );
+
+                stroke=Color.WHITE;
+                strokeWidth=2;
+                break;
+
+            default:
+                start=dark
+                        ? Color.argb(
+                            borders ? 150 : 85,
+                            255,255,255
+                        )
+                        : Color.argb(
+                            borders ? 225 : 140,
+                            255,255,255
+                        );
+                end=start;
+                stroke=borders
+                        ? (
+                            dark
+                                    ? Color.argb(75,255,255,255)
+                                    : Color.argb(55,60,60,68)
+                        )
+                        : Color.TRANSPARENT;
+        }
+
+        GradientDrawable bg=
+                new GradientDrawable(
+                        GradientDrawable.Orientation.TL_BR,
+                        new int[]{start,end}
+                );
+
+        bg.setCornerRadius(
+                dp(
+                    Math.max(
+                        5,
+                        corner
+                    )
+                )
+        );
+
+        if(stroke!=Color.TRANSPARENT) {
+            bg.setStroke(
+                    dp(strokeWidth),
+                    stroke
+            );
+        }
+
+        return bg;
+    }
+
+
+    private int blendPreviewColor(
+            int a,
+            int b,
+            int bPercent
+    ) {
+        int p=Math.max(
+                0,
+                Math.min(
+                        100,
+                        bPercent
+                )
+        );
+
+        int ap=100-p;
+
+        return Color.rgb(
+                (
+                    Color.red(a)*ap+
+                    Color.red(b)*p
+                )/100,
+                (
+                    Color.green(a)*ap+
+                    Color.green(b)*p
+                )/100,
+                (
+                    Color.blue(a)*ap+
+                    Color.blue(b)*p
+                )/100
+        );
+    }
+
+
     private int[] stylePackSpec(
             int pack
     ) {
         switch(pack) {
-            case 0:
+            case 0: // Neon Aurora — free
                 return new int[]{
-                        Color.rgb(217,238,255),
-                        Color.rgb(249,252,255),
-                        Color.rgb(81,128,204),
-                        18,96,1,1,2
+                        Color.rgb(20,12,58),
+                        Color.rgb(2,28,54),
+                        Color.rgb(48,230,255),
+                        12,100,1,0,4,1
                 };
 
-            case 1:
+            case 1: // Pink Pop — free
                 return new int[]{
-                        Color.rgb(218,241,204),
-                        Color.rgb(247,246,218),
-                        Color.rgb(78,144,78),
-                        22,96,1,1,8
+                        Color.rgb(255,110,190),
+                        Color.rgb(255,210,236),
+                        Color.rgb(235,62,151),
+                        26,100,1,1,1,3
                 };
 
-            case 2:
+            case 2: // Galaxy Blue — free
                 return new int[]{
-                        Color.rgb(33,48,74),
-                        Color.rgb(10,17,29),
-                        Color.rgb(98,149,229),
-                        15,100,1,0,7
+                        Color.rgb(22,33,98),
+                        Color.rgb(4,7,27),
+                        Color.rgb(72,137,255),
+                        16,100,1,0,7,7
                 };
 
-            case 3:
+            case 3: // Sakura Glow
                 return new int[]{
-                        Color.rgb(255,194,222),
-                        Color.rgb(255,242,249),
-                        Color.rgb(225,83,143),
-                        25,96,1,1,1
+                        Color.rgb(255,128,186),
+                        Color.rgb(255,224,239),
+                        Color.rgb(236,73,143),
+                        27,100,1,1,1,8
                 };
 
-            case 4:
+            case 4: // Cyber Purple
                 return new int[]{
-                        Color.rgb(65,13,98),
-                        Color.rgb(2,30,52),
-                        Color.rgb(39,224,238),
-                        12,97,1,0,4
+                        Color.rgb(91,12,145),
+                        Color.rgb(5,12,35),
+                        Color.rgb(51,229,255),
+                        10,100,1,0,4,1
                 };
 
-            case 5:
+            case 5: // Black Red Pulse
                 return new int[]{
-                        Color.rgb(241,190,187),
-                        Color.rgb(255,240,220),
-                        Color.rgb(174,88,99),
-                        19,98,1,1,2
+                        Color.rgb(24,8,12),
+                        Color.rgb(1,1,3),
+                        Color.rgb(255,46,61),
+                        7,100,1,0,4,4
                 };
 
-            case 6:
+            case 6: // Gold Luxe
                 return new int[]{
-                        Color.rgb(167,234,242),
-                        Color.rgb(208,227,255),
-                        Color.rgb(31,148,173),
-                        26,82,1,1,5
+                        Color.rgb(26,20,12),
+                        Color.rgb(2,2,3),
+                        Color.rgb(244,194,67),
+                        16,100,1,0,11,5
                 };
 
-            case 7:
+            case 7: // Crystal Ice
                 return new int[]{
-                        Color.rgb(255,197,116),
-                        Color.rgb(246,106,135),
-                        Color.rgb(213,72,54),
-                        21,95,1,1,6
+                        Color.rgb(169,229,255),
+                        Color.rgb(225,246,255),
+                        Color.rgb(82,177,229),
+                        27,84,1,1,9,6
                 };
 
-            case 8:
+            case 8: // Kawaii Candy
                 return new int[]{
-                        Color.rgb(220,199,255),
-                        Color.rgb(253,230,250),
-                        Color.rgb(135,92,198),
-                        27,95,1,1,1
+                        Color.rgb(255,178,223),
+                        Color.rgb(204,198,255),
+                        Color.rgb(232,86,176),
+                        28,100,1,1,6,3
                 };
 
-            case 9:
+            case 9: // Love Neon
                 return new int[]{
-                        Color.rgb(0,0,0),
-                        Color.rgb(0,0,0),
-                        Color.rgb(130,130,140),
-                        10,100,0,0,2
+                        Color.rgb(107,9,78),
+                        Color.rgb(32,3,37),
+                        Color.rgb(255,71,179),
+                        18,100,1,0,1,8
                 };
 
-            case 10:
+            case 10: // Moonlight Galaxy
                 return new int[]{
-                        Color.rgb(25,25,29),
-                        Color.rgb(2,2,4),
-                        Color.rgb(229,42,55),
-                        7,100,1,0,4
+                        Color.rgb(33,26,93),
+                        Color.rgb(3,4,18),
+                        Color.rgb(145,112,255),
+                        15,100,1,0,7,7
                 };
 
-            case 11:
+            case 11: // Aqua Wave
                 return new int[]{
-                        Color.rgb(142,96,71),
-                        Color.rgb(62,38,29),
-                        Color.rgb(229,177,126),
-                        19,98,1,0,1
+                        Color.rgb(19,129,176),
+                        Color.rgb(3,48,79),
+                        Color.rgb(82,234,255),
+                        22,94,1,0,5,2
                 };
 
-            case 12:
+            case 12: // RGB Arcade
                 return new int[]{
-                        Color.rgb(255,190,207),
-                        Color.rgb(255,239,235),
-                        Color.rgb(232,85,119),
-                        27,96,1,1,1
+                        Color.rgb(44,5,65),
+                        Color.rgb(3,5,18),
+                        Color.rgb(50,255,184),
+                        8,100,1,0,4,1
                 };
 
-            case 13:
+            case 13: // Purple Lightning
                 return new int[]{
-                        Color.rgb(185,207,255),
-                        Color.rgb(239,241,255),
-                        Color.rgb(83,115,199),
-                        28,95,1,1,2
+                        Color.rgb(75,9,143),
+                        Color.rgb(7,3,28),
+                        Color.rgb(191,76,255),
+                        11,100,1,0,4,7
                 };
 
-            case 14:
+            case 14: // Starfall Blue
                 return new int[]{
-                        Color.rgb(188,244,226),
-                        Color.rgb(240,255,246),
-                        Color.rgb(65,166,135),
-                        28,90,1,1,3
+                        Color.rgb(7,63,126),
+                        Color.rgb(2,9,28),
+                        Color.rgb(82,189,255),
+                        16,100,1,0,7,7
                 };
 
-            case 15:
+            case 15: // Black Crystal
                 return new int[]{
-                        Color.rgb(255,206,174),
-                        Color.rgb(255,241,225),
-                        Color.rgb(225,122,91),
-                        28,96,1,1,6
+                        Color.rgb(32,34,44),
+                        Color.rgb(4,4,7),
+                        Color.rgb(176,198,255),
+                        14,92,1,0,2,2
                 };
 
-            case 16:
+            case 16: // Glitter Pink
                 return new int[]{
-                        Color.rgb(28,20,72),
-                        Color.rgb(3,5,20),
-                        Color.rgb(138,91,255),
-                        13,100,1,0,7
+                        Color.rgb(255,91,175),
+                        Color.rgb(111,20,122),
+                        Color.rgb(255,187,231),
+                        23,100,1,0,2,8
                 };
 
-            case 17:
+            case 17: // Blue Dream
                 return new int[]{
-                        Color.rgb(18,28,20),
-                        Color.rgb(3,5,4),
-                        Color.rgb(165,255,70),
-                        9,100,1,0,4
+                        Color.rgb(75,151,255),
+                        Color.rgb(38,45,142),
+                        Color.rgb(128,211,255),
+                        24,100,1,0,2,6
                 };
 
-            case 18:
+            case 18: // Halloween Flame
                 return new int[]{
-                        Color.rgb(196,226,247),
-                        Color.rgb(239,246,255),
-                        Color.rgb(94,145,185),
-                        27,68,1,1,5
+                        Color.rgb(78,17,90),
+                        Color.rgb(10,4,14),
+                        Color.rgb(255,118,25),
+                        12,100,1,0,7,4
                 };
 
-            case 19:
+            case 19: // Christmas Glow
                 return new int[]{
-                        Color.rgb(245,240,233),
-                        Color.rgb(255,253,249),
-                        Color.rgb(173,152,126),
-                        18,98,0,1,2
+                        Color.rgb(18,101,66),
+                        Color.rgb(94,10,26),
+                        Color.rgb(255,224,79),
+                        18,100,1,0,10,5
                 };
 
-            case 20:
+            case 20: // Emerald Cyber
                 return new int[]{
-                        Color.rgb(205,244,210),
-                        Color.rgb(255,239,247),
-                        Color.rgb(101,174,105),
-                        26,95,1,1,8
+                        Color.rgb(5,65,44),
+                        Color.rgb(2,8,8),
+                        Color.rgb(49,255,166),
+                        9,100,1,0,4,1
                 };
 
-            case 21:
+            case 21: // Rose Crystal
                 return new int[]{
-                        Color.rgb(64,31,83),
-                        Color.rgb(13,8,19),
-                        Color.rgb(255,132,53),
-                        13,100,1,0,7
+                        Color.rgb(217,126,159),
+                        Color.rgb(255,226,238),
+                        Color.rgb(198,94,134),
+                        24,90,1,1,5,2
                 };
 
-            case 22:
+            case 22: // Sunset Neon
                 return new int[]{
-                        Color.rgb(214,244,224),
-                        Color.rgb(255,226,231),
-                        Color.rgb(201,46,58),
-                        22,96,1,1,10
+                        Color.rgb(255,91,100),
+                        Color.rgb(92,15,135),
+                        Color.rgb(255,186,63),
+                        16,100,1,0,6,3
                 };
 
-            case 23:
+            case 23: // Starry Black
                 return new int[]{
-                        Color.rgb(28,26,39),
-                        Color.rgb(4,4,8),
-                        Color.rgb(241,191,68),
-                        15,100,1,0,11
+                        Color.rgb(20,20,29),
+                        Color.rgb(0,0,2),
+                        Color.rgb(121,151,255),
+                        12,100,1,0,7,5
                 };
 
             default:
-                return new int[]{
-                        Color.rgb(217,238,255),
-                        Color.rgb(249,252,255),
-                        Color.rgb(81,128,204),
-                        18,96,1,1,0
-                };
+                return stylePackSpec(0);
         }
     }
 
@@ -3519,33 +3616,32 @@ public class SettingsActivity extends Activity {
     private String stylePackName(
             int pack
     ) {
-        String[] names=
-                new String[]{
-                        "Cloud Blue",
-                        "Matcha Cream",
-                        "Midnight",
-                        "Sakura Hearts",
-                        "Cyber Neon",
-                        "Rose Gold",
-                        "Ocean Glass",
-                        "Sunset Candy",
-                        "Lavender Bunny",
-                        "AMOLED Black",
-                        "Gamer Red",
-                        "Cocoa Bear",
-                        "Strawberry Milk",
-                        "Blueberry Cloud",
-                        "Mint Bubbles",
-                        "Peach Mochi",
-                        "Galaxy Spark",
-                        "Electric Lime",
-                        "Frosted Glass",
-                        "Pearl Minimal",
-                        "Spring Bloom",
-                        "Spooky Night",
-                        "Candy Christmas",
-                        "Golden New Year"
-                };
+        String[] names=new String[]{
+                "Neon Aurora",
+                "Pink Pop",
+                "Galaxy Blue",
+                "Sakura Glow",
+                "Cyber Purple",
+                "Black Red Pulse",
+                "Gold Luxe",
+                "Crystal Ice",
+                "Kawaii Candy",
+                "Love Neon",
+                "Moonlight Galaxy",
+                "Aqua Wave",
+                "RGB Arcade",
+                "Purple Lightning",
+                "Starfall Blue",
+                "Black Crystal",
+                "Glitter Pink",
+                "Blue Dream",
+                "Halloween Flame",
+                "Christmas Glow",
+                "Emerald Cyber",
+                "Rose Crystal",
+                "Sunset Neon",
+                "Starry Black"
+        };
 
         return names[
                 Math.max(
@@ -3562,33 +3658,32 @@ public class SettingsActivity extends Activity {
     private String stylePackSubtitle(
             int pack
     ) {
-        String[] values=
-                new String[]{
-                        "Clean blue with soft sparkles",
-                        "Creamy matcha with leaf accents",
-                        "Deep navy with tiny stars",
-                        "Pink pastel with floating hearts",
-                        "Purple-cyan cyber lines",
-                        "Warm rose with elegant shimmer",
-                        "Aqua glass with frosted highlights",
-                        "Coral sunset with confetti",
-                        "Lavender pastel with heart accents",
-                        "Pure black with subtle sparkle",
-                        "Black and red cyber gaming",
-                        "Warm cocoa with cute heart accents",
-                        "Sweet strawberry pink hearts",
-                        "Soft blueberry cloud sparkles",
-                        "Fresh mint bubble accents",
-                        "Peach pastel confetti",
-                        "Dark galaxy with glowing stars",
-                        "Black and electric lime cyber",
-                        "Cool translucent glass highlights",
-                        "Clean pearl minimal sparkle",
-                        "Fresh floral spring accents",
-                        "Purple-orange spooky night",
-                        "Red-green candy stripes",
-                        "Black and gold celebration rays"
-                };
+        String[] values=new String[]{
+                "Electric cyan glow on deep purple",
+                "Glossy hot-pink kawaii keys",
+                "Blue galaxy with glowing stars",
+                "Pink blossom glow with heart keys",
+                "Purple cyber grid with cyan glow",
+                "Red pulse gamer keyboard",
+                "Luxury black keys with gold trim",
+                "Icy crystal glass keyboard",
+                "Candy pastel kawaii keyboard",
+                "Dark neon love and heart glow",
+                "Moonlit purple galaxy keyboard",
+                "Aqua glass and water glow",
+                "Arcade RGB-inspired cyber keys",
+                "Electric violet lightning style",
+                "Deep blue starfall glow",
+                "Smoky black crystal glass",
+                "Sparkly pink night keyboard",
+                "Dreamy electric blue glass",
+                "Purple-orange spooky gamer",
+                "Dark holiday red-green gold",
+                "Black emerald cyber keyboard",
+                "Soft rose crystal glass",
+                "Orange-purple neon sunset",
+                "Black night with blue stars"
+        };
 
         return values[
                 Math.max(
@@ -6305,10 +6400,20 @@ public class SettingsActivity extends Activity {
                     pack[7]
             );
 
+            e.putInt(
+                    "theme_key_style",
+                    pack[8]
+            );
+
             // Theme packs never change keyboard_font_style.
         } else {
             e.putInt(
                     "theme_decor_style",
+                    0
+            );
+
+            e.putInt(
+                    "theme_key_style",
                     0
             );
         }
