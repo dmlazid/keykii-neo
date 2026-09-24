@@ -2388,11 +2388,22 @@ public class KeyKiiService extends InputMethodService {
                 event.getRawY()-
                 glideDownY;
 
+            String currentLetter=
+                glideLetterAt(
+                    event.getRawX(),
+                    event.getRawY()
+                );
+
+            // A normal tap can move a few pixels naturally. Do not turn that
+            // into a glide. Glide only begins after the finger actually
+            // reaches a DIFFERENT letter key.
             if(
                 !glideActive &&
+                !currentLetter.isEmpty() &&
+                !currentLetter.equalsIgnoreCase(action) &&
                 (
-                    Math.abs(dx)>dp(16) ||
-                    Math.abs(dy)>dp(16)
+                    Math.abs(dx)>dp(10) ||
+                    Math.abs(dy)>dp(10)
                 )
             ) {
                 glideActive=true;
@@ -2401,18 +2412,9 @@ public class KeyKiiService extends InputMethodService {
 
                 resetGlideKeyVisuals();
 
-                String firstLetter=
-                    glideLetterAt(
-                        event.getRawX(),
-                        event.getRawY()
-                    );
-
-                if(firstLetter.isEmpty())
-                    firstLetter=action;
-
-                highlightGlideLetter(
-                    firstLetter
-                );
+                highlightGlideLetter(action);
+                appendGlideLetter(currentLetter);
+                highlightGlideLetter(currentLetter);
 
                 showGlideTrail(
                     event.getRawX(),
@@ -2487,6 +2489,10 @@ public class KeyKiiService extends InputMethodService {
                 );
 
                 return true;
+            }
+
+            if(type==MotionEvent.ACTION_CANCEL) {
+                lastGlideEndTime=0L;
             }
 
             return wasActive;
@@ -3140,7 +3146,7 @@ public class KeyKiiService extends InputMethodService {
             if(
                 isGlideLetterAction(action) &&
                 android.os.SystemClock.uptimeMillis()-
-                    lastGlideEndTime<180
+                    lastGlideEndTime<90
             ) {
                 return;
             }
