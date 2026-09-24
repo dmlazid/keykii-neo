@@ -55,6 +55,7 @@ public class KeyKiiService extends InputMethodService {
     android.speech.SpeechRecognizer voiceRecognizer=null;
     boolean voiceListening=false;
     boolean voiceProcessing=false;
+    int voiceSessionId=0;
     LinearLayout voiceStatusRow=null;
     LinearLayout toolbarRow=null;
     TextView voiceStatusText=null;
@@ -178,6 +179,7 @@ public class KeyKiiService extends InputMethodService {
             }
 
             voiceRecognizer=null;
+            voiceSessionId++;
             voiceListening=false;
             voiceProcessing=false;
         }
@@ -892,13 +894,31 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
-    void cancelVoiceTyping() {
-        try {
-            if(voiceRecognizer!=null)
-                voiceRecognizer.cancel();
-        } catch(Exception ignored) {
-        }
+    void releaseVoiceRecognizer() {
+        // Invalidate callbacks from any previous recognizer session.
+        voiceSessionId++;
 
+        android.speech.SpeechRecognizer old=
+            voiceRecognizer;
+
+        voiceRecognizer=null;
+
+        if(old!=null) {
+            try {
+                old.cancel();
+            } catch(Exception ignored) {
+            }
+
+            try {
+                old.destroy();
+            } catch(Exception ignored) {
+            }
+        }
+    }
+
+
+    void cancelVoiceTyping() {
+        releaseVoiceRecognizer();
         voiceListening=false;
         voiceProcessing=false;
         updateVoiceStatusUi();
@@ -1302,19 +1322,20 @@ public class KeyKiiService extends InputMethodService {
         }
 
         try {
-            if(voiceRecognizer!=null) {
-                try {
-                    voiceRecognizer.cancel();
-                    voiceRecognizer.destroy();
-                } catch(Exception ignored) {
-                }
+            // Completely release the previous recognizer first. Some Android
+            // speech services can send a late callback from the old session;
+            // the session id below prevents it from cancelling the new one.
+            releaseVoiceRecognizer();
 
-                voiceRecognizer=null;
-            }
+            final int session=
+                ++voiceSessionId;
 
             voiceRecognizer=
                 android.speech.SpeechRecognizer
                     .createSpeechRecognizer(this);
+
+            final android.speech.SpeechRecognizer sessionRecognizer=
+                voiceRecognizer;
 
             voiceRecognizer.setRecognitionListener(
                 new android.speech.RecognitionListener() {
@@ -1323,6 +1344,9 @@ public class KeyKiiService extends InputMethodService {
                     public void onReadyForSpeech(
                         android.os.Bundle params
                     ) {
+                        if(session!=voiceSessionId)
+                            return;
+
                         voiceListening=true;
                         voiceProcessing=false;
                         updateVoiceStatusUi();
@@ -1330,10 +1354,12 @@ public class KeyKiiService extends InputMethodService {
 
                     @Override
                     public void onBeginningOfSpeech() {
+                        if(session!=voiceSessionId)
+                            return;
+
                         voiceListening=true;
                         voiceProcessing=false;
                         updateVoiceStatusUi();
-
                     }
 
                     @Override
@@ -1346,6 +1372,9 @@ public class KeyKiiService extends InputMethodService {
 
                     @Override
                     public void onEndOfSpeech() {
+                        if(session!=voiceSessionId)
+                            return;
+
                         voiceListening=false;
                         voiceProcessing=true;
                         updateVoiceStatusUi();
@@ -1353,9 +1382,22 @@ public class KeyKiiService extends InputMethodService {
 
                     @Override
                     public void onError(int error) {
+                        if(session!=voiceSessionId)
+                            return;
+
                         voiceListening=false;
                         voiceProcessing=false;
                         updateVoiceStatusUi();
+
+                        // Release this finished recognizer so the next mic tap
+                        // always starts from a clean speech session.
+                        if(voiceRecognizer==sessionRecognizer) {
+                            voiceRecognizer=null;
+                            try {
+                                sessionRecognizer.destroy();
+                            } catch(Exception ignored) {
+                            }
+                        }
 
                         if(
                             error!=
@@ -1373,9 +1415,20 @@ public class KeyKiiService extends InputMethodService {
                     public void onResults(
                         android.os.Bundle results
                     ) {
+                        if(session!=voiceSessionId)
+                            return;
+
                         voiceListening=false;
                         voiceProcessing=false;
                         updateVoiceStatusUi();
+
+                        if(voiceRecognizer==sessionRecognizer) {
+                            voiceRecognizer=null;
+                            try {
+                                sessionRecognizer.destroy();
+                            } catch(Exception ignored) {
+                            }
+                        }
 
                         java.util.ArrayList<String> matches=
                             results.getStringArrayList(
@@ -1460,11 +1513,12 @@ public class KeyKiiService extends InputMethodService {
             voiceProcessing=false;
             updateVoiceStatusUi();
 
-            voiceRecognizer.startListening(
+            sessionRecognizer.startListening(
                 listenIntent
             );
 
         } catch(Exception e) {
+            releaseVoiceRecognizer();
             voiceListening=false;
             voiceProcessing=false;
             updateVoiceStatusUi();
