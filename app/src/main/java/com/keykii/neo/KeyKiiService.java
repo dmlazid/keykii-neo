@@ -1111,7 +1111,7 @@ public class KeyKiiService extends InputMethodService {
         String orderText=
             toolbarPrefs.getString(
                 "toolbar_order",
-                "emoji,clipboard,actions,voice,incognito,theme,width,hand"
+                "emoji,clipboard,actions,voice,theme,width,hand"
             );
 
         java.util.LinkedHashSet<String> order=
@@ -1126,7 +1126,6 @@ public class KeyKiiService extends InputMethodService {
                     clean.equals("clipboard") ||
                     clean.equals("actions") ||
                     clean.equals("voice") ||
-                    clean.equals("incognito") ||
                     clean.equals("theme") ||
                     clean.equals("width") ||
                     clean.equals("hand")
@@ -1142,7 +1141,6 @@ public class KeyKiiService extends InputMethodService {
         order.add("clipboard");
         order.add("actions");
         order.add("voice");
-        order.add("incognito");
         order.add("theme");
         order.add("width");
         order.add("hand");
@@ -1188,19 +1186,6 @@ public class KeyKiiService extends InputMethodService {
                 )
             ) {
                 tool(r,"🎙",8);
-
-            } else if(
-                id.equals("incognito") &&
-                toolbarPrefs.getBoolean(
-                    "toolbar_incognito",
-                    true
-                )
-            ) {
-                tool(
-                    r,
-                    "🕶",
-                    9
-                );
 
             } else if(
                 id.equals("theme") &&
@@ -7480,11 +7465,24 @@ public class KeyKiiService extends InputMethodService {
         toolsRow(
             new String[]{
                 "◐  Theme",
-                "⚙  Settings"
+                isIncognitoMode()
+                    ? "🕶  Incognito ON"
+                    : "🕶  Incognito"
             },
             new Runnable[]{
                 () -> openKeyKiiSettings("theme"),
-                () -> openKeyKiiSettings("")
+                () -> toggleIncognitoMode()
+            }
+        );
+
+        toolsRow(
+            new String[]{
+                "⚙  Settings",
+                "🔒  Privacy"
+            },
+            new Runnable[]{
+                () -> openKeyKiiSettings(""),
+                () -> openKeyKiiSettings("privacy")
             }
         );
     }
