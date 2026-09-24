@@ -7409,11 +7409,22 @@ public class KeyKiiService extends InputMethodService {
             heading,
             new LinearLayout.LayoutParams(
                 -1,
-                dp(26)
+                dp(24)
             )
         );
 
-        toolsRow(
+        final android.widget.ViewFlipper slides=
+            new android.widget.ViewFlipper(this);
+
+        LinearLayout mainSlide=
+            new LinearLayout(this);
+
+        mainSlide.setOrientation(
+            LinearLayout.VERTICAL
+        );
+
+        toolsSlideRow(
+            mainSlide,
             new String[]{
                 "◀  One-handed",
                 "↔  Text editing"
@@ -7427,7 +7438,8 @@ public class KeyKiiService extends InputMethodService {
             }
         );
 
-        toolsRow(
+        toolsSlideRow(
+            mainSlide,
             new String[]{
                 "▣  Clipboard",
                 "☺  Emoji"
@@ -7448,7 +7460,8 @@ public class KeyKiiService extends InputMethodService {
             }
         );
 
-        toolsRow(
+        toolsSlideRow(
+            mainSlide,
             new String[]{
                 "↕  Resize",
                 "⛶  Full / wide"
@@ -7462,28 +7475,355 @@ public class KeyKiiService extends InputMethodService {
             }
         );
 
-        toolsRow(
+        LinearLayout moreSlide=
+            new LinearLayout(this);
+
+        moreSlide.setOrientation(
+            LinearLayout.VERTICAL
+        );
+
+        toolsSlideRow(
+            moreSlide,
             new String[]{
                 "◐  Theme",
-                isIncognitoMode()
-                    ? "🕶  Incognito ON"
-                    : "🕶  Incognito"
+                "⚙  Settings"
             },
             new Runnable[]{
                 () -> openKeyKiiSettings("theme"),
-                () -> toggleIncognitoMode()
+                () -> openKeyKiiSettings("")
             }
         );
 
-        toolsRow(
+        toolsSlideRow(
+            moreSlide,
             new String[]{
-                "⚙  Settings",
+                isIncognitoMode()
+                    ? "🕶  Incognito ON"
+                    : "🕶  Incognito",
                 "🔒  Privacy"
             },
             new Runnable[]{
-                () -> openKeyKiiSettings(""),
+                () -> toggleIncognitoMode(),
                 () -> openKeyKiiSettings("privacy")
             }
+        );
+
+        TextView futureNote=
+            new TextView(this);
+
+        futureNote.setText(
+            "Future tools will appear on this page"
+        );
+
+        futureNote.setTextColor(
+            textColor()
+        );
+
+        futureNote.setAlpha(.52f);
+        futureNote.setTextSize(11);
+        futureNote.setGravity(Gravity.CENTER);
+
+        moreSlide.addView(
+            futureNote,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(54)
+            )
+        );
+
+        slides.addView(
+            mainSlide,
+            new android.widget.FrameLayout.LayoutParams(
+                -1,
+                -2
+            )
+        );
+
+        slides.addView(
+            moreSlide,
+            new android.widget.FrameLayout.LayoutParams(
+                -1,
+                -2
+            )
+        );
+
+        body.addView(
+            slides,
+            new LinearLayout.LayoutParams(
+                -1,
+                -2
+            )
+        );
+
+        LinearLayout pager=
+            new LinearLayout(this);
+
+        pager.setGravity(
+            Gravity.CENTER
+        );
+
+        TextView previous=
+            new TextView(this);
+
+        previous.setText("‹");
+        previous.setTextColor(textColor());
+        previous.setTextSize(25);
+        previous.setGravity(Gravity.CENTER);
+
+        TextView dots=
+            new TextView(this);
+
+        dots.setText("●  ○");
+        dots.setTextColor(textColor());
+        dots.setAlpha(.62f);
+        dots.setTextSize(13);
+        dots.setGravity(Gravity.CENTER);
+
+        TextView next=
+            new TextView(this);
+
+        next.setText("›");
+        next.setTextColor(textColor());
+        next.setTextSize(25);
+        next.setGravity(Gravity.CENTER);
+
+        Runnable refreshPager=
+            () -> {
+                int index=
+                    slides.getDisplayedChild();
+
+                dots.setText(
+                    index==0
+                    ? "●  ○"
+                    : "○  ●"
+                );
+
+                previous.setAlpha(
+                    index==0
+                    ? .28f
+                    : 1f
+                );
+
+                next.setAlpha(
+                    index==slides.getChildCount()-1
+                    ? .28f
+                    : 1f
+                );
+            };
+
+        previous.setOnClickListener(v -> {
+            if(slides.getDisplayedChild()>0) {
+                slides.setInAnimation(
+                    this,
+                    android.R.anim.slide_in_left
+                );
+
+                slides.setOutAnimation(
+                    this,
+                    android.R.anim.slide_out_right
+                );
+
+                slides.showPrevious();
+                refreshPager.run();
+            }
+        });
+
+        next.setOnClickListener(v -> {
+            if(
+                slides.getDisplayedChild()<
+                slides.getChildCount()-1
+            ) {
+                slides.setInAnimation(
+                    this,
+                    android.R.anim.slide_in_left
+                );
+
+                slides.setOutAnimation(
+                    this,
+                    android.R.anim.slide_out_right
+                );
+
+                slides.showNext();
+                refreshPager.run();
+            }
+        });
+
+        final float[] swipeStartX=
+            new float[]{0f};
+
+        slides.setOnTouchListener(
+            (v,event) -> {
+                int action=
+                    event.getActionMasked();
+
+                if(action==MotionEvent.ACTION_DOWN) {
+                    swipeStartX[0]=
+                        event.getRawX();
+
+                    return true;
+                }
+
+                if(action==MotionEvent.ACTION_UP) {
+                    float dx=
+                        event.getRawX()-
+                        swipeStartX[0];
+
+                    if(
+                        Math.abs(dx)>=dp(48)
+                    ) {
+                        if(
+                            dx<0 &&
+                            slides.getDisplayedChild()<
+                            slides.getChildCount()-1
+                        ) {
+                            slides.setInAnimation(
+                                this,
+                                android.R.anim.slide_in_left
+                            );
+
+                            slides.setOutAnimation(
+                                this,
+                                android.R.anim.slide_out_right
+                            );
+
+                            slides.showNext();
+
+                        } else if(
+                            dx>0 &&
+                            slides.getDisplayedChild()>0
+                        ) {
+                            slides.setInAnimation(
+                                this,
+                                android.R.anim.slide_in_left
+                            );
+
+                            slides.setOutAnimation(
+                                this,
+                                android.R.anim.slide_out_right
+                            );
+
+                            slides.showPrevious();
+                        }
+
+                        refreshPager.run();
+                    }
+
+                    return true;
+                }
+
+                if(action==MotionEvent.ACTION_CANCEL)
+                    return true;
+
+                return true;
+            }
+        );
+
+        pager.addView(
+            previous,
+            new LinearLayout.LayoutParams(
+                dp(52),
+                dp(34)
+            )
+        );
+
+        pager.addView(
+            dots,
+            new LinearLayout.LayoutParams(
+                dp(82),
+                dp(34)
+            )
+        );
+
+        pager.addView(
+            next,
+            new LinearLayout.LayoutParams(
+                dp(52),
+                dp(34)
+            )
+        );
+
+        body.addView(
+            pager,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(34)
+            )
+        );
+
+        refreshPager.run();
+    }
+
+
+    void toolsSlideRow(
+        LinearLayout parent,
+        String[] labels,
+        Runnable[] actions
+    ) {
+        LinearLayout row=
+            new LinearLayout(this);
+
+        row.setGravity(Gravity.CENTER);
+
+        for(int i=0;i<labels.length;i++) {
+            final Runnable action=
+                actions[i];
+
+            TextView card=
+                new TextView(this);
+
+            card.setText(labels[i]);
+            card.setTextColor(textColor());
+            card.setTextSize(13);
+            card.setGravity(
+                Gravity.CENTER_VERTICAL
+            );
+
+            card.setPadding(
+                dp(15),
+                0,
+                dp(12),
+                0
+            );
+
+            card.setBackground(
+                round(
+                    keyColor(false),
+                    20,
+                    borderColor()
+                )
+            );
+
+            card.setOnClickListener(v -> {
+                if(action!=null)
+                    action.run();
+            });
+
+            LinearLayout.LayoutParams p=
+                new LinearLayout.LayoutParams(
+                    0,
+                    dp(58),
+                    1f
+                );
+
+            p.setMargins(
+                dp(3),
+                dp(4),
+                dp(3),
+                dp(4)
+            );
+
+            row.addView(
+                card,
+                p
+            );
+        }
+
+        parent.addView(
+            row,
+            new LinearLayout.LayoutParams(
+                -1,
+                -2
+            )
         );
     }
 
