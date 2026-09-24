@@ -19,8 +19,8 @@ android {
         applicationId 'com.keykii.neo'
         minSdk 23
         targetSdk 35
-        versionCode 126
-        versionName '2.37.0'
+        versionCode 127
+        versionName '2.38.0'
     }
 
     signingConfigs {
