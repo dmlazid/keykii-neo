@@ -96,6 +96,9 @@ public class SettingsActivity extends Activity {
         } else if ("voice".equals(openScreen)) {
             showVoice();
 
+        } else if ("languages".equals(openScreen)) {
+            showLanguages();
+
         } else {
             showHome();
         }
@@ -180,6 +183,11 @@ public class SettingsActivity extends Activity {
             return;
         }
 
+        if ("language_add".equals(screen)) {
+            showLanguages();
+            return;
+        }
+
         if (!"home".equals(screen)) {
             showHome();
             return;
@@ -206,7 +214,7 @@ public class SettingsActivity extends Activity {
         });
 
         addSection(page, "Keyboard");
-        addRow(page, "⌨", "Languages", "Keyboard language and Android input settings", v -> showLanguages());
+        addRow(page, "⌨", "Languages", "Add and switch KeyKii keyboard layouts", v -> showLanguages());
         addRow(page, "⚙", "Preferences", "Size, spacing, haptics and default width", v -> showPreferences());
         addRow(page, "◐", "Theme", themeName(), v -> showTheme());
         addRow(page, "☰", "Toolbar buttons", "Choose which tools appear above the keys", v -> showToolbar());
@@ -244,24 +252,485 @@ public class SettingsActivity extends Activity {
         setContentView(wrap(page));
     }
 
+    private final String[] keyboardLanguageCodes = {
+            "en-US","en-GB","fil","ceb","es",
+            "fr","de","tr","pt","it"
+    };
+
+    private final String[] keyboardLanguageNames = {
+            "English (US)","English (UK)","Filipino",
+            "Cebuano","Spanish","French","German",
+            "Turkish","Portuguese","Italian"
+    };
+
+    private final String[] keyboardLanguageLayouts = {
+            "QWERTY","QWERTY","QWERTY","QWERTY","QWERTY",
+            "AZERTY","QWERTZ","Turkish QWERTY","QWERTY","QWERTY"
+    };
+
+
+    private java.util.ArrayList<String> enabledKeyboardLanguages() {
+        String saved =
+                prefs.getString(
+                        "keyboard_languages",
+                        "en-US"
+                );
+
+        java.util.ArrayList<String> out =
+                new java.util.ArrayList<>();
+
+        if (saved != null) {
+            for (String part : saved.split(",")) {
+                String code =
+                        part == null
+                                ? ""
+                                : part.trim();
+
+                if (
+                        !code.isEmpty() &&
+                        !out.contains(code)
+                ) {
+                    out.add(code);
+                }
+            }
+        }
+
+        if (out.isEmpty())
+            out.add("en-US");
+
+        return out;
+    }
+
+
+    private void saveEnabledKeyboardLanguages(
+            java.util.ArrayList<String> languages
+    ) {
+        if (languages == null || languages.isEmpty()) {
+            languages =
+                    new java.util.ArrayList<>();
+            languages.add("en-US");
+        }
+
+        String joined =
+                android.text.TextUtils.join(
+                        ",",
+                        languages
+                );
+
+        String active =
+                prefs.getString(
+                        "keyboard_language_active",
+                        languages.get(0)
+                );
+
+        if (!languages.contains(active))
+            active = languages.get(0);
+
+        prefs.edit()
+                .putString(
+                        "keyboard_languages",
+                        joined
+                )
+                .putString(
+                        "keyboard_language_active",
+                        active
+                )
+                .apply();
+    }
+
+
+    private int keyboardLanguageIndex(
+            String code
+    ) {
+        for (
+                int i=0;
+                i<keyboardLanguageCodes.length;
+                i++
+        ) {
+            if (
+                    keyboardLanguageCodes[i]
+                            .equals(code)
+            ) {
+                return i;
+            }
+        }
+
+        return 0;
+    }
+
+
+    private String keyboardLanguageName(
+            String code
+    ) {
+        return keyboardLanguageNames[
+                keyboardLanguageIndex(code)
+        ];
+    }
+
+
+    private String keyboardLanguageLayout(
+            String code
+    ) {
+        return keyboardLanguageLayouts[
+                keyboardLanguageIndex(code)
+        ];
+    }
+
+
     private void showLanguages() {
         screen = "languages";
-        LinearLayout page = page("Languages", "Current KeyKii layout: English QWERTY", true);
 
-        addInfoCard(page,
-                "English (United States)",
-                "KeyKii currently uses the English QWERTY layout. More KeyKii language layouts can be added later without changing the keyboard design.");
+        java.util.ArrayList<String> enabled =
+                enabledKeyboardLanguages();
 
-        addActionButton(page, "Open Android keyboard settings", v -> {
-            try {
-                startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS));
-            } catch (Exception e) {
-                toast("Android keyboard settings are unavailable on this device.");
-            }
-        });
+        String active =
+                prefs.getString(
+                        "keyboard_language_active",
+                        enabled.get(0)
+                );
 
-        setContentView(wrap(page));
+        if (!enabled.contains(active))
+            active = enabled.get(0);
+
+        LinearLayout page =
+                page(
+                        "Languages",
+                        "Keyboard languages and layouts",
+                        true
+                );
+
+        addInfoCard(
+                page,
+                "Switch languages",
+                "Tap the 🌐 globe key on KeyKii to switch between the keyboards you add here. The active language is shown on the spacebar."
+        );
+
+        addSection(
+                page,
+                "Your keyboards"
+        );
+
+        for (String code : enabled) {
+            final String languageCode = code;
+            final boolean isActive =
+                    code.equals(active);
+
+            addRow(
+                    page,
+                    isActive ? "✓" : "⌨",
+                    keyboardLanguageName(code),
+                    keyboardLanguageLayout(code) +
+                            (isActive ? " • Active" : ""),
+                    v -> showKeyboardLanguageOptions(
+                            languageCode
+                    )
+            );
+        }
+
+        addActionButton(
+                page,
+                "+ Add keyboard",
+                v -> showAddKeyboard()
+        );
+
+        addInfoCard(
+                page,
+                "Typing",
+                "Filipino and Cebuano use the familiar QWERTY layout. Spanish, French, German, Turkish, Portuguese and Italian include their common letters and accents. Glide typing currently stays English-only."
+        );
+
+        setContentView(
+                wrap(page)
+        );
     }
+
+
+    private void showKeyboardLanguageOptions(
+            String code
+    ) {
+        java.util.ArrayList<String> enabled =
+                enabledKeyboardLanguages();
+
+        String active =
+                prefs.getString(
+                        "keyboard_language_active",
+                        enabled.get(0)
+                );
+
+        java.util.ArrayList<String> options =
+                new java.util.ArrayList<>();
+
+        options.add(
+                code.equals(active)
+                        ? "Active keyboard"
+                        : "Set as active"
+        );
+
+        if (enabled.size()>1)
+            options.add("Remove keyboard");
+
+        new AlertDialog.Builder(this)
+                .setTitle(
+                        keyboardLanguageName(code)
+                )
+                .setItems(
+                        options.toArray(
+                                new String[0]
+                        ),
+                        (dialog,which) -> {
+                            String choice =
+                                    options.get(which);
+
+                            if (
+                                    choice.equals(
+                                            "Set as active"
+                                    )
+                            ) {
+                                prefs.edit()
+                                        .putString(
+                                                "keyboard_language_active",
+                                                code
+                                        )
+                                        .apply();
+
+                                toast(
+                                        keyboardLanguageName(code) +
+                                                " selected"
+                                );
+
+                                showLanguages();
+
+                            } else if (
+                                    choice.equals(
+                                            "Remove keyboard"
+                                    )
+                            ) {
+                                enabled.remove(code);
+                                saveEnabledKeyboardLanguages(
+                                        enabled
+                                );
+                                showLanguages();
+                            }
+                        }
+                )
+                .setNegativeButton(
+                        "Cancel",
+                        null
+                )
+                .show();
+    }
+
+
+    private void showAddKeyboard() {
+        screen = "language_add";
+
+        LinearLayout page =
+                page(
+                        "Add keyboard",
+                        "Search or choose a language",
+                        true
+                );
+
+        EditText search =
+                new EditText(this);
+
+        search.setHint(
+                "Search language"
+        );
+
+        search.setSingleLine(true);
+        search.setTextColor(TEXT);
+        search.setHintTextColor(MUTED);
+        search.setTextSize(17);
+
+        search.setPadding(
+                dp(18),
+                dp(10),
+                dp(18),
+                dp(10)
+        );
+
+        search.setBackground(
+                round(
+                        CARD,
+                        28,
+                        BORDER
+                )
+        );
+
+        LinearLayout.LayoutParams searchParams =
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(56)
+                );
+
+        searchParams.setMargins(
+                dp(4),
+                dp(8),
+                dp(4),
+                dp(10)
+        );
+
+        page.addView(
+                search,
+                searchParams
+        );
+
+        addSection(
+                page,
+                "All languages"
+        );
+
+        LinearLayout results =
+                new LinearLayout(this);
+
+        results.setOrientation(
+                LinearLayout.VERTICAL
+        );
+
+        page.addView(
+                results,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+        );
+
+        refreshAddKeyboardResults(
+                results,
+                ""
+        );
+
+        search.addTextChangedListener(
+                new android.text.TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(
+                            CharSequence text,
+                            int start,
+                            int count,
+                            int after
+                    ) {}
+
+                    @Override
+                    public void onTextChanged(
+                            CharSequence text,
+                            int start,
+                            int before,
+                            int count
+                    ) {
+                        refreshAddKeyboardResults(
+                                results,
+                                text == null
+                                        ? ""
+                                        : text.toString()
+                        );
+                    }
+
+                    @Override
+                    public void afterTextChanged(
+                            android.text.Editable editable
+                    ) {}
+                }
+        );
+
+        setContentView(
+                wrap(page)
+        );
+    }
+
+
+    private void refreshAddKeyboardResults(
+            LinearLayout results,
+            String query
+    ) {
+        results.removeAllViews();
+
+        java.util.ArrayList<String> enabled =
+                enabledKeyboardLanguages();
+
+        String q =
+                query == null
+                        ? ""
+                        : query.trim()
+                                .toLowerCase(
+                                        java.util.Locale.ROOT
+                                );
+
+        int shown = 0;
+
+        for (
+                int i=0;
+                i<keyboardLanguageCodes.length;
+                i++
+        ) {
+            String code =
+                    keyboardLanguageCodes[i];
+
+            String name =
+                    keyboardLanguageNames[i];
+
+            if (enabled.contains(code))
+                continue;
+
+            if (
+                    !q.isEmpty() &&
+                    !name.toLowerCase(
+                            java.util.Locale.ROOT
+                    ).contains(q)
+            ) {
+                continue;
+            }
+
+            final String languageCode = code;
+
+            addRow(
+                    results,
+                    "＋",
+                    name,
+                    keyboardLanguageLayouts[i],
+                    v -> {
+                        java.util.ArrayList<String> current =
+                                enabledKeyboardLanguages();
+
+                        if (
+                                !current.contains(
+                                        languageCode
+                                )
+                        ) {
+                            current.add(
+                                    languageCode
+                            );
+
+                            saveEnabledKeyboardLanguages(
+                                    current
+                            );
+
+                            toast(
+                                    keyboardLanguageName(
+                                            languageCode
+                                    ) +
+                                            " added"
+                            );
+                        }
+
+                        showLanguages();
+                    }
+            );
+
+            shown++;
+        }
+
+        if (shown==0) {
+            addInfoCard(
+                    results,
+                    "No languages found",
+                    q.isEmpty()
+                            ? "All available KeyKii languages are already added."
+                            : "Try another language name."
+            );
+        }
+    }
+
 
     private void showToolbar() {
         screen = "toolbar";
