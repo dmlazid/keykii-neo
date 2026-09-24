@@ -1585,7 +1585,7 @@ public class SettingsActivity extends Activity {
 
         if (!back && "home".equals(screen)) {
             ImageView logo = new ImageView(this);
-            logo.setImageResource(R.drawable.keykii_app_icon_v2);
+            logo.setImageResource(R.drawable.keykii_official_color_icon);
             logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
             LinearLayout.LayoutParams logoParams =
