@@ -20,10 +20,15 @@ public class KeyKiiService extends InputMethodService {
     HorizontalScrollView emojiSearchResultsScroll=null;
     LinearLayout emojiSearchResultsRow=null;
 
-    // 2.27.0 local word suggestions / prediction bar.
+    // Local word suggestions / prediction bar.
+    // Dictionary work stays off the keyboard UI thread so typing remains smooth.
     LinearLayout suggestionBar=null;
     TextView[] suggestionViews=new TextView[3];
     java.util.ArrayList<String> predictionDictionary=null;
+    java.util.HashMap<String,java.util.ArrayList<String>>
+        predictionPrefixIndex=null;
+    volatile boolean predictionDictionaryLoading=false;
+    volatile boolean predictionDictionaryReady=false;
     android.os.Handler suggestionHandler=
         new android.os.Handler(android.os.Looper.getMainLooper());
 
@@ -158,6 +163,9 @@ public class KeyKiiService extends InputMethodService {
                 .addPrimaryClipChangedListener(
                     clipboardListener
                 );
+
+        // Warm the local prediction dictionary without blocking typing.
+        ensurePredictionDictionaryAsync();
     }
 
     @Override
@@ -1199,91 +1207,114 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
-    java.util.ArrayList<String> loadPredictionDictionary() {
-        if(predictionDictionary!=null)
-            return predictionDictionary;
+    void ensurePredictionDictionaryAsync() {
+        if(predictionDictionaryReady || predictionDictionaryLoading)
+            return;
 
-        predictionDictionary=new java.util.ArrayList<>();
+        predictionDictionaryLoading=true;
 
-        try {
-            java.io.BufferedReader r=
-                new java.io.BufferedReader(
-                    new java.io.InputStreamReader(
-                        getAssets().open("keykii-english-10000.txt"),
-                        "UTF-8"
-                    )
-                );
+        new Thread(() -> {
+            java.util.ArrayList<String> words=
+                new java.util.ArrayList<>();
 
-            String line;
-            while((line=r.readLine())!=null) {
-                String w=line.trim().toLowerCase(java.util.Locale.ROOT);
-                if(w.isEmpty() || w.length()>32)
-                    continue;
+            java.util.HashMap<
+                String,
+                java.util.ArrayList<String>
+            > index=new java.util.HashMap<>();
 
-                boolean ok=true;
-                for(int i=0;i<w.length();i++) {
-                    char ch=w.charAt(i);
-                    if(!Character.isLetter(ch) && ch!='\'') {
-                        ok=false;
-                        break;
+            java.util.HashSet<String> seen=
+                new java.util.HashSet<>();
+
+            try {
+                java.io.BufferedReader r=
+                    new java.io.BufferedReader(
+                        new java.io.InputStreamReader(
+                            getAssets().open(
+                                "keykii-english-10000.txt"
+                            ),
+                            "UTF-8"
+                        )
+                    );
+
+                String line;
+
+                while((line=r.readLine())!=null) {
+                    String w=
+                        line.trim()
+                            .toLowerCase(
+                                java.util.Locale.ROOT
+                            );
+
+                    if(
+                        w.isEmpty() ||
+                        w.length()>32 ||
+                        !seen.add(w)
+                    ) {
+                        continue;
+                    }
+
+                    boolean ok=true;
+
+                    for(int i=0;i<w.length();i++) {
+                        char ch=w.charAt(i);
+
+                        if(
+                            !Character.isLetter(ch) &&
+                            ch!='\''
+                        ) {
+                            ok=false;
+                            break;
+                        }
+                    }
+
+                    if(!ok)
+                        continue;
+
+                    words.add(w);
+
+                    // A four-letter prefix index makes each keypress
+                    // search a small bucket instead of all 10,000 words.
+                    int maxPrefix=
+                        Math.min(4,w.length());
+
+                    for(int n=1;n<=maxPrefix;n++) {
+                        String key=w.substring(0,n);
+
+                        java.util.ArrayList<String> bucket=
+                            index.get(key);
+
+                        if(bucket==null) {
+                            bucket=
+                                new java.util.ArrayList<>();
+                            index.put(key,bucket);
+                        }
+
+                        bucket.add(w);
                     }
                 }
 
-                if(ok && !predictionDictionary.contains(w))
-                    predictionDictionary.add(w);
+                r.close();
+
+            } catch(Exception ignored) {
             }
 
-            r.close();
-        } catch(Exception ignored) {
-        }
+            final java.util.ArrayList<String> readyWords=words;
+            final java.util.HashMap<
+                String,
+                java.util.ArrayList<String>
+            > readyIndex=index;
 
-        return predictionDictionary;
-    }
+            suggestionHandler.post(() -> {
+                predictionDictionary=readyWords;
+                predictionPrefixIndex=readyIndex;
+                predictionDictionaryReady=true;
+                predictionDictionaryLoading=false;
 
+                if(page==0 && !symbols)
+                    updateSuggestionBar();
+            });
 
-    int predictionEditDistance(String a, String b, int maxDistance) {
-        if(a==null || b==null)
-            return maxDistance+1;
-
-        int la=a.length();
-        int lb=b.length();
-
-        if(Math.abs(la-lb)>maxDistance)
-            return maxDistance+1;
-
-        int[] prev=new int[lb+1];
-        int[] curr=new int[lb+1];
-
-        for(int j=0;j<=lb;j++)
-            prev[j]=j;
-
-        for(int i=1;i<=la;i++) {
-            curr[0]=i;
-            int rowMin=curr[0];
-
-            for(int j=1;j<=lb;j++) {
-                int cost=a.charAt(i-1)==b.charAt(j-1) ? 0 : 1;
-
-                curr[j]=Math.min(
-                    Math.min(
-                        curr[j-1]+1,
-                        prev[j]+1
-                    ),
-                    prev[j-1]+cost
-                );
-
-                rowMin=Math.min(rowMin,curr[j]);
-            }
-
-            if(rowMin>maxDistance)
-                return maxDistance+1;
-
-            int[] swap=prev;
-            prev=curr;
-            curr=swap;
-        }
-
-        return prev[lb];
+        },"KeyKii-Predictions").start();
     }
 
 
@@ -1297,114 +1328,113 @@ public class KeyKiiService extends InputMethodService {
 
         String shown=suggestionCase(word,prefix);
 
-        if(shown!=null && !shown.isEmpty() && !out.contains(shown))
+        if(
+            shown!=null &&
+            !shown.isEmpty() &&
+            !out.contains(shown)
+        ) {
             out.add(shown);
+        }
     }
 
 
     java.util.ArrayList<String> predictionSuggestions(String prefix) {
-        java.util.ArrayList<String> out=new java.util.ArrayList<>();
+        java.util.ArrayList<String> out=
+            new java.util.ArrayList<>();
 
         String typed=prefix==null ? "" : prefix;
-        String q=typed.toLowerCase(java.util.Locale.ROOT);
+        String q=
+            typed.toLowerCase(
+                java.util.Locale.ROOT
+            );
 
-        java.util.ArrayList<String> learned=loadLearnedWords();
-        java.util.ArrayList<String> dictionary=loadPredictionDictionary();
+        java.util.ArrayList<String> learned=
+            loadLearnedWords();
 
         if(q.isEmpty()) {
             if(nextWordSuggestions) {
                 String[] starters={"I","the","you"};
+
                 for(String s:starters)
                     out.add(s);
             }
+
             return out;
         }
 
         if(!wordSuggestionsEnabled)
             return out;
 
-        // Like Gboard: keep what the user actually typed available.
+        // Keep exactly what the user typed available like Gboard.
         if(q.length()>=2)
-            addPredictionCandidate(out,q,typed);
+            addPredictionCandidate(
+                out,
+                q,
+                typed
+            );
 
-        // Personal words come first.
+        // Personal words are tiny (max 40), so this is always fast.
         for(String word:learned) {
-            if(word==null || word.isEmpty()) continue;
+            if(word==null || word.isEmpty())
+                continue;
 
-            String lower=word.toLowerCase(java.util.Locale.ROOT);
+            String lower=
+                word.toLowerCase(
+                    java.util.Locale.ROOT
+                );
 
-            if(lower.startsWith(q) && !lower.equals(q))
-                addPredictionCandidate(out,lower,typed);
+            if(
+                lower.startsWith(q) &&
+                !lower.equals(q)
+            ) {
+                addPredictionCandidate(
+                    out,
+                    lower,
+                    typed
+                );
+            }
 
             if(out.size()>=3)
                 return out;
         }
 
-        // Frequency-ordered 10k English dictionary for normal completions.
-        for(String word:dictionary) {
-            if(word==null || word.isEmpty()) continue;
+        // Dictionary loading never blocks a keypress.
+        ensurePredictionDictionaryAsync();
 
-            if(word.startsWith(q) && !word.equals(q))
-                addPredictionCandidate(out,word,typed);
-
-            if(out.size()>=3)
-                return out;
+        if(
+            !predictionDictionaryReady ||
+            predictionPrefixIndex==null
+        ) {
+            return out;
         }
 
-        // If the typed text is misspelled or random-looking, offer nearby words.
-        // This makes strings such as "bjjkll" still produce useful candidates.
-        if(q.length()>=3) {
-            int maxDistance=
-                q.length()>=6 ? 3 :
-                q.length()>=4 ? 2 : 1;
+        String key=
+            q.substring(
+                0,
+                Math.min(4,q.length())
+            );
 
-            java.util.ArrayList<String> fuzzyWords=
-                new java.util.ArrayList<>();
-            java.util.ArrayList<Integer> fuzzyScores=
-                new java.util.ArrayList<>();
+        java.util.ArrayList<String> bucket=
+            predictionPrefixIndex.get(key);
 
-            for(String word:dictionary) {
-                if(word==null || word.isEmpty())
-                    continue;
+        if(bucket==null)
+            return out;
 
-                if(Math.abs(word.length()-q.length())>maxDistance)
-                    continue;
-
-                if(
-                    word.length()>0 &&
-                    q.length()>0 &&
-                    word.charAt(0)!=q.charAt(0)
-                )
-                    continue;
-
-                int score=predictionEditDistance(q,word,maxDistance);
-
-                if(score>maxDistance)
-                    continue;
-
-                int insertAt=fuzzyScores.size();
-
-                for(int i=0;i<fuzzyScores.size();i++) {
-                    if(score<fuzzyScores.get(i)) {
-                        insertAt=i;
-                        break;
-                    }
-                }
-
-                fuzzyScores.add(insertAt,score);
-                fuzzyWords.add(insertAt,word);
-
-                if(fuzzyWords.size()>12) {
-                    fuzzyWords.remove(fuzzyWords.size()-1);
-                    fuzzyScores.remove(fuzzyScores.size()-1);
-                }
+        for(String word:bucket) {
+            if(
+                word!=null &&
+                word.startsWith(q) &&
+                !word.equals(q)
+            ) {
+                addPredictionCandidate(
+                    out,
+                    word,
+                    typed
+                );
             }
 
-            for(String word:fuzzyWords) {
-                addPredictionCandidate(out,word,typed);
-                if(out.size()>=3)
-                    break;
-            }
+            if(out.size()>=3)
+                break;
         }
 
         return out;
@@ -1519,7 +1549,7 @@ public class KeyKiiService extends InputMethodService {
         suggestionHandler.removeCallbacksAndMessages(null);
         suggestionHandler.postDelayed(
             () -> updateSuggestionBar(),
-            45
+            24
         );
     }
 
