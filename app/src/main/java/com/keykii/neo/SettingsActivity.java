@@ -553,8 +553,7 @@ public class SettingsActivity extends Activity {
         search.setBackground(
                 round(
                         CARD,
-                        28,
-                        BORDER
+                        28
                 )
         );
 
