@@ -5153,9 +5153,8 @@ public class KeyKiiService extends InputMethodService {
 
         SharedPreferences.Editor e=sp.edit();
 
-        for(int i=0;i<10;i++)
-            e.remove("pin"+i);
-
+        // Clear only normal clipboard history.
+        // Pinned clips are intentionally preserved.
         for(int i=0;i<20;i++)
             e.remove("clip"+i);
 
@@ -5421,12 +5420,12 @@ public class KeyKiiService extends InputMethodService {
         clear.setTextSize(12);
         clear.setGravity(Gravity.CENTER);
         clear.setAlpha(
-            pinned.isEmpty() && recent.isEmpty()
+            recent.isEmpty()
             ? .35f
             : .85f
         );
         clear.setClickable(
-            !(pinned.isEmpty() && recent.isEmpty())
+            !recent.isEmpty()
         );
 
         clear.setOnClickListener(v -> {
