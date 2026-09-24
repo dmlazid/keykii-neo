@@ -73,6 +73,13 @@ public class KeyKiiService extends InputMethodService {
     boolean wideMode=false;
     boolean numberRow=false;
 
+    // Keyboard language layouts. Prediction remains disabled; these only
+    // change the visible layout, long-press characters, locale casing and
+    // the language shown on the spacebar.
+    String activeKeyboardLanguage="en-US";
+    java.util.ArrayList<String> enabledKeyboardLanguages=
+        new java.util.ArrayList<>();
+
     int symbolPage=1;
     int page=0;
     int theme=0;
@@ -483,6 +490,10 @@ public class KeyKiiService extends InputMethodService {
             false
         );
 
+        loadKeyboardLanguagePrefs(
+            keykiiPrefs
+        );
+
         theme=resolvedTheme(keykiiPrefs);
 
         root=new LinearLayout(this);
@@ -538,6 +549,9 @@ public class KeyKiiService extends InputMethodService {
             50
         );
         numberRow=p.getBoolean("number_row",false);
+
+        loadKeyboardLanguagePrefs(p);
+
         autoCapitalization=p.getBoolean(
             "auto_capitalization",
             true
@@ -2646,6 +2660,262 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    void loadKeyboardLanguagePrefs(
+        SharedPreferences prefs
+    ) {
+        String saved=
+            prefs.getString(
+                "keyboard_languages",
+                "en-US"
+            );
+
+        enabledKeyboardLanguages.clear();
+
+        if(saved!=null) {
+            for(String part:saved.split(",")) {
+                String code=
+                    part==null
+                    ? ""
+                    : part.trim();
+
+                if(
+                    !code.isEmpty() &&
+                    !enabledKeyboardLanguages.contains(code)
+                ) {
+                    enabledKeyboardLanguages.add(code);
+                }
+            }
+        }
+
+        if(enabledKeyboardLanguages.isEmpty())
+            enabledKeyboardLanguages.add("en-US");
+
+        activeKeyboardLanguage=
+            prefs.getString(
+                "keyboard_language_active",
+                enabledKeyboardLanguages.get(0)
+            );
+
+        if(
+            activeKeyboardLanguage==null ||
+            !enabledKeyboardLanguages.contains(
+                activeKeyboardLanguage
+            )
+        ) {
+            activeKeyboardLanguage=
+                enabledKeyboardLanguages.get(0);
+
+            prefs.edit()
+             .putString(
+                 "keyboard_language_active",
+                 activeKeyboardLanguage
+             )
+             .apply();
+        }
+    }
+
+
+    boolean isEnglishKeyboardLanguage() {
+        return
+            "en-US".equals(activeKeyboardLanguage) ||
+            "en-GB".equals(activeKeyboardLanguage);
+    }
+
+
+    java.util.Locale keyboardLocale() {
+        if("tr".equals(activeKeyboardLanguage))
+            return new java.util.Locale("tr");
+
+        if("de".equals(activeKeyboardLanguage))
+            return java.util.Locale.GERMAN;
+
+        if("fr".equals(activeKeyboardLanguage))
+            return java.util.Locale.FRENCH;
+
+        if("es".equals(activeKeyboardLanguage))
+            return new java.util.Locale("es");
+
+        if("pt".equals(activeKeyboardLanguage))
+            return new java.util.Locale("pt");
+
+        if("it".equals(activeKeyboardLanguage))
+            return java.util.Locale.ITALIAN;
+
+        if("fil".equals(activeKeyboardLanguage))
+            return new java.util.Locale("fil");
+
+        if("ceb".equals(activeKeyboardLanguage))
+            return new java.util.Locale("ceb");
+
+        return java.util.Locale.ENGLISH;
+    }
+
+
+    String keyboardLanguageLabel() {
+        switch(activeKeyboardLanguage) {
+            case "en-GB":
+                return "English (UK)";
+            case "fil":
+                return "Filipino";
+            case "ceb":
+                return "Cebuano";
+            case "es":
+                return "Español";
+            case "fr":
+                return "Français";
+            case "de":
+                return "Deutsch";
+            case "tr":
+                return "Türkçe";
+            case "pt":
+                return "Português";
+            case "it":
+                return "Italiano";
+            case "en-US":
+            default:
+                return "English";
+        }
+    }
+
+
+    String[] keyboardTopRow() {
+        switch(activeKeyboardLanguage) {
+            case "fr":
+                return new String[]{
+                    "a","z","e","r","t",
+                    "y","u","i","o","p"
+                };
+
+            case "de":
+                return new String[]{
+                    "q","w","e","r","t",
+                    "z","u","i","o","p"
+                };
+
+            case "tr":
+                return new String[]{
+                    "q","w","e","r","t",
+                    "y","u","ı","o","p","ğ","ü"
+                };
+
+            default:
+                return new String[]{
+                    "q","w","e","r","t",
+                    "y","u","i","o","p"
+                };
+        }
+    }
+
+
+    String[] keyboardMiddleRow() {
+        switch(activeKeyboardLanguage) {
+            case "fr":
+                return new String[]{
+                    "q","s","d","f","g",
+                    "h","j","k","l","m"
+                };
+
+            case "es":
+                return new String[]{
+                    "a","s","d","f","g",
+                    "h","j","k","l","ñ"
+                };
+
+            case "pt":
+                return new String[]{
+                    "a","s","d","f","g",
+                    "h","j","k","l","ç"
+                };
+
+            case "tr":
+                return new String[]{
+                    "a","s","d","f","g",
+                    "h","j","k","l","ş","i"
+                };
+
+            default:
+                return new String[]{
+                    "a","s","d","f","g",
+                    "h","j","k","l"
+                };
+        }
+    }
+
+
+    String[] keyboardBottomLetters() {
+        switch(activeKeyboardLanguage) {
+            case "fr":
+                return new String[]{
+                    "w","x","c","v","b","n"
+                };
+
+            case "de":
+                return new String[]{
+                    "y","x","c","v","b","n","m"
+                };
+
+            case "tr":
+                return new String[]{
+                    "z","x","c","v",
+                    "b","n","m","ö","ç"
+                };
+
+            default:
+                return new String[]{
+                    "z","x","c","v",
+                    "b","n","m"
+                };
+        }
+    }
+
+
+    void cycleKeyboardLanguage() {
+        SharedPreferences prefs=
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            );
+
+        loadKeyboardLanguagePrefs(prefs);
+
+        if(enabledKeyboardLanguages.size()<=1) {
+            openKeyKiiSettings(
+                "languages"
+            );
+            return;
+        }
+
+        int index=
+            enabledKeyboardLanguages.indexOf(
+                activeKeyboardLanguage
+            );
+
+        index=
+            (index+1)%
+            enabledKeyboardLanguages.size();
+
+        activeKeyboardLanguage=
+            enabledKeyboardLanguages.get(index);
+
+        prefs.edit()
+         .putString(
+             "keyboard_language_active",
+             activeKeyboardLanguage
+         )
+         .apply();
+
+        shift=false;
+        capsLock=false;
+        lastShiftTap=0L;
+
+        showPage();
+
+        voiceToast(
+            keyboardLanguageLabel()
+        );
+    }
+
+
     void buildKeyboard() {
 
         resetGlideKeyVisuals();
@@ -2662,20 +2932,21 @@ public class KeyKiiService extends InputMethodService {
                 });
             }
 
-            row(new String[]{
-                "q","w","e","r","t",
-                "y","u","i","o","p"
-            });
+            row(
+                keyboardTopRow()
+            );
 
-            centered(new String[]{
-                "a","s","d","f","g",
-                "h","j","k","l"
-            });
+            String[] middle=
+                keyboardMiddleRow();
 
-            third(new String[]{
-                "z","x","c","v",
-                "b","n","m"
-            });
+            if(middle.length>=10)
+                row(middle);
+            else
+                centered(middle);
+
+            third(
+                keyboardBottomLetters()
+            );
 
         } else if(symbolPage==1) {
 
@@ -2879,15 +3150,32 @@ public class KeyKiiService extends InputMethodService {
                 r,
                 ",",
                 ",",
-                .85f,
+                .62f,
                 false
             );
 
+            if(
+                page==0 &&
+                !symbols
+            ) {
+                key(
+                    r,
+                    "🌐",
+                    "LANG",
+                    .62f,
+                    true
+                );
+            }
+
             key(
                 r,
-                "KeyKii",
+                page==0 && !symbols
+                ? keyboardLanguageLabel()
+                : "KeyKii",
                 "SPACE",
-                2.75f,
+                page==0 && !symbols
+                ? 2.25f
+                : 2.75f,
                 false
             );
 
@@ -2970,7 +3258,9 @@ public class KeyKiiService extends InputMethodService {
             shift &&
             !symbols &&
             label.length()==1
-            ? label.toUpperCase()
+            ? label.toUpperCase(
+                keyboardLocale()
+              )
             : label;
 
         main.setText(shown);
@@ -3182,6 +3472,7 @@ public class KeyKiiService extends InputMethodService {
 
             if(
                 page==0 &&
+                isEnglishKeyboardLanguage() &&
                 isGlideLetterAction(action)
             ) {
                 boolean glideConsumed=
@@ -12005,6 +12296,57 @@ public class KeyKiiService extends InputMethodService {
 
         if(s==null) return "";
 
+        if("es".equals(activeKeyboardLanguage)) {
+            if(s.equals("a")) return "á|à|ä|@";
+            if(s.equals("e")) return "é|è|ë|3";
+            if(s.equals("i")) return "í|ì|ï|8";
+            if(s.equals("o")) return "ó|ò|ö|9";
+            if(s.equals("u")) return "ú|ù|ü|7";
+            if(s.equals("n")) return "ñ|!";
+        }
+
+        if("fr".equals(activeKeyboardLanguage)) {
+            if(s.equals("a")) return "à|â|ä|æ|@";
+            if(s.equals("c")) return "ç|'";
+            if(s.equals("e")) return "é|è|ê|ë|3";
+            if(s.equals("i")) return "î|ï|8";
+            if(s.equals("o")) return "ô|ö|œ|9";
+            if(s.equals("u")) return "ù|û|ü|7";
+        }
+
+        if("de".equals(activeKeyboardLanguage)) {
+            if(s.equals("a")) return "ä|@";
+            if(s.equals("o")) return "ö|9";
+            if(s.equals("u")) return "ü|7";
+            if(s.equals("s")) return "ß|#";
+        }
+
+        if("tr".equals(activeKeyboardLanguage)) {
+            if(s.equals("c")) return "ç|'";
+            if(s.equals("g")) return "ğ|&";
+            if(s.equals("i")) return "ı|İ|8";
+            if(s.equals("o")) return "ö|9";
+            if(s.equals("s")) return "ş|#";
+            if(s.equals("u")) return "ü|7";
+        }
+
+        if("pt".equals(activeKeyboardLanguage)) {
+            if(s.equals("a")) return "á|à|â|ã|@";
+            if(s.equals("c")) return "ç|'";
+            if(s.equals("e")) return "é|ê|3";
+            if(s.equals("i")) return "í|8";
+            if(s.equals("o")) return "ó|ô|õ|9";
+            if(s.equals("u")) return "ú|ü|7";
+        }
+
+        if("it".equals(activeKeyboardLanguage)) {
+            if(s.equals("a")) return "à|á|@";
+            if(s.equals("e")) return "è|é|3";
+            if(s.equals("i")) return "ì|í|8";
+            if(s.equals("o")) return "ò|ó|9";
+            if(s.equals("u")) return "ù|ú|7";
+        }
+
         switch(s) {
             // Actual numeric row: fractions/superscripts.
             case "1": return "1|¹|½|⅓|¼|1⁄5|1⁄6|⅛";
@@ -12667,6 +13009,10 @@ public class KeyKiiService extends InputMethodService {
                 buildShell();
                 break;
 
+            case "LANG":
+                cycleKeyboardLanguage();
+                break;
+
             case "LEFT":
                 sendKey(i,KeyEvent.KEYCODE_DPAD_LEFT);
                 break;
@@ -12755,7 +13101,9 @@ public class KeyKiiService extends InputMethodService {
 
                 String out=
                     shift && !symbols
-                    ? action.toUpperCase()
+                    ? action.toUpperCase(
+                        keyboardLocale()
+                      )
                     : action;
 
                 i.commitText(out,1);
