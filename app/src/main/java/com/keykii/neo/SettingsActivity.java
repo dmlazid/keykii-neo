@@ -1589,7 +1589,7 @@ public class SettingsActivity extends Activity {
 
         addInfoCard(page,
                 "Network",
-                "Normal typing, emoji, kaomoji, calculator and text case work without internet. Translator uses an online translation service only when you tap Translate. Only the text shown in the Translator box is sent for translation.");
+                "Normal typing, emoji, kaomoji, calculator and text case work without internet. Translator uses Google ML Kit on-device translation. Language models may download when first used, but translated text stays on your device.");
 
         setContentView(wrap(page));
     }
