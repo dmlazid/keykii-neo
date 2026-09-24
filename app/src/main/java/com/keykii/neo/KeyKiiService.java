@@ -117,6 +117,7 @@ public class KeyKiiService extends InputMethodService {
         new Object();
     PopupWindow glideTrailPopup=null;
     TextView glideTrailText=null;
+    View glideHighlightedKey=null;
 
     long lastSpaceTap=0L;
 
@@ -1863,7 +1864,96 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
-    void showGlideTrail() {
+    void resetGlideKeyVisuals() {
+        glideHighlightedKey=null;
+
+        for(View key:glideLetterViews) {
+            if(key==null)
+                continue;
+
+            key.animate()
+                .cancel();
+
+            key.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .alpha(1f)
+                .setDuration(55)
+                .start();
+
+            key.setPressed(false);
+
+            key.post(() -> {
+                key.setPressed(false);
+                key.jumpDrawablesToCurrentState();
+            });
+        }
+    }
+
+
+    void highlightGlideLetter(String letter) {
+        if(
+            letter==null ||
+            letter.isEmpty()
+        ) {
+            return;
+        }
+
+        View next=null;
+
+        for(int i=0;i<glideLetterActions.size();i++) {
+            if(
+                letter.equals(
+                    glideLetterActions.get(i)
+                )
+            ) {
+                next=glideLetterViews.get(i);
+                break;
+            }
+        }
+
+        if(next==glideHighlightedKey)
+            return;
+
+        if(glideHighlightedKey!=null) {
+            View previous=glideHighlightedKey;
+
+            previous.animate()
+                .cancel();
+
+            previous.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .alpha(1f)
+                .setDuration(45)
+                .start();
+
+            previous.setPressed(false);
+            previous.jumpDrawablesToCurrentState();
+        }
+
+        glideHighlightedKey=next;
+
+        if(next!=null) {
+            next.setPressed(true);
+
+            next.animate()
+                .cancel();
+
+            next.animate()
+                .scaleX(1.09f)
+                .scaleY(1.09f)
+                .alpha(.88f)
+                .setDuration(45)
+                .start();
+        }
+    }
+
+
+    void showGlideTrail(
+        float rawX,
+        float rawY
+    ) {
         if(
             !glideTrailEnabled ||
             root==null
@@ -1876,21 +1966,25 @@ public class KeyKiiService extends InputMethodService {
         glideTrailText=
             new TextView(this);
 
-        glideTrailText.setTextSize(15);
+        glideTrailText.setTextSize(14);
         glideTrailText.setTextColor(textColor());
         glideTrailText.setGravity(Gravity.CENTER);
         glideTrailText.setPadding(
-            dp(16),
-            dp(6),
-            dp(16),
-            dp(6)
+            dp(14),
+            dp(5),
+            dp(14),
+            dp(5)
+        );
+
+        glideTrailText.setElevation(
+            dp(8)
         );
 
         glideTrailText.setBackground(
             round(
-                keyColor(false),
-                18,
-                borderColor()
+                accentFillColor(),
+                20,
+                accentColor()
             )
         );
 
@@ -1898,25 +1992,67 @@ public class KeyKiiService extends InputMethodService {
             new PopupWindow(
                 glideTrailText,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
-                dp(38),
+                dp(40),
                 false
             );
 
         glideTrailPopup.setClippingEnabled(false);
         glideTrailPopup.setOutsideTouchable(false);
+        glideTrailPopup.setTouchable(false);
 
         try {
             glideTrailPopup.showAtLocation(
                 root,
                 Gravity.TOP |
-                Gravity.CENTER_HORIZONTAL,
-                0,
-                dp(46)
+                Gravity.LEFT,
+                (int)rawX+dp(18),
+                Math.max(
+                    dp(12),
+                    (int)rawY-dp(72)
+                )
             );
+
+            glideTrailText.setScaleX(.78f);
+            glideTrailText.setScaleY(.78f);
+            glideTrailText.setAlpha(.15f);
+
+            glideTrailText.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .alpha(1f)
+                .setDuration(110)
+                .start();
+
         } catch(Exception ignored) {
         }
 
         updateGlideTrail();
+    }
+
+
+    void moveGlideTrail(
+        float rawX,
+        float rawY
+    ) {
+        if(
+            glideTrailPopup==null ||
+            !glideTrailPopup.isShowing()
+        ) {
+            return;
+        }
+
+        try {
+            glideTrailPopup.update(
+                (int)rawX+dp(18),
+                Math.max(
+                    dp(12),
+                    (int)rawY-dp(72)
+                ),
+                -1,
+                dp(40)
+            );
+        } catch(Exception ignored) {
+        }
     }
 
 
@@ -1941,12 +2077,29 @@ public class KeyKiiService extends InputMethodService {
         }
 
         glideTrailText.setText(
-            "〰  " + value
+            "〰  " + value + "  ✦"
         );
+
+        glideTrailText.animate()
+            .cancel();
+
+        glideTrailText.setScaleX(.96f);
+        glideTrailText.setScaleY(.96f);
+
+        glideTrailText.animate()
+            .scaleX(1f)
+            .scaleY(1f)
+            .setDuration(70)
+            .start();
     }
 
 
     void hideGlideTrail() {
+        if(glideTrailText!=null) {
+            glideTrailText.animate()
+                .cancel();
+        }
+
         if(glideTrailPopup!=null) {
             try {
                 glideTrailPopup.dismiss();
@@ -2245,7 +2398,26 @@ public class KeyKiiService extends InputMethodService {
                 glideActive=true;
                 keyView.cancelLongPress();
                 dismissKeyPreview();
-                showGlideTrail();
+
+                resetGlideKeyVisuals();
+
+                String firstLetter=
+                    glideLetterAt(
+                        event.getRawX(),
+                        event.getRawY()
+                    );
+
+                if(firstLetter.isEmpty())
+                    firstLetter=action;
+
+                highlightGlideLetter(
+                    firstLetter
+                );
+
+                showGlideTrail(
+                    event.getRawX(),
+                    event.getRawY()
+                );
             }
 
             if(glideActive) {
@@ -2255,8 +2427,15 @@ public class KeyKiiService extends InputMethodService {
                         event.getRawY()
                     );
 
-                if(!letter.isEmpty())
+                if(!letter.isEmpty()) {
                     appendGlideLetter(letter);
+                    highlightGlideLetter(letter);
+                }
+
+                moveGlideTrail(
+                    event.getRawX(),
+                    event.getRawY()
+                );
 
                 return true;
             }
@@ -2292,6 +2471,7 @@ public class KeyKiiService extends InputMethodService {
             glideActive=false;
             glideGestureLetters.setLength(0);
             hideGlideTrail();
+            resetGlideKeyVisuals();
 
             if(
                 wasActive &&
@@ -2318,6 +2498,8 @@ public class KeyKiiService extends InputMethodService {
 
     void buildKeyboard() {
 
+        resetGlideKeyVisuals();
+        hideGlideTrail();
         glideLetterViews.clear();
         glideLetterActions.clear();
 
