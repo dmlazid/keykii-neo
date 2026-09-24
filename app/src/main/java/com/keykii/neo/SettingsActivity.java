@@ -29,6 +29,7 @@ import android.widget.Toast;
 public class SettingsActivity extends Activity {
 
     private static final int REQUEST_THEME_IMAGE = 2160;
+    private static final int REQUEST_RECORD_AUDIO = 2161;
 
     private static final int BG = Color.rgb(248, 246, 242);
     private static final int CARD = Color.WHITE;
@@ -92,6 +93,9 @@ public class SettingsActivity extends Activity {
         } else if ("toolbar".equals(openScreen)) {
             showToolbar();
 
+        } else if ("voice".equals(openScreen)) {
+            showVoice();
+
         } else {
             showHome();
         }
@@ -137,6 +141,34 @@ public class SettingsActivity extends Activity {
             } else {
                 showTheme();
             }
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode,
+            String[] permissions,
+            int[] grantResults
+    ) {
+        super.onRequestPermissionsResult(
+                requestCode,
+                permissions,
+                grantResults
+        );
+
+        if(requestCode==REQUEST_RECORD_AUDIO) {
+            if(
+                grantResults.length>0 &&
+                grantResults[0]==
+                    android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                toast("Microphone access allowed");
+            } else {
+                toast("Microphone access is needed for voice typing");
+            }
+
+            showVoice();
         }
     }
 
@@ -269,6 +301,14 @@ public class SettingsActivity extends Activity {
 
         addSwitchRow(
                 page,
+                "🎙  Voice typing",
+                "Show the microphone button",
+                "toolbar_voice",
+                true
+        );
+
+        addSwitchRow(
+                page,
                 "◐  Theme",
                 "Show the quick theme switch button",
                 "toolbar_theme",
@@ -319,12 +359,13 @@ public class SettingsActivity extends Activity {
                             .putBoolean("toolbar_emoji", true)
                             .putBoolean("toolbar_clipboard", true)
                             .putBoolean("toolbar_actions", true)
+                            .putBoolean("toolbar_voice", true)
                             .putBoolean("toolbar_theme", true)
                             .putBoolean("toolbar_width", false)
                             .putBoolean("toolbar_hand", false)
                             .putString(
                                     "toolbar_order",
-                                    "emoji,clipboard,actions,theme,width,hand"
+                                    "emoji,clipboard,actions,voice,theme,width,hand"
                             )
                             .apply();
 
@@ -361,6 +402,7 @@ public class SettingsActivity extends Activity {
                     item.equals("emoji") ||
                     item.equals("clipboard") ||
                     item.equals("actions") ||
+                    item.equals("voice") ||
                     item.equals("theme") ||
                     item.equals("width") ||
                     item.equals("hand")
@@ -373,6 +415,7 @@ public class SettingsActivity extends Activity {
         clean.add("emoji");
         clean.add("clipboard");
         clean.add("actions");
+        clean.add("voice");
         clean.add("theme");
         clean.add("width");
         clean.add("hand");
@@ -605,6 +648,9 @@ public class SettingsActivity extends Activity {
         if(id.equals("actions"))
             return "✎";
 
+        if(id.equals("voice"))
+            return "🎙";
+
         if(id.equals("theme"))
             return "◐";
 
@@ -629,6 +675,9 @@ public class SettingsActivity extends Activity {
 
         if(id.equals("actions"))
             return "Quick actions";
+
+        if(id.equals("voice"))
+            return "Voice typing";
 
         if(id.equals("theme"))
             return "Theme";
@@ -1035,19 +1084,64 @@ public class SettingsActivity extends Activity {
 
     private void showVoice() {
         screen = "voice";
-        LinearLayout page = page("Voice typing", "Voice input is provided by Android", true);
 
-        addInfoCard(page,
-                "Voice input",
-                "KeyKii does not run its own speech-recognition service yet. You can use a voice input service installed on Android.");
+        LinearLayout page = page(
+                "Voice typing",
+                "Speak and insert text directly from the KeyKii microphone",
+                true
+        );
 
-        addActionButton(page, "Open Android voice input settings", v -> {
-            try {
-                startActivity(new Intent("android.settings.VOICE_INPUT_SETTINGS"));
-            } catch (Exception e) {
-                toast("Voice input settings are unavailable on this device.");
-            }
-        });
+        boolean allowed =
+                android.os.Build.VERSION.SDK_INT<23 ||
+                checkSelfPermission(
+                        android.Manifest.permission.RECORD_AUDIO
+                )==
+                android.content.pm.PackageManager.PERMISSION_GRANTED;
+
+        addInfoCard(
+                page,
+                "Microphone access",
+                allowed
+                        ? "Allowed. Tap the 🎙 microphone on the KeyKii toolbar to start voice typing."
+                        : "KeyKii needs microphone access before the toolbar microphone can listen."
+        );
+
+        if(!allowed) {
+            addActionButton(
+                    page,
+                    "Allow microphone",
+                    v -> requestPermissions(
+                            new String[]{
+                                    android.Manifest.permission.RECORD_AUDIO
+                            },
+                            REQUEST_RECORD_AUDIO
+                    )
+            );
+        }
+
+        addInfoCard(
+                page,
+                "How it works",
+                "Voice typing uses Android's installed speech-recognition service. Recognition only starts when you tap the microphone."
+        );
+
+        addActionButton(
+                page,
+                "Open Android voice input settings",
+                v -> {
+                    try {
+                        startActivity(
+                                new Intent(
+                                        "android.settings.VOICE_INPUT_SETTINGS"
+                                )
+                        );
+                    } catch (Exception e) {
+                        toast(
+                                "Voice input settings are unavailable on this device."
+                        );
+                    }
+                }
+        );
 
         setContentView(wrap(page));
     }
