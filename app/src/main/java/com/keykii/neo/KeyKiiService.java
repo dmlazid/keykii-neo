@@ -20,18 +20,6 @@ public class KeyKiiService extends InputMethodService {
     HorizontalScrollView emojiSearchResultsScroll=null;
     LinearLayout emojiSearchResultsRow=null;
 
-    // Local word suggestions / prediction bar.
-    // Dictionary work stays off the keyboard UI thread so typing remains smooth.
-    LinearLayout suggestionBar=null;
-    TextView[] suggestionViews=new TextView[3];
-    java.util.ArrayList<String> predictionDictionary=null;
-    java.util.HashMap<String,java.util.ArrayList<String>>
-        predictionPrefixIndex=null;
-    volatile boolean predictionDictionaryLoading=false;
-    volatile boolean predictionDictionaryReady=false;
-    android.os.Handler suggestionHandler=
-        new android.os.Handler(android.os.Looper.getMainLooper());
-
     PopupWindow keyPreviewPopup=null;
     TextView keyPreviewText=null;
 
@@ -93,10 +81,6 @@ public class KeyKiiService extends InputMethodService {
     boolean keyPreviewEnabled=true;
     boolean swipeDeleteWord=true;
     boolean quickPunctuation=true;
-    boolean suggestionStripEnabled=true;
-    boolean wordSuggestionsEnabled=true;
-    boolean nextWordSuggestions=false;
-    boolean learnTypedWords=true;
     long lastSpaceTap=0L;
 
     float backspaceGestureStartX=0f;
@@ -124,8 +108,6 @@ public class KeyKiiService extends InputMethodService {
                         getCurrentInputConnection();
                     if(ic!=null)
                         deleteOneBeforeCursor(ic);
-                    if(page==0 && !symbols)
-                        scheduleSuggestionRefresh();
                 }
 
                 backspaceRepeating=true;
@@ -163,9 +145,6 @@ public class KeyKiiService extends InputMethodService {
                 .addPrimaryClipChangedListener(
                     clipboardListener
                 );
-
-        // Warm the local prediction dictionary without blocking typing.
-        ensurePredictionDictionaryAsync();
     }
 
     @Override
@@ -263,26 +242,6 @@ public class KeyKiiService extends InputMethodService {
             true
         );
 
-        suggestionStripEnabled=keykiiPrefs.getBoolean(
-            "suggestion_strip",
-            true
-        );
-
-        wordSuggestionsEnabled=keykiiPrefs.getBoolean(
-            "word_suggestions",
-            true
-        );
-
-        nextWordSuggestions=keykiiPrefs.getBoolean(
-            "next_word_suggestions",
-            false
-        );
-
-        learnTypedWords=keykiiPrefs.getBoolean(
-            "learn_typed_words",
-            true
-        );
-
         numberRow=keykiiPrefs.getBoolean(
             "number_row",
             false
@@ -363,26 +322,6 @@ public class KeyKiiService extends InputMethodService {
 
         quickPunctuation=p.getBoolean(
             "quick_punctuation",
-            true
-        );
-
-        suggestionStripEnabled=p.getBoolean(
-            "suggestion_strip",
-            true
-        );
-
-        wordSuggestionsEnabled=p.getBoolean(
-            "word_suggestions",
-            true
-        );
-
-        nextWordSuggestions=p.getBoolean(
-            "next_word_suggestions",
-            false
-        );
-
-        learnTypedWords=p.getBoolean(
-            "learn_typed_words",
             true
         );
 
@@ -1073,8 +1012,6 @@ public class KeyKiiService extends InputMethodService {
 
     void showPage() {
 
-        suggestionBar=null;
-        suggestionViews=new TextView[3];
         body.removeAllViews();
 
         if(page==0)
@@ -1099,466 +1036,9 @@ public class KeyKiiService extends InputMethodService {
             buildKeyboard();
     }
 
-    String currentWordPrefix() {
-        InputConnection ic=getCurrentInputConnection();
-        if(ic==null) return "";
-
-        try {
-            CharSequence before=ic.getTextBeforeCursor(64,0);
-            if(before==null) return "";
-
-            String s=before.toString();
-            int start=s.length();
-
-            while(start>0) {
-                char ch=s.charAt(start-1);
-                if(Character.isLetter(ch) || ch=='\'')
-                    start--;
-                else
-                    break;
-            }
-
-            return s.substring(start);
-        } catch(Exception ignored) {
-            return "";
-        }
-    }
-
-
-    java.util.ArrayList<String> loadLearnedWords() {
-        SharedPreferences sp=
-            getSharedPreferences(
-                "keykii_predictions",
-                MODE_PRIVATE
-            );
-
-        java.util.ArrayList<String> out=
-            new java.util.ArrayList<>();
-
-        for(int i=0;i<40;i++) {
-            String w=sp.getString("word"+i,"");
-            if(w!=null && !w.isEmpty() && !out.contains(w))
-                out.add(w);
-        }
-
-        return out;
-    }
-
-
-    void rememberPredictionWord(String word) {
-        if(!learnTypedWords || word==null) return;
-
-        String clean=word.trim();
-        if(clean.length()<2 || clean.length()>32)
-            return;
-
-        for(int i=0;i<clean.length();i++) {
-            char ch=clean.charAt(i);
-            if(!Character.isLetter(ch) && ch!='\'')
-                return;
-        }
-
-        String normalized=clean.toLowerCase(java.util.Locale.ROOT);
-        java.util.ArrayList<String> words=loadLearnedWords();
-        words.remove(normalized);
-        words.add(0,normalized);
-
-        SharedPreferences sp=
-            getSharedPreferences(
-                "keykii_predictions",
-                MODE_PRIVATE
-            );
-
-        SharedPreferences.Editor e=sp.edit();
-        for(int i=0;i<40;i++)
-            e.remove("word"+i);
-
-        for(int i=0;i<Math.min(40,words.size());i++)
-            e.putString("word"+i,words.get(i));
-
-        e.apply();
-    }
-
-
-    void rememberCurrentWord(InputConnection ic) {
-        if(ic==null) return;
-
-        String prefix=currentWordPrefix();
-        if(prefix!=null && !prefix.isEmpty())
-            rememberPredictionWord(prefix);
-    }
-
-
-    String suggestionCase(String word, String prefix) {
-        if(word==null) return "";
-        if(prefix==null || prefix.isEmpty()) return word;
-
-        if(prefix.equals(prefix.toUpperCase(java.util.Locale.ROOT)))
-            return word.toUpperCase(java.util.Locale.ROOT);
-
-        if(Character.isUpperCase(prefix.charAt(0))) {
-            if(word.length()==1)
-                return word.toUpperCase(java.util.Locale.ROOT);
-            return word.substring(0,1).toUpperCase(java.util.Locale.ROOT)+
-                word.substring(1);
-        }
-
-        return word;
-    }
-
-
-    void ensurePredictionDictionaryAsync() {
-        if(predictionDictionaryReady || predictionDictionaryLoading)
-            return;
-
-        predictionDictionaryLoading=true;
-
-        new Thread(() -> {
-            java.util.ArrayList<String> words=
-                new java.util.ArrayList<>();
-
-            java.util.HashMap<
-                String,
-                java.util.ArrayList<String>
-            > index=new java.util.HashMap<>();
-
-            java.util.HashSet<String> seen=
-                new java.util.HashSet<>();
-
-            try {
-                java.io.BufferedReader r=
-                    new java.io.BufferedReader(
-                        new java.io.InputStreamReader(
-                            getAssets().open(
-                                "keykii-english-10000.txt"
-                            ),
-                            "UTF-8"
-                        )
-                    );
-
-                String line;
-
-                while((line=r.readLine())!=null) {
-                    String w=
-                        line.trim()
-                            .toLowerCase(
-                                java.util.Locale.ROOT
-                            );
-
-                    if(
-                        w.isEmpty() ||
-                        w.length()>32 ||
-                        !seen.add(w)
-                    ) {
-                        continue;
-                    }
-
-                    boolean ok=true;
-
-                    for(int i=0;i<w.length();i++) {
-                        char ch=w.charAt(i);
-
-                        if(
-                            !Character.isLetter(ch) &&
-                            ch!='\''
-                        ) {
-                            ok=false;
-                            break;
-                        }
-                    }
-
-                    if(!ok)
-                        continue;
-
-                    words.add(w);
-
-                    // A four-letter prefix index makes each keypress
-                    // search a small bucket instead of all 10,000 words.
-                    int maxPrefix=
-                        Math.min(4,w.length());
-
-                    for(int n=1;n<=maxPrefix;n++) {
-                        String key=w.substring(0,n);
-
-                        java.util.ArrayList<String> bucket=
-                            index.get(key);
-
-                        if(bucket==null) {
-                            bucket=
-                                new java.util.ArrayList<>();
-                            index.put(key,bucket);
-                        }
-
-                        bucket.add(w);
-                    }
-                }
-
-                r.close();
-
-            } catch(Exception ignored) {
-            }
-
-            final java.util.ArrayList<String> readyWords=words;
-            final java.util.HashMap<
-                String,
-                java.util.ArrayList<String>
-            > readyIndex=index;
-
-            suggestionHandler.post(() -> {
-                predictionDictionary=readyWords;
-                predictionPrefixIndex=readyIndex;
-                predictionDictionaryReady=true;
-                predictionDictionaryLoading=false;
-
-                if(page==0 && !symbols)
-                    updateSuggestionBar();
-            });
-
-        },"KeyKii-Predictions").start();
-    }
-
-
-    void addPredictionCandidate(
-        java.util.ArrayList<String> out,
-        String word,
-        String prefix
-    ) {
-        if(word==null || word.isEmpty() || out.size()>=3)
-            return;
-
-        String shown=suggestionCase(word,prefix);
-
-        if(
-            shown!=null &&
-            !shown.isEmpty() &&
-            !out.contains(shown)
-        ) {
-            out.add(shown);
-        }
-    }
-
-
-    java.util.ArrayList<String> predictionSuggestions(String prefix) {
-        java.util.ArrayList<String> out=
-            new java.util.ArrayList<>();
-
-        String typed=prefix==null ? "" : prefix;
-        String q=
-            typed.toLowerCase(
-                java.util.Locale.ROOT
-            );
-
-        java.util.ArrayList<String> learned=
-            loadLearnedWords();
-
-        if(q.isEmpty()) {
-            if(nextWordSuggestions) {
-                String[] starters={"I","the","you"};
-
-                for(String s:starters)
-                    out.add(s);
-            }
-
-            return out;
-        }
-
-        if(!wordSuggestionsEnabled)
-            return out;
-
-        // Keep exactly what the user typed available like Gboard.
-        if(q.length()>=2)
-            addPredictionCandidate(
-                out,
-                q,
-                typed
-            );
-
-        // Personal words are tiny (max 40), so this is always fast.
-        for(String word:learned) {
-            if(word==null || word.isEmpty())
-                continue;
-
-            String lower=
-                word.toLowerCase(
-                    java.util.Locale.ROOT
-                );
-
-            if(
-                lower.startsWith(q) &&
-                !lower.equals(q)
-            ) {
-                addPredictionCandidate(
-                    out,
-                    lower,
-                    typed
-                );
-            }
-
-            if(out.size()>=3)
-                return out;
-        }
-
-        // Dictionary loading never blocks a keypress.
-        ensurePredictionDictionaryAsync();
-
-        if(
-            !predictionDictionaryReady ||
-            predictionPrefixIndex==null
-        ) {
-            return out;
-        }
-
-        String key=
-            q.substring(
-                0,
-                Math.min(4,q.length())
-            );
-
-        java.util.ArrayList<String> bucket=
-            predictionPrefixIndex.get(key);
-
-        if(bucket==null)
-            return out;
-
-        for(String word:bucket) {
-            if(
-                word!=null &&
-                word.startsWith(q) &&
-                !word.equals(q)
-            ) {
-                addPredictionCandidate(
-                    out,
-                    word,
-                    typed
-                );
-            }
-
-            if(out.size()>=3)
-                break;
-        }
-
-        return out;
-    }
-
-
-    void commitSuggestion(String suggestion) {
-        if(suggestion==null || suggestion.isEmpty())
-            return;
-
-        InputConnection ic=getCurrentInputConnection();
-        if(ic==null) return;
-
-        String prefix=currentWordPrefix();
-
-        try {
-            if(prefix!=null && !prefix.isEmpty())
-                ic.deleteSurroundingText(prefix.length(),0);
-
-            ic.commitText(suggestion+" ",1);
-            rememberPredictionWord(suggestion);
-        } catch(Exception ignored) {
-            ic.commitText(suggestion+" ",1);
-        }
-
-        shift=false;
-        capsLock=false;
-        scheduleSuggestionRefresh();
-    }
-
-
-    void buildSuggestionBar() {
-        if(
-            !suggestionStripEnabled ||
-            (!wordSuggestionsEnabled && !nextWordSuggestions)
-        ) {
-            suggestionBar=null;
-            return;
-        }
-
-        suggestionBar=new LinearLayout(this);
-        suggestionBar.setGravity(Gravity.CENTER);
-        suggestionBar.setPadding(dp(2),0,dp(2),0);
-
-        for(int i=0;i<3;i++) {
-            final int index=i;
-            TextView v=new TextView(this);
-            suggestionViews[i]=v;
-
-            v.setTextColor(textColor());
-            v.setTextSize(13);
-            v.setGravity(Gravity.CENTER);
-            v.setMaxLines(1);
-            v.setEllipsize(android.text.TextUtils.TruncateAt.END);
-            v.setBackground(round(keyColor(false),13,borderColor()));
-            v.setPadding(dp(4),0,dp(4),0);
-
-            v.setOnClickListener(x -> {
-                CharSequence value=suggestionViews[index].getText();
-                if(value!=null && value.length()>0)
-                    commitSuggestion(value.toString());
-            });
-
-            LinearLayout.LayoutParams lp=
-                new LinearLayout.LayoutParams(0,dp(34),1);
-            lp.setMargins(dp(2),dp(1),dp(2),dp(2));
-            suggestionBar.addView(v,lp);
-        }
-
-        body.addView(
-            suggestionBar,
-            new LinearLayout.LayoutParams(-1,dp(37))
-        );
-
-        updateSuggestionBar();
-    }
-
-
-    void updateSuggestionBar() {
-        if(suggestionBar==null || page!=0 || symbols)
-            return;
-
-        String prefix=currentWordPrefix();
-
-        java.util.ArrayList<String> values=
-            predictionSuggestions(prefix);
-
-        boolean show=
-            !values.isEmpty() &&
-            (
-                (prefix!=null && !prefix.isEmpty()) ||
-                nextWordSuggestions
-            );
-
-        suggestionBar.setVisibility(
-            show ? View.VISIBLE : View.GONE
-        );
-
-        for(int i=0;i<3;i++) {
-            TextView v=suggestionViews[i];
-            if(v==null) continue;
-
-            String value=i<values.size() ? values.get(i) : "";
-            v.setText(value);
-            v.setAlpha(value.isEmpty() ? 0f : 1f);
-            v.setClickable(!value.isEmpty());
-        }
-    }
-
-
-    void scheduleSuggestionRefresh() {
-        suggestionHandler.removeCallbacksAndMessages(null);
-        suggestionHandler.postDelayed(
-            () -> updateSuggestionBar(),
-            24
-        );
-    }
-
-
     void buildKeyboard() {
 
         if(!symbols) {
-
-            buildSuggestionBar();
 
             if(numberRow) {
                 row(new String[]{
@@ -7403,12 +6883,10 @@ public class KeyKiiService extends InputMethodService {
                 break;
 
             case "SPACE":
-                rememberCurrentWord(i);
                 smartSpace(i);
                 break;
 
             case "ENTER":
-                rememberCurrentWord(i);
                 enter(i);
 
                 if(autoCapitalization) {
@@ -7564,9 +7042,6 @@ public class KeyKiiService extends InputMethodService {
                     showPage();
                 }
         }
-
-        if(page==0 && !symbols)
-            scheduleSuggestionRefresh();
     }
 
     void smartSpace(InputConnection i) {
