@@ -119,6 +119,12 @@ public class KeyKiiService extends InputMethodService {
     TextView glideTrailText=null;
     View glideHighlightedKey=null;
 
+    // Quick calculator lives inside Tools and does not run during normal typing.
+    String calculatorExpression="";
+    String calculatorResult="";
+    TextView calculatorExpressionView=null;
+    TextView calculatorResultView=null;
+
     long lastSpaceTap=0L;
 
     float backspaceGestureStartX=0f;
@@ -1770,6 +1776,9 @@ public class KeyKiiService extends InputMethodService {
 
         else if(page==5)
             buildResizePanel();
+
+        else if(page==6)
+            buildCalculatorPanel();
 
         else
             buildKeyboard();
@@ -7508,27 +7517,17 @@ public class KeyKiiService extends InputMethodService {
             }
         );
 
-        TextView futureNote=
-            new TextView(this);
-
-        futureNote.setText(
-            "Future tools will appear on this page"
-        );
-
-        futureNote.setTextColor(
-            textColor()
-        );
-
-        futureNote.setAlpha(.52f);
-        futureNote.setTextSize(11);
-        futureNote.setGravity(Gravity.CENTER);
-
-        moreSlide.addView(
-            futureNote,
-            new LinearLayout.LayoutParams(
-                -1,
-                dp(54)
-            )
+        toolsSlideRow(
+            moreSlide,
+            new String[]{
+                "🧮  Calculator"
+            },
+            new Runnable[]{
+                () -> {
+                    page=6;
+                    buildShell();
+                }
+            }
         );
 
         slides.addView(
@@ -7963,6 +7962,526 @@ public class KeyKiiService extends InputMethodService {
 
         buildShell();
     }
+
+    void buildCalculatorPanel() {
+
+        TextView heading=
+            title("Calculator");
+
+        heading.setTextSize(12);
+        heading.setAlpha(.62f);
+
+        body.addView(
+            heading,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(24)
+            )
+        );
+
+        LinearLayout display=
+            new LinearLayout(this);
+
+        display.setOrientation(
+            LinearLayout.VERTICAL
+        );
+
+        display.setGravity(
+            Gravity.CENTER_VERTICAL
+        );
+
+        display.setPadding(
+            dp(16),
+            dp(8),
+            dp(16),
+            dp(8)
+        );
+
+        display.setBackground(
+            round(
+                keyColor(false),
+                20,
+                borderColor()
+            )
+        );
+
+        calculatorExpressionView=
+            new TextView(this);
+
+        calculatorExpressionView.setTextColor(
+            textColor()
+        );
+
+        calculatorExpressionView.setTextSize(22);
+        calculatorExpressionView.setGravity(
+            Gravity.END |
+            Gravity.CENTER_VERTICAL
+        );
+
+        calculatorExpressionView.setSingleLine(
+            true
+        );
+
+        calculatorResultView=
+            new TextView(this);
+
+        calculatorResultView.setTextColor(
+            textColor()
+        );
+
+        calculatorResultView.setAlpha(.68f);
+        calculatorResultView.setTextSize(15);
+        calculatorResultView.setGravity(
+            Gravity.END |
+            Gravity.CENTER_VERTICAL
+        );
+
+        calculatorResultView.setSingleLine(
+            true
+        );
+
+        display.addView(
+            calculatorExpressionView,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(35)
+            )
+        );
+
+        display.addView(
+            calculatorResultView,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(27)
+            )
+        );
+
+        LinearLayout.LayoutParams displayParams=
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(66)
+            );
+
+        displayParams.setMargins(
+            dp(3),
+            dp(3),
+            dp(3),
+            dp(5)
+        );
+
+        body.addView(
+            display,
+            displayParams
+        );
+
+        calculatorRow(
+            new String[]{"C","⌫","(",")"}
+        );
+
+        calculatorRow(
+            new String[]{"7","8","9","÷"}
+        );
+
+        calculatorRow(
+            new String[]{"4","5","6","×"}
+        );
+
+        calculatorRow(
+            new String[]{"1","2","3","-"}
+        );
+
+        calculatorRow(
+            new String[]{".","0","=","+"}
+        );
+
+        TextView insert=
+            new TextView(this);
+
+        insert.setText(
+            "Insert result"
+        );
+
+        insert.setTextColor(
+            textColor()
+        );
+
+        insert.setTextSize(14);
+        insert.setGravity(
+            Gravity.CENTER
+        );
+
+        insert.setBackground(
+            round(
+                accentFillColor(),
+                18,
+                accentColor()
+            )
+        );
+
+        insert.setOnClickListener(
+            v -> calculatorInsertResult()
+        );
+
+        LinearLayout.LayoutParams insertParams=
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(48)
+            );
+
+        insertParams.setMargins(
+            dp(3),
+            dp(6),
+            dp(3),
+            dp(2)
+        );
+
+        body.addView(
+            insert,
+            insertParams
+        );
+
+        updateCalculatorDisplay();
+    }
+
+
+    void calculatorRow(
+        String[] labels
+    ) {
+        LinearLayout row=
+            new LinearLayout(this);
+
+        row.setGravity(
+            Gravity.CENTER
+        );
+
+        for(String label:labels) {
+            TextView button=
+                new TextView(this);
+
+            button.setText(label);
+            button.setTextColor(
+                textColor()
+            );
+
+            button.setTextSize(18);
+            button.setGravity(
+                Gravity.CENTER
+            );
+
+            boolean operator=
+                label.equals("+") ||
+                label.equals("-") ||
+                label.equals("×") ||
+                label.equals("÷") ||
+                label.equals("=");
+
+            button.setBackground(
+                round(
+                    operator
+                    ? accentFillColor()
+                    : keyColor(false),
+                    18,
+                    operator
+                    ? accentColor()
+                    : borderColor()
+                )
+            );
+
+            button.setOnClickListener(
+                v -> calculatorPress(label)
+            );
+
+            LinearLayout.LayoutParams p=
+                new LinearLayout.LayoutParams(
+                    0,
+                    dp(46),
+                    1f
+                );
+
+            p.setMargins(
+                dp(3),
+                dp(3),
+                dp(3),
+                dp(3)
+            );
+
+            row.addView(
+                button,
+                p
+            );
+        }
+
+        body.addView(
+            row,
+            new LinearLayout.LayoutParams(
+                -1,
+                -2
+            )
+        );
+    }
+
+
+    void calculatorPress(
+        String key
+    ) {
+        if(key==null)
+            return;
+
+        if(key.equals("C")) {
+            calculatorExpression="";
+            calculatorResult="";
+            updateCalculatorDisplay();
+            return;
+        }
+
+        if(key.equals("⌫")) {
+            if(
+                calculatorExpression!=null &&
+                !calculatorExpression.isEmpty()
+            ) {
+                calculatorExpression=
+                    calculatorExpression.substring(
+                        0,
+                        calculatorExpression.length()-1
+                    );
+            }
+
+            calculatorResult="";
+            updateCalculatorDisplay();
+            return;
+        }
+
+        if(key.equals("=")) {
+            calculateCurrentExpression();
+            updateCalculatorDisplay();
+            return;
+        }
+
+        if(calculatorExpression==null)
+            calculatorExpression="";
+
+        if(calculatorExpression.length()>=48)
+            return;
+
+        calculatorExpression+=key;
+        calculatorResult="";
+        updateCalculatorDisplay();
+    }
+
+
+    void updateCalculatorDisplay() {
+        if(calculatorExpressionView!=null) {
+            calculatorExpressionView.setText(
+                calculatorExpression==null ||
+                calculatorExpression.isEmpty()
+                ? "0"
+                : calculatorExpression
+            );
+        }
+
+        if(calculatorResultView!=null) {
+            calculatorResultView.setText(
+                calculatorResult==null ||
+                calculatorResult.isEmpty()
+                ? " "
+                : "= " + calculatorResult
+            );
+        }
+    }
+
+
+    void calculateCurrentExpression() {
+        if(
+            calculatorExpression==null ||
+            calculatorExpression.trim().isEmpty()
+        ) {
+            calculatorResult="";
+            return;
+        }
+
+        try {
+            double value=
+                evaluateCalculatorExpression(
+                    calculatorExpression
+                );
+
+            if(
+                Double.isNaN(value) ||
+                Double.isInfinite(value)
+            ) {
+                calculatorResult="Error";
+                return;
+            }
+
+            java.math.BigDecimal number=
+                new java.math.BigDecimal(
+                    Double.toString(value)
+                ).stripTrailingZeros();
+
+            calculatorResult=
+                number.toPlainString();
+
+        } catch(Exception e) {
+            calculatorResult="Error";
+        }
+    }
+
+
+    double evaluateCalculatorExpression(
+        String expression
+    ) {
+        final String source=
+            expression
+                .replace("×","*")
+                .replace("÷","/")
+                .replace("−","-")
+                .replace(" ","");
+
+        class Parser {
+            int pos=-1;
+            int ch;
+
+            void nextChar() {
+                ch=
+                    ++pos<source.length()
+                    ? source.charAt(pos)
+                    : -1;
+            }
+
+            boolean eat(int value) {
+                while(ch==' ')
+                    nextChar();
+
+                if(ch==value) {
+                    nextChar();
+                    return true;
+                }
+
+                return false;
+            }
+
+            double parse() {
+                nextChar();
+
+                double x=
+                    parseExpression();
+
+                if(pos<source.length())
+                    throw new RuntimeException(
+                        "Unexpected"
+                    );
+
+                return x;
+            }
+
+            double parseExpression() {
+                double x=
+                    parseTerm();
+
+                while(true) {
+                    if(eat('+'))
+                        x+=parseTerm();
+
+                    else if(eat('-'))
+                        x-=parseTerm();
+
+                    else
+                        return x;
+                }
+            }
+
+            double parseTerm() {
+                double x=
+                    parseFactor();
+
+                while(true) {
+                    if(eat('*'))
+                        x*=parseFactor();
+
+                    else if(eat('/'))
+                        x/=parseFactor();
+
+                    else
+                        return x;
+                }
+            }
+
+            double parseFactor() {
+                if(eat('+'))
+                    return parseFactor();
+
+                if(eat('-'))
+                    return -parseFactor();
+
+                double x;
+                int start=pos;
+
+                if(eat('(')) {
+                    x=parseExpression();
+
+                    if(!eat(')'))
+                        throw new RuntimeException(
+                            "Missing )"
+                        );
+
+                } else {
+                    while(
+                        (ch>='0' && ch<='9') ||
+                        ch=='.'
+                    ) {
+                        nextChar();
+                    }
+
+                    if(start==pos)
+                        throw new RuntimeException(
+                            "Number expected"
+                        );
+
+                    x=Double.parseDouble(
+                        source.substring(
+                            start,
+                            pos
+                        )
+                    );
+                }
+
+                return x;
+            }
+        }
+
+        return new Parser().parse();
+    }
+
+
+    void calculatorInsertResult() {
+        if(
+            calculatorResult==null ||
+            calculatorResult.isEmpty() ||
+            calculatorResult.equals("Error")
+        ) {
+            calculateCurrentExpression();
+        }
+
+        if(
+            calculatorResult==null ||
+            calculatorResult.isEmpty() ||
+            calculatorResult.equals("Error")
+        ) {
+            updateCalculatorDisplay();
+            return;
+        }
+
+        InputConnection ic=
+            getCurrentInputConnection();
+
+        if(ic!=null) {
+            ic.commitText(
+                calculatorResult,
+                1
+            );
+        }
+    }
+
 
     void buildResizePanel() {
 
