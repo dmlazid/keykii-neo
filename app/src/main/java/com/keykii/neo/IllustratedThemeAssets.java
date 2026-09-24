@@ -9,26 +9,26 @@ final class IllustratedThemeAssets {
 
     static int background(int pack) {
         switch(pack) {
-            case 120: return R.drawable.theme_pack_bg_120;
-            case 121: return R.drawable.theme_pack_bg_121;
-            case 122: return R.drawable.theme_pack_bg_122;
-            case 123: return R.drawable.theme_pack_bg_123;
-            case 124: return R.drawable.theme_pack_bg_124;
-            case 125: return R.drawable.theme_pack_bg_125;
-            case 126: return R.drawable.theme_pack_bg_126;
-            case 127: return R.drawable.theme_pack_bg_127;
-            case 128: return R.drawable.theme_pack_bg_128;
-            case 129: return R.drawable.theme_pack_bg_129;
-            case 130: return R.drawable.theme_pack_bg_130;
-            case 131: return R.drawable.theme_pack_bg_131;
-            case 132: return R.drawable.theme_pack_bg_132;
-            case 133: return R.drawable.theme_pack_bg_133;
-            case 134: return R.drawable.theme_pack_bg_134;
-            case 135: return R.drawable.theme_pack_bg_135;
-            case 136: return R.drawable.theme_pack_bg_136;
-            case 137: return R.drawable.theme_pack_bg_137;
-            case 138: return R.drawable.theme_pack_bg_138;
-            case 139: return R.drawable.theme_pack_bg_139;
+            case 120: return R.drawable.theme_ill_bg_120;
+            case 121: return R.drawable.theme_ill_bg_121;
+            case 122: return R.drawable.theme_ill_bg_122;
+            case 123: return R.drawable.theme_ill_bg_123;
+            case 124: return R.drawable.theme_ill_bg_124;
+            case 125: return R.drawable.theme_ill_bg_125;
+            case 126: return R.drawable.theme_ill_bg_126;
+            case 127: return R.drawable.theme_ill_bg_127;
+            case 128: return R.drawable.theme_ill_bg_128;
+            case 129: return R.drawable.theme_ill_bg_129;
+            case 130: return R.drawable.theme_ill_bg_130;
+            case 131: return R.drawable.theme_ill_bg_131;
+            case 132: return R.drawable.theme_ill_bg_132;
+            case 133: return R.drawable.theme_ill_bg_133;
+            case 134: return R.drawable.theme_ill_bg_134;
+            case 135: return R.drawable.theme_ill_bg_135;
+            case 136: return R.drawable.theme_ill_bg_136;
+            case 137: return R.drawable.theme_ill_bg_137;
+            case 138: return R.drawable.theme_ill_bg_138;
+            case 139: return R.drawable.theme_ill_bg_139;
             default: return 0;
         }
     }
