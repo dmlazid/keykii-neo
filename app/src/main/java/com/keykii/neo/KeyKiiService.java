@@ -15050,7 +15050,7 @@ public class KeyKiiService extends InputMethodService {
                 MODE_PRIVATE
             ).getInt(
                 "theme_transparency",
-                100
+                55
             );
 
         return Math.max(
@@ -17325,6 +17325,42 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    int scaleThemeColorAlpha(
+        int color,
+        int percent
+    ) {
+        int p=Math.max(
+            0,
+            Math.min(100,percent)
+        );
+
+        int sourceAlpha=
+            Color.alpha(color);
+
+        if(
+            sourceAlpha==0 &&
+            color!=Color.TRANSPARENT
+        ) {
+            sourceAlpha=255;
+        }
+
+        return Color.argb(
+            Math.max(
+                0,
+                Math.min(
+                    255,
+                    Math.round(
+                        sourceAlpha*p/100f
+                    )
+                )
+            ),
+            Color.red(color),
+            Color.green(color),
+            Color.blue(color)
+        );
+    }
+
+
     StateListDrawable styledThemeKeyBackground(
         int style,
         boolean special,
@@ -17706,6 +17742,61 @@ public class KeyKiiService extends InputMethodService {
                         ? borderColor()
                         : Color.TRANSPARENT;
                 break;
+        }
+
+        // Keep the approved Purple Lotus renderer exactly as-is. The other
+        // 19 aesthetic packs use a lighter visual weight so their keys do not
+        // look physically larger: translucent fills + one thin outline.
+        int activePack=
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            ).getInt(
+                "keykii_style_pack",
+                -1
+            );
+
+        if(
+            activePack>=100 &&
+            activePack<=119 &&
+            activePack!=116
+        ) {
+            int percent=
+                themeTransparencyPercent();
+
+            normalStart=
+                scaleThemeColorAlpha(
+                    normalStart,
+                    percent
+                );
+
+            normalEnd=
+                scaleThemeColorAlpha(
+                    normalEnd,
+                    percent
+                );
+
+            pressedStart=
+                scaleThemeColorAlpha(
+                    pressedStart,
+                    Math.min(82,percent+18)
+                );
+
+            pressedEnd=
+                scaleThemeColorAlpha(
+                    pressedEnd,
+                    Math.min(82,percent+18)
+                );
+
+            if(stroke!=Color.TRANSPARENT) {
+                stroke=
+                    scaleThemeColorAlpha(
+                        stroke,
+                        Math.min(72,percent+12)
+                    );
+            }
+
+            strokeWidth=1;
         }
 
         GradientDrawable normal=
