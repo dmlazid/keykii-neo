@@ -14845,6 +14845,12 @@ public class KeyKiiService extends InputMethodService {
                 start
             );
 
+        int decorStyle=
+            p.getInt(
+                "theme_decor_style",
+                0
+            );
+
         GradientDrawable bg;
 
         if(gradient) {
@@ -14875,7 +14881,357 @@ public class KeyKiiService extends InputMethodService {
             );
         }
 
-        panel.setBackground(bg);
+        if(decorStyle>0) {
+            android.graphics.drawable.LayerDrawable layers=
+                new android.graphics.drawable.LayerDrawable(
+                    new android.graphics.drawable.Drawable[]{
+                        bg,
+                        new KeyKiiThemeDecorDrawable(
+                            decorStyle,
+                            accentColor()
+                        )
+                    }
+                );
+
+            panel.setBackground(layers);
+        } else {
+            panel.setBackground(bg);
+        }
+    }
+
+
+    class KeyKiiThemeDecorDrawable
+        extends android.graphics.drawable.Drawable {
+
+        final int style;
+        final int accent;
+        final android.graphics.Paint paint=
+            new android.graphics.Paint(
+                android.graphics.Paint.ANTI_ALIAS_FLAG
+            );
+
+        KeyKiiThemeDecorDrawable(
+            int style,
+            int accent
+        ) {
+            this.style=style;
+            this.accent=accent;
+        }
+
+
+        @Override
+        public void draw(
+            android.graphics.Canvas canvas
+        ) {
+            android.graphics.Rect b=getBounds();
+
+            float w=b.width();
+            float h=b.height();
+
+            if(w<=0 || h<=0)
+                return;
+
+            paint.setStyle(
+                android.graphics.Paint.Style.FILL
+            );
+
+            int softAccent=
+                Color.argb(
+                    44,
+                    Color.red(accent),
+                    Color.green(accent),
+                    Color.blue(accent)
+                );
+
+            int softWhite=
+                Color.argb(
+                    theme==1 ? 80 : 42,
+                    255,255,255
+                );
+
+            switch(style) {
+                case 1:
+                    paint.setColor(softAccent);
+                    drawHeart(canvas,w*.11f,h*.20f,dp(10),paint);
+                    drawHeart(canvas,w*.87f,h*.24f,dp(8),paint);
+                    drawHeart(canvas,w*.76f,h*.78f,dp(12),paint);
+                    drawHeart(canvas,w*.18f,h*.82f,dp(7),paint);
+                    break;
+
+                case 2:
+                    paint.setColor(softWhite);
+                    drawSpark(canvas,w*.13f,h*.22f,dp(8),paint);
+                    drawSpark(canvas,w*.83f,h*.18f,dp(11),paint);
+                    drawSpark(canvas,w*.72f,h*.78f,dp(7),paint);
+                    drawSpark(canvas,w*.23f,h*.74f,dp(5),paint);
+                    break;
+
+                case 3:
+                    paint.setStyle(
+                        android.graphics.Paint.Style.STROKE
+                    );
+                    paint.setStrokeWidth(dp(2));
+                    paint.setColor(softWhite);
+                    canvas.drawCircle(w*.10f,h*.23f,dp(13),paint);
+                    canvas.drawCircle(w*.84f,h*.20f,dp(19),paint);
+                    canvas.drawCircle(w*.70f,h*.78f,dp(15),paint);
+                    canvas.drawCircle(w*.25f,h*.83f,dp(9),paint);
+                    paint.setStyle(
+                        android.graphics.Paint.Style.FILL
+                    );
+                    break;
+
+                case 4:
+                    paint.setColor(softAccent);
+                    paint.setStrokeWidth(dp(2));
+                    for(int i=0;i<6;i++) {
+                        float y=h*(.10f+i*.17f);
+                        canvas.drawLine(
+                            w*.02f,y,
+                            w*.22f,y-dp(13),
+                            paint
+                        );
+                        canvas.drawLine(
+                            w*.78f,y+dp(10),
+                            w*.98f,y-dp(4),
+                            paint
+                        );
+                    }
+                    break;
+
+                case 5:
+                    paint.setColor(
+                        Color.argb(
+                            theme==1 ? 70 : 30,
+                            255,255,255
+                        )
+                    );
+                    canvas.drawCircle(w*.12f,h*.16f,dp(36),paint);
+                    canvas.drawCircle(w*.91f,h*.34f,dp(48),paint);
+                    canvas.drawCircle(w*.58f,h*.88f,dp(55),paint);
+                    break;
+
+                case 6:
+                    paint.setStrokeWidth(dp(3));
+                    for(int i=0;i<12;i++) {
+                        int c=
+                            i%2==0
+                                ? softAccent
+                                : softWhite;
+                        paint.setColor(c);
+                        float x=w*(.05f+(i%6)*.18f);
+                        float y=h*(i<6 ? .17f : .82f);
+                        canvas.drawLine(
+                            x,y,
+                            x+dp((i%3)-1)*6,
+                            y+dp(10),
+                            paint
+                        );
+                    }
+                    break;
+
+                case 7:
+                    paint.setColor(softWhite);
+                    drawStar(canvas,w*.11f,h*.20f,dp(10),paint);
+                    drawStar(canvas,w*.87f,h*.22f,dp(14),paint);
+                    drawStar(canvas,w*.72f,h*.80f,dp(9),paint);
+                    drawStar(canvas,w*.24f,h*.76f,dp(6),paint);
+                    break;
+
+                case 8:
+                    paint.setColor(softAccent);
+                    for(int i=0;i<5;i++) {
+                        float x=w*(.10f+i*.20f);
+                        android.graphics.RectF petal=
+                            new android.graphics.RectF(
+                                x-dp(5),
+                                h*.12f-dp(10),
+                                x+dp(5),
+                                h*.12f+dp(10)
+                            );
+                        canvas.save();
+                        canvas.rotate(
+                            i%2==0 ? 28 : -28,
+                            x,
+                            h*.12f
+                        );
+                        canvas.drawOval(petal,paint);
+                        canvas.restore();
+                    }
+                    break;
+
+                case 9:
+                    paint.setColor(softWhite);
+                    paint.setStrokeWidth(dp(2));
+                    drawSnowflake(canvas,w*.12f,h*.20f,dp(10),paint);
+                    drawSnowflake(canvas,w*.86f,h*.24f,dp(14),paint);
+                    drawSnowflake(canvas,w*.74f,h*.80f,dp(9),paint);
+                    break;
+
+                case 10:
+                    paint.setColor(softAccent);
+                    paint.setStrokeWidth(dp(7));
+                    for(float x=-w*.15f;x<w*1.1f;x+=dp(38)) {
+                        canvas.drawLine(
+                            x,h,
+                            x+w*.30f,0,
+                            paint
+                        );
+                    }
+                    break;
+
+                case 11:
+                    paint.setColor(softWhite);
+                    paint.setStrokeWidth(dp(2));
+                    float cx=w*.86f;
+                    float cy=h*.20f;
+                    for(int i=0;i<10;i++) {
+                        double a=
+                            Math.PI*2*i/10.0;
+                        canvas.drawLine(
+                            cx,
+                            cy,
+                            cx+(float)Math.cos(a)*dp(28),
+                            cy+(float)Math.sin(a)*dp(28),
+                            paint
+                        );
+                    }
+                    break;
+            }
+        }
+
+
+        void drawHeart(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            android.graphics.Path path=
+                new android.graphics.Path();
+
+            path.moveTo(cx,cy+size*.72f);
+            path.cubicTo(
+                cx-size*1.2f,
+                cy-size*.05f,
+                cx-size*.65f,
+                cy-size*.85f,
+                cx,
+                cy-size*.25f
+            );
+            path.cubicTo(
+                cx+size*.65f,
+                cy-size*.85f,
+                cx+size*1.2f,
+                cy-size*.05f,
+                cx,
+                cy+size*.72f
+            );
+            canvas.drawPath(path,p);
+        }
+
+
+        void drawSpark(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            android.graphics.Path path=
+                new android.graphics.Path();
+
+            path.moveTo(cx,cy-size);
+            path.lineTo(cx+size*.24f,cy-size*.24f);
+            path.lineTo(cx+size,cy);
+            path.lineTo(cx+size*.24f,cy+size*.24f);
+            path.lineTo(cx,cy+size);
+            path.lineTo(cx-size*.24f,cy+size*.24f);
+            path.lineTo(cx-size,cy);
+            path.lineTo(cx-size*.24f,cy-size*.24f);
+            path.close();
+
+            canvas.drawPath(path,p);
+        }
+
+
+        void drawStar(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float radius,
+            android.graphics.Paint p
+        ) {
+            android.graphics.Path path=
+                new android.graphics.Path();
+
+            for(int i=0;i<10;i++) {
+                double angle=
+                    -Math.PI/2+
+                    i*Math.PI/5;
+
+                float r=
+                    i%2==0
+                        ? radius
+                        : radius*.42f;
+
+                float x=
+                    cx+(float)Math.cos(angle)*r;
+                float y=
+                    cy+(float)Math.sin(angle)*r;
+
+                if(i==0)
+                    path.moveTo(x,y);
+                else
+                    path.lineTo(x,y);
+            }
+
+            path.close();
+            canvas.drawPath(path,p);
+        }
+
+
+        void drawSnowflake(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float radius,
+            android.graphics.Paint p
+        ) {
+            for(int i=0;i<3;i++) {
+                double a=i*Math.PI/3;
+                float dx=
+                    (float)Math.cos(a)*radius;
+                float dy=
+                    (float)Math.sin(a)*radius;
+                canvas.drawLine(
+                    cx-dx,cy-dy,
+                    cx+dx,cy+dy,
+                    p
+                );
+            }
+        }
+
+
+        @Override
+        public void setAlpha(int alpha) {
+            paint.setAlpha(alpha);
+        }
+
+
+        @Override
+        public void setColorFilter(
+            android.graphics.ColorFilter filter
+        ) {
+            paint.setColorFilter(filter);
+        }
+
+
+        @Override
+        public int getOpacity() {
+            return android.graphics.PixelFormat.TRANSLUCENT;
+        }
     }
 
 
