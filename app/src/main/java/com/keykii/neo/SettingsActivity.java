@@ -1984,7 +1984,31 @@ public class SettingsActivity extends Activity {
 
         addThemeStoreHero(page);
 
-        addThemeSection(page, "✨ New aesthetic collection");
+        addThemeSection(page, "🌸 New illustrated • Cute & Sweet");
+        addStylePackGrid(
+                page,
+                new int[]{120,122,123,126,129,134}
+        );
+
+        addThemeSection(page, "☁ New illustrated • Dream & Nature");
+        addStylePackGrid(
+                page,
+                new int[]{121,124,127,128,130,131,132,135,136}
+        );
+
+        addThemeSection(page, "🖤 New illustrated • Night & Boutique");
+        addStylePackGrid(
+                page,
+                new int[]{125,133,138}
+        );
+
+        addThemeSection(page, "❄ New illustrated • Soft & Seasonal");
+        addStylePackGrid(
+                page,
+                new int[]{137,139}
+        );
+
+        addThemeSection(page, "✨ Current aesthetic collection");
         addStylePackGrid(
                 page,
                 new int[]{100,101,102,103}
@@ -2536,7 +2560,7 @@ public class SettingsActivity extends Activity {
                 new TextView(this);
 
         sub.setText(
-                "20 new illustrated keyboard themes • Cute, dreamy, kawaii & stylish\nThe old plain/glow packs are removed from this shop."
+                "40 keyboard themes • 20 brand-new illustrated asset packs + 20 current favorites\nNew collection uses full-board artwork while fonts stay separate."
         );
 
         sub.setTextColor(MUTED);
@@ -2986,6 +3010,23 @@ public class SettingsActivity extends Activity {
                             rowHeight
                     )
             );
+        }
+
+        if(IllustratedThemeAssets.isNewPack(pack)) {
+            int artRes=
+                    IllustratedThemeAssets.art(pack);
+
+            if(artRes!=0) {
+                android.graphics.drawable.Drawable art=
+                        getDrawable(artRes);
+
+                if(art!=null) {
+                    art=art.mutate();
+                    art.setAlpha(235);
+                    keyboard.setForeground(art);
+                    keyboard.setForegroundGravity(Gravity.FILL);
+                }
+            }
         }
 
         return keyboard;
@@ -3691,6 +3732,27 @@ public class SettingsActivity extends Activity {
                         10,55,1,1,39,6
                 };
 
+            case 120: return new int[]{Color.rgb(255,208,226),Color.rgb(255,244,250),Color.rgb(231,90,155),12,55,1,1,0,8};
+            case 121: return new int[]{Color.rgb(124,141,255),Color.rgb(221,229,255),Color.rgb(82,107,222),12,55,1,1,0,6};
+            case 122: return new int[]{Color.rgb(221,240,185),Color.rgb(246,244,217),Color.rgb(94,155,85),13,55,1,1,0,3};
+            case 123: return new int[]{Color.rgb(255,198,180),Color.rgb(255,240,231),Color.rgb(217,126,102),12,55,1,1,0,3};
+            case 124: return new int[]{Color.rgb(221,200,255),Color.rgb(247,238,255),Color.rgb(135,91,195),12,55,1,1,0,2};
+            case 125: return new int[]{Color.rgb(21,5,34),Color.rgb(3,8,21),Color.rgb(240,59,255),8,55,1,0,0,1};
+            case 126: return new int[]{Color.rgb(255,182,208),Color.rgb(255,240,247),Color.rgb(230,80,136),13,55,1,1,0,8};
+            case 127: return new int[]{Color.rgb(94,114,201),Color.rgb(217,228,255),Color.rgb(122,135,217),12,55,1,1,0,6};
+            case 128: return new int[]{Color.rgb(189,231,186),Color.rgb(239,248,223),Color.rgb(75,152,85),13,55,1,1,0,3};
+            case 129: return new int[]{Color.rgb(230,192,182),Color.rgb(251,233,228),Color.rgb(173,110,93),12,55,1,1,0,3};
+            case 130: return new int[]{Color.rgb(214,196,245),Color.rgb(250,240,255),Color.rgb(141,99,193),12,55,1,1,0,2};
+            case 131: return new int[]{Color.rgb(255,189,210),Color.rgb(255,235,221),Color.rgb(230,87,131),12,55,1,1,0,8};
+            case 132: return new int[]{Color.rgb(88,184,242),Color.rgb(199,240,255),Color.rgb(37,143,214),12,55,1,1,0,6};
+            case 133: return new int[]{Color.rgb(154,104,77),Color.rgb(217,179,139),Color.rgb(193,131,85),11,55,1,0,0,5};
+            case 134: return new int[]{Color.rgb(255,176,210),Color.rgb(255,240,248),Color.rgb(228,81,154),13,55,1,1,0,8};
+            case 135: return new int[]{Color.rgb(214,228,255),Color.rgb(251,253,255),Color.rgb(53,106,184),10,55,1,1,0,2};
+            case 136: return new int[]{Color.rgb(215,197,241),Color.rgb(249,240,255),Color.rgb(125,86,172),10,55,1,1,0,2};
+            case 137: return new int[]{Color.rgb(244,232,216),Color.rgb(255,249,241),Color.rgb(180,135,105),10,55,1,1,0,2};
+            case 138: return new int[]{Color.rgb(45,26,19),Color.rgb(8,7,7),Color.rgb(208,154,93),9,55,1,0,0,5};
+            case 139: return new int[]{Color.rgb(207,234,255),Color.rgb(246,238,255),Color.rgb(224,91,128),10,55,1,1,0,6};
+
             default:
                 return stylePackSpec(100);
         }
@@ -3721,6 +3783,26 @@ public class SettingsActivity extends Activity {
             case 117: return "Cream Heart Minimal";
             case 118: return "Brown Butterfly Noir";
             case 119: return "Snowy Pastel Christmas";
+            case 120: return "Pink Blossom Paradise";
+            case 121: return "Dreamy Blueberry Galaxy";
+            case 122: return "Matcha Rabbit Bakery";
+            case 123: return "Peach Bear Patisserie";
+            case 124: return "Violet Butterfly Garden";
+            case 125: return "Cyber Neon Night";
+            case 126: return "Strawberry Bow Party";
+            case 127: return "Moonlight Cloud Kingdom";
+            case 128: return "Frog Forest Picnic";
+            case 129: return "Teddy Ribbon Cottage";
+            case 130: return "Lavender Fairy Lace";
+            case 131: return "Sakura Soda Festival";
+            case 132: return "Ocean Star Aquarium";
+            case 133: return "Cocoa Bunny Bakery";
+            case 134: return "Kitty Candy Boutique";
+            case 135: return "Porcelain Flower Garden";
+            case 136: return "Lotus Fairy Lagoon";
+            case 137: return "Vanilla Heart Boutique";
+            case 138: return "Golden Butterfly Midnight";
+            case 139: return "Pastel Winter Wonderland";
             default: return "Aesthetic Theme";
         }
     }
@@ -3750,6 +3832,26 @@ public class SettingsActivity extends Activity {
             case 117: return "Cream minimal keyboard with hearts and bows";
             case 118: return "Dark brown noir with gold butterfly details";
             case 119: return "Snowy pastel holiday keyboard with winter details";
+            case 120: return "Full-board blossom garden with bows, hearts and layered flower art";
+            case 121: return "Blueberry-night galaxy with clouds, moonlight, stars and dreamy bows";
+            case 122: return "Illustrated rabbit bakery with matcha cups, cake and leafy café scenery";
+            case 123: return "Peach patisserie scene with teddy art, cake, berries and dessert accents";
+            case 124: return "Violet garden scene with large butterflies, flowers and soft fairy details";
+            case 125: return "Cyber arcade scene with neon game art, electric stars and night overlays";
+            case 126: return "Strawberry party scene with oversized berries, ribbons and candy hearts";
+            case 127: return "Moon kingdom with layered clouds, stars and soft night-sky illustration";
+            case 128: return "Frog forest picnic with character art, leaves and garden flowers";
+            case 129: return "Cozy teddy cottage with ribbon art, warm hearts and illustrated bears";
+            case 130: return "Lavender fairy lace with butterflies, blooms and decorative edge details";
+            case 131: return "Sakura soda festival with blossoms, drink art and berry decorations";
+            case 132: return "Ocean aquarium scene with jellyfish, bubbles and bright star accents";
+            case 133: return "Cocoa bakery with bunny art, steaming cup, cookies and warm café mood";
+            case 134: return "Pink candy boutique with kitty illustrations, bows and heart decorations";
+            case 135: return "Blue porcelain garden with painted florals, lotus art and butterflies";
+            case 136: return "Lotus lagoon with large floral art, butterflies and water-line details";
+            case 137: return "Vanilla boutique with elegant hearts, ribbons and light floral artwork";
+            case 138: return "Dark luxury scene with large golden butterflies, moon and star details";
+            case 139: return "Winter wonderland with snowman, gifts and large snowflake illustrations";
             default: return "Illustrated KeyKii aesthetic theme";
         }
     }
@@ -3765,10 +3867,16 @@ public class SettingsActivity extends Activity {
             case 108:
             case 113:
             case 117:
+            case 120:
+            case 122:
+            case 126:
+            case 128:
+            case 133:
+            case 137:
                 return false;
 
             default:
-                return pack>=100 && pack<=119;
+                return pack>=100 && pack<=139;
         }
     }
 
@@ -3887,6 +3995,16 @@ public class SettingsActivity extends Activity {
                 !center
         ) {
             return 0;
+        }
+
+        if(IllustratedThemeAssets.isNewPack(pack)) {
+            if(left)
+                return IllustratedThemeAssets.primarySticker(pack);
+
+            if(right)
+                return IllustratedThemeAssets.secondarySticker(pack);
+
+            return IllustratedThemeAssets.tertiarySticker(pack);
         }
 
         if(pack==116) {

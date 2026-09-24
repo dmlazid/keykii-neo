@@ -4625,7 +4625,7 @@ public class KeyKiiService extends InputMethodService {
 
         if(
             pack<100 ||
-            pack>119 ||
+            pack>139 ||
             action==null ||
             action.isEmpty()
         ) {
@@ -4652,6 +4652,16 @@ public class KeyKiiService extends InputMethodService {
             !center
         ) {
             return 0;
+        }
+
+        if(IllustratedThemeAssets.isNewPack(pack)) {
+            if(left)
+                return IllustratedThemeAssets.primarySticker(pack);
+
+            if(right)
+                return IllustratedThemeAssets.secondarySticker(pack);
+
+            return IllustratedThemeAssets.tertiarySticker(pack);
         }
 
         switch(pack) {
@@ -15348,6 +15358,12 @@ public class KeyKiiService extends InputMethodService {
                 0
             );
 
+        int stylePack=
+            p.getInt(
+                "keykii_style_pack",
+                -1
+            );
+
         GradientDrawable bg;
 
         if(gradient) {
@@ -15378,13 +15394,30 @@ public class KeyKiiService extends InputMethodService {
             );
         }
 
-        if(decorStyle>0) {
-            int stylePack=
-                p.getInt(
-                    "keykii_style_pack",
-                    -1
-                );
+        panel.setForeground(null);
 
+        if(IllustratedThemeAssets.isNewPack(stylePack)) {
+            panel.setBackground(bg);
+
+            int artRes=
+                IllustratedThemeAssets.art(stylePack);
+
+            if(artRes!=0) {
+                android.graphics.drawable.Drawable art=
+                    getDrawable(artRes);
+
+                if(art!=null) {
+                    art=art.mutate();
+                    art.setAlpha(235);
+                    panel.setForeground(art);
+                    panel.setForegroundGravity(Gravity.FILL);
+                }
+            }
+
+            return;
+        }
+
+        if(decorStyle>0) {
             android.graphics.drawable.Drawable themeArt;
 
             if(
@@ -17757,9 +17790,12 @@ public class KeyKiiService extends InputMethodService {
             );
 
         if(
-            activePack>=100 &&
-            activePack<=119 &&
-            activePack!=116
+            (
+                activePack>=100 &&
+                activePack<=119 &&
+                activePack!=116
+            ) ||
+            IllustratedThemeAssets.isNewPack(activePack)
         ) {
             int percent=
                 themeTransparencyPercent();
