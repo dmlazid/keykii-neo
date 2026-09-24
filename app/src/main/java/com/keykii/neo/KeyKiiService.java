@@ -60,6 +60,8 @@ public class KeyKiiService extends InputMethodService {
     LinearLayout toolbarRow=null;
     TextView voiceStatusText=null;
     TextView voiceStatusMic=null;
+    boolean voicePermissionPromptOpen=false;
+    BroadcastReceiver voicePermissionReceiver=null;
 
     boolean clipboardShortcutMode=false;
 
@@ -156,6 +158,64 @@ public class KeyKiiService extends InputMethodService {
                 .addPrimaryClipChangedListener(
                     clipboardListener
                 );
+
+        voicePermissionReceiver=
+            new BroadcastReceiver() {
+                @Override
+                public void onReceive(
+                    Context context,
+                    Intent intent
+                ) {
+                    if(
+                        intent==null ||
+                        !"com.keykii.neo.VOICE_PERMISSION_RESULT"
+                            .equals(intent.getAction())
+                    ) {
+                        return;
+                    }
+
+                    voicePermissionPromptOpen=false;
+
+                    boolean granted=
+                        intent.getBooleanExtra(
+                            "granted",
+                            false
+                        );
+
+                    if(granted) {
+                        // Start listening immediately after the user taps Allow,
+                        // so the first mic tap behaves like Gboard.
+                        new android.os.Handler(
+                            android.os.Looper.getMainLooper()
+                        ).postDelayed(
+                            () -> toggleVoiceTyping(),
+                            120
+                        );
+                    } else {
+                        voiceToast(
+                            "Microphone access was not allowed."
+                        );
+                    }
+                }
+            };
+
+        IntentFilter voicePermissionFilter=
+            new IntentFilter(
+                "com.keykii.neo.VOICE_PERMISSION_RESULT"
+            );
+
+        if(android.os.Build.VERSION.SDK_INT>=33) {
+            registerReceiver(
+                voicePermissionReceiver,
+                voicePermissionFilter,
+                Context.RECEIVER_NOT_EXPORTED
+            );
+        } else {
+            registerReceiver(
+                voicePermissionReceiver,
+                voicePermissionFilter
+            );
+        }
     }
 
     @Override
@@ -182,6 +242,17 @@ public class KeyKiiService extends InputMethodService {
             voiceSessionId++;
             voiceListening=false;
             voiceProcessing=false;
+        }
+
+        if(voicePermissionReceiver!=null) {
+            try {
+                unregisterReceiver(
+                    voicePermissionReceiver
+                );
+            } catch(Exception ignored) {
+            }
+
+            voicePermissionReceiver=null;
         }
 
         super.onDestroy();
@@ -1323,11 +1394,32 @@ public class KeyKiiService extends InputMethodService {
             )!=
             android.content.pm.PackageManager.PERMISSION_GRANTED
         ) {
-            voiceToast(
-                "Allow microphone access to use KeyKii voice typing."
-            );
+            if(voicePermissionPromptOpen)
+                return;
 
-            openVoiceSettingsForPermission();
+            voicePermissionPromptOpen=true;
+
+            try {
+                Intent permissionIntent=
+                    new Intent(
+                        this,
+                        VoicePermissionActivity.class
+                    );
+
+                permissionIntent.addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK |
+                    Intent.FLAG_ACTIVITY_NO_ANIMATION
+                );
+
+                startActivity(
+                    permissionIntent
+                );
+
+            } catch(Exception e) {
+                voicePermissionPromptOpen=false;
+                openVoiceSettingsForPermission();
+            }
+
             return;
         }
 
