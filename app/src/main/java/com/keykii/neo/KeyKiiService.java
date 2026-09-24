@@ -4073,6 +4073,56 @@ public class KeyKiiService extends InputMethodService {
 
         }
 
+        String themeSticker=
+            themeKeySticker(action);
+
+        if(
+            themeSticker!=null &&
+            !themeSticker.isEmpty()
+        ) {
+            TextView sticker=
+                new TextView(this);
+
+            sticker.setText(themeSticker);
+            sticker.setTextSize(
+                action.equals("SPACE")
+                    ? 12
+                    : 10
+            );
+
+            sticker.setGravity(
+                Gravity.CENTER
+            );
+
+            sticker.setIncludeFontPadding(false);
+            sticker.setClickable(false);
+            sticker.setFocusable(false);
+
+            FrameLayout.LayoutParams sp=
+                new FrameLayout.LayoutParams(
+                    dp(
+                        action.equals("SPACE")
+                            ? 26
+                            : 18
+                    ),
+                    dp(18),
+                    Gravity.TOP |
+                    Gravity.RIGHT
+                );
+
+            sp.setMargins(
+                0,
+                dp(1),
+                dp(2),
+                0
+            );
+
+            box.addView(
+                sticker,
+                sp
+            );
+        }
+
         // Gboard-style comma key: tap still types comma. Holding it opens
         // a compact shortcut bubble above the key; the center smiley opens emoji.
         box.setOnLongClickListener(v -> {
@@ -4423,6 +4473,190 @@ public class KeyKiiService extends InputMethodService {
         );
 
         r.addView(box,p);
+    }
+
+
+    String themeKeySticker(
+        String action
+    ) {
+        SharedPreferences p=
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            );
+
+        if(
+            p.getInt(
+                "theme_surface_mode",
+                0
+            )!=2
+        ) {
+            return "";
+        }
+
+        int decor=
+            p.getInt(
+                "theme_decor_style",
+                0
+            );
+
+        if(
+            decor<20 ||
+            decor>39
+        ) {
+            return "";
+        }
+
+        int pack=
+            p.getInt(
+                "keykii_style_pack",
+                -1
+            );
+
+        if(
+            action==null ||
+            action.isEmpty()
+        ) {
+            return "";
+        }
+
+        boolean left=
+            action.equals("q") ||
+            action.equals("1") ||
+            action.equals("SHIFT");
+
+        boolean right=
+            action.equals("p") ||
+            action.equals("0") ||
+            action.equals("BACK");
+
+        boolean center=
+            action.equals("SPACE") ||
+            action.equals("5");
+
+        switch(pack) {
+            case 100:
+                if(left) return "🌸";
+                if(right) return "🍒";
+                if(center) return "♡";
+                break;
+
+            case 101:
+                if(left) return "⭐";
+                if(right) return "☁";
+                if(center) return "🌙";
+                break;
+
+            case 102:
+                if(left) return "🌿";
+                if(right) return "🐰";
+                if(center) return "🍵";
+                break;
+
+            case 103:
+                if(left) return "🧸";
+                if(right) return "🍑";
+                if(center) return "🍰";
+                break;
+
+            case 104:
+                if(left) return "🦋";
+                if(right) return "✿";
+                if(center) return "🎀";
+                break;
+
+            case 105:
+                if(left) return "✦";
+                if(right) return "⚡";
+                if(center) return "🎮";
+                break;
+
+            case 106:
+                if(left) return "🍓";
+                if(right) return "🎀";
+                if(center) return "♡";
+                break;
+
+            case 107:
+                if(left) return "☁";
+                if(right) return "⭐";
+                if(center) return "🌙";
+                break;
+
+            case 108:
+                if(left) return "🌿";
+                if(right) return "🐸";
+                if(center) return "✿";
+                break;
+
+            case 109:
+                if(left) return "🧸";
+                if(right) return "🌹";
+                if(center) return "♡";
+                break;
+
+            case 110:
+                if(left) return "🦋";
+                if(right) return "❀";
+                if(center) return "🎀";
+                break;
+
+            case 111:
+                if(left) return "🌸";
+                if(right) return "🍒";
+                if(center) return "🥤";
+                break;
+
+            case 112:
+                if(left) return "⭐";
+                if(right) return "🫧";
+                if(center) return "🌊";
+                break;
+
+            case 113:
+                if(left) return "🐰";
+                if(right) return "☕";
+                if(center) return "🧸";
+                break;
+
+            case 114:
+                if(left) return "🎀";
+                if(right) return "🐾";
+                if(center) return "♡";
+                break;
+
+            case 115:
+                if(left) return "✿";
+                if(right) return "❀";
+                if(center) return "◇";
+                break;
+
+            case 116:
+                if(left) return "🪷";
+                if(right) return "🦋";
+                if(center) return "✦";
+                break;
+
+            case 117:
+                if(left) return "♡";
+                if(right) return "🎀";
+                if(center) return "♢";
+                break;
+
+            case 118:
+                if(left) return "🦋";
+                if(right) return "✦";
+                if(center) return "♡";
+                break;
+
+            case 119:
+                if(left) return "❄";
+                if(right) return "🎁";
+                if(center) return "☃";
+                break;
+        }
+
+        return "";
     }
 
 
@@ -15140,6 +15374,844 @@ public class KeyKiiService extends InputMethodService {
                         );
                     }
                     break;
+
+                // 2.44.0 aesthetic collection.
+                case 20: // Cherry Blossom Love
+                    paint.setColor(
+                        Color.argb(72,255,142,184)
+                    );
+                    drawFlower(canvas,w*.08f,h*.18f,dp(11),paint);
+                    drawFlower(canvas,w*.91f,h*.20f,dp(14),paint);
+                    drawFlower(canvas,w*.78f,h*.82f,dp(10),paint);
+                    paint.setColor(
+                        Color.argb(60,194,70,105)
+                    );
+                    drawCherryPair(canvas,w*.20f,h*.80f,dp(9),paint);
+                    drawHeart(canvas,w*.56f,h*.12f,dp(6),paint);
+                    break;
+
+                case 21: // Blueberry Jelly Sky
+                    paint.setColor(
+                        Color.argb(72,255,255,255)
+                    );
+                    drawCloud(canvas,w*.14f,h*.22f,dp(10),paint);
+                    drawCloud(canvas,w*.82f,h*.24f,dp(13),paint);
+                    paint.setColor(
+                        Color.argb(74,255,232,111)
+                    );
+                    drawStar(canvas,w*.26f,h*.14f,dp(6),paint);
+                    drawStar(canvas,w*.72f,h*.78f,dp(8),paint);
+                    drawMoon(canvas,w*.90f,h*.78f,dp(12),paint);
+                    break;
+
+                case 22: // Matcha Bunny Café
+                    paint.setColor(
+                        Color.argb(72,95,158,90)
+                    );
+                    drawLeaf(canvas,w*.10f,h*.20f,dp(12),paint);
+                    drawLeaf(canvas,w*.88f,h*.22f,dp(11),paint);
+                    drawLeaf(canvas,w*.76f,h*.82f,dp(10),paint);
+                    paint.setColor(
+                        Color.argb(68,255,255,255)
+                    );
+                    drawBunny(canvas,w*.18f,h*.80f,dp(11),paint);
+                    break;
+
+                case 23: // Peach Teddy Dessert
+                    paint.setColor(
+                        Color.argb(78,154,92,64)
+                    );
+                    drawBear(canvas,w*.13f,h*.21f,dp(12),paint);
+                    drawBear(canvas,w*.86f,h*.78f,dp(11),paint);
+                    paint.setColor(
+                        Color.argb(74,255,255,255)
+                    );
+                    drawSpark(canvas,w*.88f,h*.20f,dp(7),paint);
+                    drawHeart(canvas,w*.23f,h*.80f,dp(7),paint);
+                    break;
+
+                case 24: // Lilac Butterfly Diary
+                    paint.setColor(
+                        Color.argb(72,137,78,194)
+                    );
+                    drawButterfly(canvas,w*.10f,h*.20f,dp(11),paint);
+                    drawButterfly(canvas,w*.87f,h*.22f,dp(13),paint);
+                    drawButterfly(canvas,w*.75f,h*.80f,dp(10),paint);
+                    paint.setColor(softWhite);
+                    drawSpark(canvas,w*.28f,h*.14f,dp(6),paint);
+                    break;
+
+                case 25: // Midnight Neon Arcade
+                    paint.setColor(
+                        Color.argb(90,64,235,255)
+                    );
+                    drawSpark(canvas,w*.10f,h*.17f,dp(8),paint);
+                    paint.setColor(
+                        Color.argb(82,255,52,226)
+                    );
+                    drawStar(canvas,w*.88f,h*.20f,dp(11),paint);
+                    paint.setStrokeWidth(dp(2));
+                    canvas.drawLine(w*.08f,h*.84f,w*.26f,h*.76f,paint);
+                    canvas.drawLine(w*.73f,h*.82f,w*.92f,h*.75f,paint);
+                    break;
+
+                case 26: // Strawberry Ribbon Milk
+                    paint.setColor(
+                        Color.argb(78,235,72,122)
+                    );
+                    drawStrawberry(canvas,w*.11f,h*.20f,dp(10),paint);
+                    drawStrawberry(canvas,w*.87f,h*.23f,dp(11),paint);
+                    paint.setColor(
+                        Color.argb(72,255,255,255)
+                    );
+                    drawBow(canvas,w*.75f,h*.80f,dp(11),paint);
+                    drawHeart(canvas,w*.22f,h*.82f,dp(7),paint);
+                    break;
+
+                case 27: // Cloudy Moon Sleep
+                    paint.setColor(
+                        Color.argb(68,255,255,255)
+                    );
+                    drawCloud(canvas,w*.12f,h*.20f,dp(12),paint);
+                    drawCloud(canvas,w*.84f,h*.22f,dp(14),paint);
+                    paint.setColor(
+                        Color.argb(76,255,236,138)
+                    );
+                    drawMoon(canvas,w*.78f,h*.80f,dp(12),paint);
+                    drawStar(canvas,w*.24f,h*.80f,dp(7),paint);
+                    break;
+
+                case 28: // Mint Frog Garden
+                    paint.setColor(
+                        Color.argb(74,76,153,80)
+                    );
+                    drawLeaf(canvas,w*.10f,h*.18f,dp(11),paint);
+                    drawLeaf(canvas,w*.90f,h*.20f,dp(12),paint);
+                    drawLeaf(canvas,w*.76f,h*.82f,dp(11),paint);
+                    paint.setColor(
+                        Color.argb(66,255,255,255)
+                    );
+                    drawFrog(canvas,w*.18f,h*.80f,dp(12),paint);
+                    break;
+
+                case 29: // Rosy Bear Picnic
+                    paint.setColor(
+                        Color.argb(72,139,89,68)
+                    );
+                    drawBear(canvas,w*.11f,h*.20f,dp(11),paint);
+                    drawBear(canvas,w*.88f,h*.23f,dp(12),paint);
+                    paint.setColor(
+                        Color.argb(72,235,119,145)
+                    );
+                    drawBow(canvas,w*.76f,h*.80f,dp(10),paint);
+                    drawHeart(canvas,w*.22f,h*.80f,dp(7),paint);
+                    break;
+
+                case 30: // Lavender Lace Dream
+                    paint.setColor(
+                        Color.argb(68,132,83,190)
+                    );
+                    drawButterfly(canvas,w*.10f,h*.20f,dp(10),paint);
+                    drawButterfly(canvas,w*.88f,h*.22f,dp(12),paint);
+                    paint.setColor(
+                        Color.argb(64,255,255,255)
+                    );
+                    drawFlower(canvas,w*.76f,h*.82f,dp(9),paint);
+                    drawSpark(canvas,w*.25f,h*.80f,dp(6),paint);
+                    break;
+
+                case 31: // Sakura Cherry Soda
+                    paint.setColor(
+                        Color.argb(74,255,133,178)
+                    );
+                    drawFlower(canvas,w*.09f,h*.19f,dp(10),paint);
+                    drawFlower(canvas,w*.89f,h*.22f,dp(12),paint);
+                    paint.setColor(
+                        Color.argb(68,195,65,96)
+                    );
+                    drawCherryPair(canvas,w*.76f,h*.81f,dp(9),paint);
+                    drawCherryPair(canvas,w*.22f,h*.80f,dp(8),paint);
+                    break;
+
+                case 32: // Ocean Jelly Star
+                    paint.setColor(
+                        Color.argb(72,255,255,255)
+                    );
+                    drawBubbleCluster(canvas,w*.11f,h*.20f,dp(12),paint);
+                    drawBubbleCluster(canvas,w*.88f,h*.24f,dp(14),paint);
+                    paint.setColor(
+                        Color.argb(72,255,235,92)
+                    );
+                    drawStar(canvas,w*.77f,h*.80f,dp(10),paint);
+                    break;
+
+                case 33: // Cozy Cocoa Bunny
+                    paint.setColor(
+                        Color.argb(70,116,70,50)
+                    );
+                    drawBunny(canvas,w*.12f,h*.20f,dp(11),paint);
+                    drawBear(canvas,w*.88f,h*.22f,dp(11),paint);
+                    paint.setColor(
+                        Color.argb(64,255,245,232)
+                    );
+                    drawHeart(canvas,w*.77f,h*.80f,dp(8),paint);
+                    drawSpark(canvas,w*.22f,h*.80f,dp(5),paint);
+                    break;
+
+                case 34: // Pink Kitty Bow
+                    paint.setColor(
+                        Color.argb(72,221,72,143)
+                    );
+                    drawBow(canvas,w*.10f,h*.20f,dp(11),paint);
+                    drawBow(canvas,w*.88f,h*.22f,dp(12),paint);
+                    paint.setColor(
+                        Color.argb(68,255,255,255)
+                    );
+                    drawCat(canvas,w*.76f,h*.81f,dp(11),paint);
+                    drawHeart(canvas,w*.23f,h*.80f,dp(7),paint);
+                    break;
+
+                case 35: // Blue Porcelain Bloom
+                    paint.setColor(
+                        Color.argb(76,40,86,164)
+                    );
+                    drawFlower(canvas,w*.10f,h*.19f,dp(11),paint);
+                    drawFlower(canvas,w*.89f,h*.21f,dp(13),paint);
+                    drawFlower(canvas,w*.77f,h*.81f,dp(9),paint);
+                    paint.setColor(softWhite);
+                    drawSpark(canvas,w*.23f,h*.80f,dp(5),paint);
+                    break;
+
+                case 36: // Purple Lotus Watercolor
+                    paint.setColor(
+                        Color.argb(68,122,75,180)
+                    );
+                    drawLotus(canvas,w*.12f,h*.20f,dp(13),paint);
+                    drawLotus(canvas,w*.86f,h*.23f,dp(12),paint);
+                    drawButterfly(canvas,w*.76f,h*.81f,dp(9),paint);
+                    break;
+
+                case 37: // Cream Heart Minimal
+                    paint.setColor(
+                        Color.argb(56,154,118,95)
+                    );
+                    drawHeart(canvas,w*.10f,h*.20f,dp(8),paint);
+                    drawHeart(canvas,w*.89f,h*.22f,dp(9),paint);
+                    drawBow(canvas,w*.77f,h*.81f,dp(8),paint);
+                    drawHeart(canvas,w*.22f,h*.80f,dp(6),paint);
+                    break;
+
+                case 38: // Brown Butterfly Noir
+                    paint.setColor(
+                        Color.argb(82,190,130,78)
+                    );
+                    drawButterfly(canvas,w*.10f,h*.20f,dp(11),paint);
+                    drawButterfly(canvas,w*.88f,h*.22f,dp(13),paint);
+                    drawButterfly(canvas,w*.76f,h*.81f,dp(10),paint);
+                    paint.setColor(
+                        Color.argb(58,255,255,255)
+                    );
+                    drawSpark(canvas,w*.24f,h*.80f,dp(6),paint);
+                    break;
+
+                case 39: // Snowy Pastel Christmas
+                    paint.setColor(
+                        Color.argb(82,255,255,255)
+                    );
+                    paint.setStrokeWidth(dp(2));
+                    drawSnowflake(canvas,w*.10f,h*.20f,dp(10),paint);
+                    drawSnowflake(canvas,w*.88f,h*.22f,dp(13),paint);
+                    drawSnowflake(canvas,w*.76f,h*.80f,dp(9),paint);
+                    paint.setColor(
+                        Color.argb(64,224,75,92)
+                    );
+                    drawBow(canvas,w*.23f,h*.80f,dp(8),paint);
+                    break;
+            }
+        }
+
+
+        void drawFlower(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            for(int i=0;i<5;i++) {
+                double a=
+                    -Math.PI/2+
+                    i*Math.PI*2/5;
+
+                float px=
+                    cx+
+                    (float)Math.cos(a)*size*.62f;
+
+                float py=
+                    cy+
+                    (float)Math.sin(a)*size*.62f;
+
+                canvas.drawCircle(
+                    px,
+                    py,
+                    size*.42f,
+                    p
+                );
+            }
+
+            int old=p.getColor();
+            p.setColor(
+                Color.argb(
+                    Math.min(
+                        255,
+                        Color.alpha(old)+35
+                    ),
+                    255,236,174
+                )
+            );
+            canvas.drawCircle(
+                cx,cy,
+                size*.28f,
+                p
+            );
+            p.setColor(old);
+        }
+
+
+        void drawCherryPair(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            canvas.drawCircle(
+                cx-size*.38f,
+                cy+size*.20f,
+                size*.42f,
+                p
+            );
+
+            canvas.drawCircle(
+                cx+size*.38f,
+                cy+size*.20f,
+                size*.42f,
+                p
+            );
+
+            paint.setStyle(
+                android.graphics.Paint.Style.STROKE
+            );
+
+            paint.setStrokeWidth(
+                Math.max(
+                    1f,
+                    size*.12f
+                )
+            );
+
+            canvas.drawLine(
+                cx-size*.34f,
+                cy-size*.10f,
+                cx,
+                cy-size*.72f,
+                paint
+            );
+
+            canvas.drawLine(
+                cx+size*.34f,
+                cy-size*.10f,
+                cx,
+                cy-size*.72f,
+                paint
+            );
+
+            paint.setStyle(
+                android.graphics.Paint.Style.FILL
+            );
+        }
+
+
+        void drawCloud(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            canvas.drawCircle(
+                cx-size*.48f,
+                cy,
+                size*.48f,
+                p
+            );
+            canvas.drawCircle(
+                cx,
+                cy-size*.20f,
+                size*.62f,
+                p
+            );
+            canvas.drawCircle(
+                cx+size*.52f,
+                cy,
+                size*.43f,
+                p
+            );
+            canvas.drawRect(
+                cx-size*.85f,
+                cy,
+                cx+size*.88f,
+                cy+size*.42f,
+                p
+            );
+        }
+
+
+        void drawMoon(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            canvas.drawCircle(
+                cx,cy,
+                size,
+                p
+            );
+
+            int old=p.getColor();
+
+            p.setColor(
+                Color.argb(
+                    Math.max(
+                        18,
+                        Color.alpha(old)/2
+                    ),
+                    30,35,75
+                )
+            );
+
+            canvas.drawCircle(
+                cx+size*.42f,
+                cy-size*.18f,
+                size*.92f,
+                p
+            );
+
+            p.setColor(old);
+        }
+
+
+        void drawLeaf(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            android.graphics.RectF oval=
+                new android.graphics.RectF(
+                    cx-size*.45f,
+                    cy-size,
+                    cx+size*.45f,
+                    cy+size
+                );
+
+            canvas.save();
+            canvas.rotate(
+                -34,
+                cx,cy
+            );
+            canvas.drawOval(
+                oval,
+                p
+            );
+            canvas.restore();
+        }
+
+
+        void drawBunny(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            canvas.drawCircle(
+                cx,cy,
+                size*.62f,
+                p
+            );
+
+            android.graphics.RectF left=
+                new android.graphics.RectF(
+                    cx-size*.58f,
+                    cy-size*1.35f,
+                    cx-size*.12f,
+                    cy-size*.20f
+                );
+
+            android.graphics.RectF right=
+                new android.graphics.RectF(
+                    cx+size*.12f,
+                    cy-size*1.35f,
+                    cx+size*.58f,
+                    cy-size*.20f
+                );
+
+            canvas.drawOval(left,p);
+            canvas.drawOval(right,p);
+        }
+
+
+        void drawBear(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            canvas.drawCircle(
+                cx,cy,
+                size*.70f,
+                p
+            );
+            canvas.drawCircle(
+                cx-size*.58f,
+                cy-size*.52f,
+                size*.34f,
+                p
+            );
+            canvas.drawCircle(
+                cx+size*.58f,
+                cy-size*.52f,
+                size*.34f,
+                p
+            );
+        }
+
+
+        void drawButterfly(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            canvas.drawOval(
+                new android.graphics.RectF(
+                    cx-size,
+                    cy-size*.72f,
+                    cx-size*.10f,
+                    cy+size*.25f
+                ),
+                p
+            );
+
+            canvas.drawOval(
+                new android.graphics.RectF(
+                    cx+size*.10f,
+                    cy-size*.72f,
+                    cx+size,
+                    cy+size*.25f
+                ),
+                p
+            );
+
+            canvas.drawOval(
+                new android.graphics.RectF(
+                    cx-size*.78f,
+                    cy+size*.02f,
+                    cx-size*.08f,
+                    cy+size*.72f
+                ),
+                p
+            );
+
+            canvas.drawOval(
+                new android.graphics.RectF(
+                    cx+size*.08f,
+                    cy+size*.02f,
+                    cx+size*.78f,
+                    cy+size*.72f
+                ),
+                p
+            );
+
+            canvas.drawRect(
+                cx-size*.08f,
+                cy-size*.45f,
+                cx+size*.08f,
+                cy+size*.62f,
+                p
+            );
+        }
+
+
+        void drawStrawberry(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            android.graphics.Path path=
+                new android.graphics.Path();
+
+            path.moveTo(
+                cx-size*.82f,
+                cy-size*.48f
+            );
+
+            path.quadTo(
+                cx,
+                cy+size*1.18f,
+                cx+size*.82f,
+                cy-size*.48f
+            );
+
+            path.quadTo(
+                cx,
+                cy-size*.80f,
+                cx-size*.82f,
+                cy-size*.48f
+            );
+
+            path.close();
+            canvas.drawPath(
+                path,p
+            );
+
+            int old=p.getColor();
+
+            p.setColor(
+                Color.argb(
+                    Math.min(
+                        255,
+                        Color.alpha(old)+35
+                    ),
+                    75,145,72
+                )
+            );
+
+            drawLeaf(
+                canvas,
+                cx,
+                cy-size*.72f,
+                size*.45f,
+                p
+            );
+
+            p.setColor(old);
+        }
+
+
+        void drawBow(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            android.graphics.Path left=
+                new android.graphics.Path();
+
+            left.moveTo(cx,cy);
+            left.lineTo(
+                cx-size,
+                cy-size*.62f
+            );
+            left.lineTo(
+                cx-size*.82f,
+                cy+size*.62f
+            );
+            left.close();
+
+            android.graphics.Path right=
+                new android.graphics.Path();
+
+            right.moveTo(cx,cy);
+            right.lineTo(
+                cx+size,
+                cy-size*.62f
+            );
+            right.lineTo(
+                cx+size*.82f,
+                cy+size*.62f
+            );
+            right.close();
+
+            canvas.drawPath(left,p);
+            canvas.drawPath(right,p);
+            canvas.drawCircle(
+                cx,cy,
+                size*.26f,
+                p
+            );
+        }
+
+
+        void drawFrog(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            canvas.drawCircle(
+                cx,cy,
+                size*.72f,
+                p
+            );
+
+            canvas.drawCircle(
+                cx-size*.46f,
+                cy-size*.58f,
+                size*.34f,
+                p
+            );
+
+            canvas.drawCircle(
+                cx+size*.46f,
+                cy-size*.58f,
+                size*.34f,
+                p
+            );
+        }
+
+
+        void drawBubbleCluster(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            paint.setStyle(
+                android.graphics.Paint.Style.STROKE
+            );
+
+            paint.setStrokeWidth(
+                Math.max(
+                    1f,
+                    size*.12f
+                )
+            );
+
+            canvas.drawCircle(
+                cx,cy,
+                size*.72f,
+                p
+            );
+
+            canvas.drawCircle(
+                cx+size*.82f,
+                cy-size*.48f,
+                size*.34f,
+                p
+            );
+
+            canvas.drawCircle(
+                cx-size*.76f,
+                cy+size*.42f,
+                size*.28f,
+                p
+            );
+
+            paint.setStyle(
+                android.graphics.Paint.Style.FILL
+            );
+        }
+
+
+        void drawCat(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            canvas.drawCircle(
+                cx,cy+size*.10f,
+                size*.66f,
+                p
+            );
+
+            android.graphics.Path left=
+                new android.graphics.Path();
+
+            left.moveTo(
+                cx-size*.60f,
+                cy-size*.22f
+            );
+
+            left.lineTo(
+                cx-size*.52f,
+                cy-size
+            );
+
+            left.lineTo(
+                cx-size*.05f,
+                cy-size*.52f
+            );
+
+            left.close();
+            canvas.drawPath(left,p);
+
+            android.graphics.Path right=
+                new android.graphics.Path();
+
+            right.moveTo(
+                cx+size*.60f,
+                cy-size*.22f
+            );
+
+            right.lineTo(
+                cx+size*.52f,
+                cy-size
+            );
+
+            right.lineTo(
+                cx+size*.05f,
+                cy-size*.52f
+            );
+
+            right.close();
+            canvas.drawPath(right,p);
+        }
+
+
+        void drawLotus(
+            android.graphics.Canvas canvas,
+            float cx,
+            float cy,
+            float size,
+            android.graphics.Paint p
+        ) {
+            for(int i=-2;i<=2;i++) {
+                float offset=
+                    i*size*.30f;
+
+                android.graphics.RectF petal=
+                    new android.graphics.RectF(
+                        cx-size*.28f+offset,
+                        cy-size*.82f+
+                            Math.abs(i)*size*.12f,
+                        cx+size*.28f+offset,
+                        cy+size*.48f
+                    );
+
+                canvas.save();
+                canvas.rotate(
+                    i*13,
+                    cx+offset,
+                    cy
+                );
+                canvas.drawOval(
+                    petal,p
+                );
+                canvas.restore();
             }
         }
 
