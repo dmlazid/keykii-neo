@@ -125,6 +125,29 @@ public class KeyKiiService extends InputMethodService {
     TextView calculatorExpressionView=null;
     TextView calculatorResultView=null;
 
+    // Online translator runs only when the user opens the tool and taps Translate.
+    final String[] translatorLanguageNames={
+        "English","Filipino","Cebuano","Spanish",
+        "Japanese","Korean","Chinese","French",
+        "German","Italian","Portuguese","Arabic"
+    };
+    final String[] translatorLanguageCodes={
+        "en","tl","ceb","es",
+        "ja","ko","zh-CN","fr",
+        "de","it","pt","ar"
+    };
+    int translatorSourceLanguage=0;
+    int translatorTargetLanguage=1;
+    String translatorSourceText="";
+    String translatorResult="";
+    String translatorStatus="";
+    TextView translatorSourceLanguageView=null;
+    TextView translatorTargetLanguageView=null;
+    TextView translatorSourceView=null;
+    TextView translatorResultView=null;
+    TextView translatorStatusView=null;
+    int translatorRequestId=0;
+
     long lastSpaceTap=0L;
 
     float backspaceGestureStartX=0f;
@@ -1405,7 +1428,14 @@ public class KeyKiiService extends InputMethodService {
 
                 // Toggle Tools <-> Keyboard even if the toolbar has not
                 // yet been rebuilt. This fixes the stuck-back-button issue.
-                if(page==4 || page==5 || page==3) {
+                if(
+                    page==3 ||
+                    page==4 ||
+                    page==5 ||
+                    page==6 ||
+                    page==7 ||
+                    page==8
+                ) {
                     page=0;
                 } else {
                     page=4;
@@ -1782,6 +1812,9 @@ public class KeyKiiService extends InputMethodService {
 
         else if(page==7)
             buildTextCasePanel();
+
+        else if(page==8)
+            buildTranslatorPanel();
 
         else
             buildKeyboard();
@@ -7490,11 +7523,19 @@ public class KeyKiiService extends InputMethodService {
         toolsSlideRow(
             mainSlide,
             new String[]{
-                "🧮  Calculator"
+                "🧮  Calculator",
+                "🌐  Translator"
             },
             new Runnable[]{
                 () -> {
                     page=6;
+                    buildShell();
+                },
+                () -> {
+                    translatorSourceText="";
+                    translatorResult="";
+                    translatorStatus="";
+                    page=8;
                     buildShell();
                 }
             }
@@ -7978,6 +8019,717 @@ public class KeyKiiService extends InputMethodService {
 
         buildShell();
     }
+
+    void buildTranslatorPanel() {
+
+        TextView heading=
+            title("Translator");
+
+        heading.setTextSize(12);
+        heading.setAlpha(.62f);
+
+        body.addView(
+            heading,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(24)
+            )
+        );
+
+        if(
+            translatorSourceText==null ||
+            translatorSourceText.isEmpty()
+        ) {
+            captureSelectedTextForTranslator();
+        }
+
+        LinearLayout languageRow=
+            new LinearLayout(this);
+
+        languageRow.setGravity(
+            Gravity.CENTER
+        );
+
+        translatorSourceLanguageView=
+            translatorLanguageButton(
+                translatorLanguageNames[
+                    translatorSourceLanguage
+                ]
+            );
+
+        TextView swap=
+            translatorLanguageButton("⇄");
+
+        translatorTargetLanguageView=
+            translatorLanguageButton(
+                translatorLanguageNames[
+                    translatorTargetLanguage
+                ]
+            );
+
+        translatorSourceLanguageView.setOnClickListener(
+            v -> {
+                translatorSourceLanguage=
+                    (translatorSourceLanguage+1)%
+                    translatorLanguageNames.length;
+
+                translatorResult="";
+                translatorStatus="";
+                updateTranslatorPanel();
+            }
+        );
+
+        translatorTargetLanguageView.setOnClickListener(
+            v -> {
+                translatorTargetLanguage=
+                    (translatorTargetLanguage+1)%
+                    translatorLanguageNames.length;
+
+                translatorResult="";
+                translatorStatus="";
+                updateTranslatorPanel();
+            }
+        );
+
+        swap.setOnClickListener(
+            v -> {
+                int old=
+                    translatorSourceLanguage;
+
+                translatorSourceLanguage=
+                    translatorTargetLanguage;
+
+                translatorTargetLanguage=
+                    old;
+
+                translatorResult="";
+                translatorStatus="";
+                updateTranslatorPanel();
+            }
+        );
+
+        languageRow.addView(
+            translatorSourceLanguageView,
+            new LinearLayout.LayoutParams(
+                0,
+                dp(44),
+                1f
+            )
+        );
+
+        LinearLayout.LayoutParams swapParams=
+            new LinearLayout.LayoutParams(
+                dp(50),
+                dp(44)
+            );
+
+        swapParams.setMargins(
+            dp(5),
+            0,
+            dp(5),
+            0
+        );
+
+        languageRow.addView(
+            swap,
+            swapParams
+        );
+
+        languageRow.addView(
+            translatorTargetLanguageView,
+            new LinearLayout.LayoutParams(
+                0,
+                dp(44),
+                1f
+            )
+        );
+
+        body.addView(
+            languageRow,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(48)
+            )
+        );
+
+        translatorSourceView=
+            translatorTextBox(
+                "Select text in the app first"
+            );
+
+        translatorResultView=
+            translatorTextBox(
+                "Translation will appear here"
+            );
+
+        body.addView(
+            translatorSourceView,
+            translatorBoxParams()
+        );
+
+        body.addView(
+            translatorResultView,
+            translatorBoxParams()
+        );
+
+        toolsRow(
+            new String[]{
+                "↻  Use selected text",
+                "🌐  Translate"
+            },
+            new Runnable[]{
+                () -> {
+                    captureSelectedTextForTranslator();
+                    translatorResult="";
+                    translatorStatus="";
+                    updateTranslatorPanel();
+                },
+                () -> translateSelectedTextOnline()
+            }
+        );
+
+        toolsRow(
+            new String[]{
+                "✓  Replace selected",
+                "＋  Insert translation"
+            },
+            new Runnable[]{
+                () -> insertTranslatorResult(true),
+                () -> insertTranslatorResult(false)
+            }
+        );
+
+        translatorStatusView=
+            new TextView(this);
+
+        translatorStatusView.setTextColor(
+            textColor()
+        );
+
+        translatorStatusView.setTextSize(10);
+        translatorStatusView.setAlpha(.56f);
+        translatorStatusView.setGravity(
+            Gravity.CENTER
+        );
+
+        body.addView(
+            translatorStatusView,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(28)
+            )
+        );
+
+        updateTranslatorPanel();
+    }
+
+
+    TextView translatorLanguageButton(
+        String text
+    ) {
+        TextView button=
+            new TextView(this);
+
+        button.setText(text);
+        button.setTextColor(
+            textColor()
+        );
+
+        button.setTextSize(13);
+        button.setGravity(
+            Gravity.CENTER
+        );
+
+        button.setBackground(
+            round(
+                keyColor(false),
+                18,
+                borderColor()
+            )
+        );
+
+        return button;
+    }
+
+
+    TextView translatorTextBox(
+        String placeholder
+    ) {
+        TextView box=
+            new TextView(this);
+
+        box.setText(placeholder);
+        box.setTextColor(
+            textColor()
+        );
+
+        box.setTextSize(13);
+        box.setGravity(
+            Gravity.START |
+            Gravity.CENTER_VERTICAL
+        );
+
+        box.setPadding(
+            dp(14),
+            dp(8),
+            dp(14),
+            dp(8)
+        );
+
+        box.setMaxLines(3);
+
+        box.setBackground(
+            round(
+                keyColor(false),
+                18,
+                borderColor()
+            )
+        );
+
+        return box;
+    }
+
+
+    LinearLayout.LayoutParams translatorBoxParams() {
+        LinearLayout.LayoutParams p=
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(72)
+            );
+
+        p.setMargins(
+            dp(3),
+            dp(4),
+            dp(3),
+            dp(4)
+        );
+
+        return p;
+    }
+
+
+    void captureSelectedTextForTranslator() {
+        InputConnection ic=
+            getCurrentInputConnection();
+
+        if(ic==null) {
+            translatorSourceText="";
+            return;
+        }
+
+        try {
+            CharSequence selected=
+                ic.getSelectedText(0);
+
+            if(
+                selected!=null &&
+                selected.length()>0
+            ) {
+                translatorSourceText=
+                    trimTranslatorUtf8(
+                        selected.toString(),
+                        450
+                    );
+
+                return;
+            }
+
+        } catch(Exception ignored) {
+        }
+
+        translatorSourceText="";
+    }
+
+
+    String trimTranslatorUtf8(
+        String text,
+        int maxBytes
+    ) {
+        if(text==null)
+            return "";
+
+        StringBuilder out=
+            new StringBuilder();
+
+        int used=0;
+
+        for(
+            int offset=0;
+            offset<text.length();
+        ) {
+            int cp=
+                text.codePointAt(offset);
+
+            String piece=
+                new String(
+                    Character.toChars(cp)
+                );
+
+            int bytes;
+
+            try {
+                bytes=
+                    piece.getBytes("UTF-8").length;
+            } catch(Exception e) {
+                bytes=piece.length();
+            }
+
+            if(used+bytes>maxBytes)
+                break;
+
+            out.append(piece);
+            used+=bytes;
+            offset+=
+                Character.charCount(cp);
+        }
+
+        return out.toString();
+    }
+
+
+    void updateTranslatorPanel() {
+        if(translatorSourceLanguageView!=null) {
+            translatorSourceLanguageView.setText(
+                translatorLanguageNames[
+                    translatorSourceLanguage
+                ]
+            );
+        }
+
+        if(translatorTargetLanguageView!=null) {
+            translatorTargetLanguageView.setText(
+                translatorLanguageNames[
+                    translatorTargetLanguage
+                ]
+            );
+        }
+
+        if(translatorSourceView!=null) {
+            translatorSourceView.setText(
+                translatorSourceText==null ||
+                translatorSourceText.isEmpty()
+                ? "Select text in the app first"
+                : translatorSourceText
+            );
+        }
+
+        if(translatorResultView!=null) {
+            translatorResultView.setText(
+                translatorResult==null ||
+                translatorResult.isEmpty()
+                ? "Translation will appear here"
+                : translatorResult
+            );
+        }
+
+        if(translatorStatusView!=null) {
+            String status=
+                translatorStatus==null
+                ? ""
+                : translatorStatus;
+
+            if(status.isEmpty()) {
+                status=
+                    "Online tool • selected text is sent only when Translate is tapped";
+            }
+
+            translatorStatusView.setText(
+                status
+            );
+        }
+    }
+
+
+    void translateSelectedTextOnline() {
+        if(
+            translatorSourceText==null ||
+            translatorSourceText.trim().isEmpty()
+        ) {
+            captureSelectedTextForTranslator();
+        }
+
+        if(
+            translatorSourceText==null ||
+            translatorSourceText.trim().isEmpty()
+        ) {
+            translatorStatus=
+                "Select text first";
+
+            updateTranslatorPanel();
+            return;
+        }
+
+        if(
+            translatorSourceLanguage==
+            translatorTargetLanguage
+        ) {
+            translatorResult=
+                translatorSourceText;
+
+            translatorStatus=
+                "Source and target are the same";
+
+            updateTranslatorPanel();
+            return;
+        }
+
+        final int request=
+            ++translatorRequestId;
+
+        final String sourceText=
+            translatorSourceText;
+
+        final String sourceCode=
+            translatorLanguageCodes[
+                translatorSourceLanguage
+            ];
+
+        final String targetCode=
+            translatorLanguageCodes[
+                translatorTargetLanguage
+            ];
+
+        translatorStatus=
+            "Translating…";
+
+        translatorResult="";
+        updateTranslatorPanel();
+
+        new Thread(
+            () -> {
+                String result="";
+                String status="";
+
+                java.net.HttpURLConnection connection=null;
+
+                try {
+                    String encoded=
+                        java.net.URLEncoder.encode(
+                            sourceText,
+                            "UTF-8"
+                        );
+
+                    String pair=
+                        java.net.URLEncoder.encode(
+                            sourceCode+
+                            "|"+
+                            targetCode,
+                            "UTF-8"
+                        );
+
+                    java.net.URL url=
+                        new java.net.URL(
+                            "https://api.mymemory.translated.net/get?q="+
+                            encoded+
+                            "&langpair="+
+                            pair+
+                            "&mt=1"
+                        );
+
+                    connection=
+                        (java.net.HttpURLConnection)
+                        url.openConnection();
+
+                    connection.setConnectTimeout(
+                        8000
+                    );
+
+                    connection.setReadTimeout(
+                        10000
+                    );
+
+                    connection.setRequestMethod(
+                        "GET"
+                    );
+
+                    connection.setRequestProperty(
+                        "Accept",
+                        "application/json"
+                    );
+
+                    connection.setRequestProperty(
+                        "User-Agent",
+                        "KeyKii-Neo/2.33"
+                    );
+
+                    int code=
+                        connection.getResponseCode();
+
+                    java.io.InputStream stream=
+                        code>=200 && code<300
+                        ? connection.getInputStream()
+                        : connection.getErrorStream();
+
+                    java.io.BufferedReader reader=
+                        new java.io.BufferedReader(
+                            new java.io.InputStreamReader(
+                                stream,
+                                "UTF-8"
+                            )
+                        );
+
+                    StringBuilder json=
+                        new StringBuilder();
+
+                    String line;
+
+                    while(
+                        (line=reader.readLine())!=null
+                    ) {
+                        json.append(line);
+                    }
+
+                    reader.close();
+
+                    org.json.JSONObject root=
+                        new org.json.JSONObject(
+                            json.toString()
+                        );
+
+                    int responseStatus=
+                        root.optInt(
+                            "responseStatus",
+                            code
+                        );
+
+                    org.json.JSONObject data=
+                        root.optJSONObject(
+                            "responseData"
+                        );
+
+                    if(
+                        responseStatus==200 &&
+                        data!=null
+                    ) {
+                        result=
+                            data.optString(
+                                "translatedText",
+                                ""
+                            );
+
+                        if(
+                            result!=null &&
+                            !result.isEmpty()
+                        ) {
+                            result=
+                                android.text.Html.fromHtml(
+                                    result,
+                                    android.text.Html.FROM_HTML_MODE_LEGACY
+                                ).toString();
+
+                            status="Ready";
+                        }
+                    }
+
+                    if(
+                        result==null ||
+                        result.trim().isEmpty()
+                    ) {
+                        String details=
+                            root.optString(
+                                "responseDetails",
+                                ""
+                            );
+
+                        status=
+                            details==null ||
+                            details.trim().isEmpty()
+                            ? "Translation unavailable"
+                            : details;
+                    }
+
+                } catch(Exception e) {
+                    status=
+                        "Translation failed • check internet";
+                } finally {
+                    if(connection!=null)
+                        connection.disconnect();
+                }
+
+                final String finalResult=
+                    result==null
+                    ? ""
+                    : result;
+
+                final String finalStatus=
+                    status;
+
+                new android.os.Handler(
+                    android.os.Looper.getMainLooper()
+                ).post(
+                    () -> {
+                        if(
+                            request!=
+                            translatorRequestId
+                        ) return;
+
+                        translatorResult=
+                            finalResult;
+
+                        translatorStatus=
+                            finalStatus;
+
+                        updateTranslatorPanel();
+                    }
+                );
+            },
+            "KeyKii-Translator"
+        ).start();
+    }
+
+
+    void insertTranslatorResult(
+        boolean replaceSelection
+    ) {
+        if(
+            translatorResult==null ||
+            translatorResult.trim().isEmpty()
+        ) {
+            voiceToast(
+                "Translate text first"
+            );
+            return;
+        }
+
+        InputConnection ic=
+            getCurrentInputConnection();
+
+        if(ic==null)
+            return;
+
+        if(replaceSelection) {
+            try {
+                CharSequence selected=
+                    ic.getSelectedText(0);
+
+                if(
+                    selected==null ||
+                    selected.length()==0
+                ) {
+                    voiceToast(
+                        "Selection is no longer active"
+                    );
+
+                    return;
+                }
+            } catch(Exception e) {
+                voiceToast(
+                    "Selection is no longer active"
+                );
+
+                return;
+            }
+        }
+
+        ic.commitText(
+            translatorResult,
+            1
+        );
+
+        page=0;
+        buildShell();
+    }
+
 
     void buildTextCasePanel() {
 
