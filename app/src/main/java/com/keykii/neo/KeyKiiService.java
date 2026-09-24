@@ -3202,6 +3202,9 @@ public class KeyKiiService extends InputMethodService {
             word.setText("");
             word.setTextColor(textColor());
             word.setTextSize(14);
+            word.setTypeface(
+                keyboardTypeface()
+            );
             word.setGravity(Gravity.CENTER);
             word.setSingleLine(true);
             word.setEllipsize(
@@ -3968,6 +3971,9 @@ public class KeyKiiService extends InputMethodService {
         main.setGravity(Gravity.CENTER);
         main.setIncludeFontPadding(false);
         main.setAllCaps(false);
+        main.setTypeface(
+            keyboardTypeface()
+        );
 
         boolean mainNumberLabel=
                 page==0 &&
@@ -4040,6 +4046,9 @@ public class KeyKiiService extends InputMethodService {
 
             small.setAlpha(.55f);
             small.setTextSize(8);
+            small.setTypeface(
+                keyboardTypeface()
+            );
             small.setGravity(Gravity.CENTER);
 
             FrameLayout.LayoutParams hp=
@@ -14999,6 +15008,62 @@ public class KeyKiiService extends InputMethodService {
             "photo_key_borders",
             false
         );
+    }
+
+
+    android.graphics.Typeface keyboardTypeface() {
+        int style=
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            ).getInt(
+                "keyboard_font_style",
+                0
+            );
+
+        switch(style) {
+            case 1:
+                return android.graphics.Typeface.create(
+                    "sans-serif-rounded",
+                    android.graphics.Typeface.NORMAL
+                );
+
+            case 2:
+                return android.graphics.Typeface.create(
+                    "serif",
+                    android.graphics.Typeface.NORMAL
+                );
+
+            case 3:
+                return android.graphics.Typeface.create(
+                    "monospace",
+                    android.graphics.Typeface.NORMAL
+                );
+
+            case 4:
+                return android.graphics.Typeface.create(
+                    "sans-serif-condensed",
+                    android.graphics.Typeface.NORMAL
+                );
+
+            case 5:
+                return android.graphics.Typeface.create(
+                    "cursive",
+                    android.graphics.Typeface.NORMAL
+                );
+
+            case 6:
+                return android.graphics.Typeface.create(
+                    "sans-serif-medium",
+                    android.graphics.Typeface.NORMAL
+                );
+
+            default:
+                return android.graphics.Typeface.create(
+                    "sans-serif",
+                    android.graphics.Typeface.NORMAL
+                );
+        }
     }
 
 
