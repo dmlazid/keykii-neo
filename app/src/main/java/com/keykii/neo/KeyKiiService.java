@@ -88,6 +88,10 @@ public class KeyKiiService extends InputMethodService {
     boolean keyPreviewEnabled=true;
     boolean swipeDeleteWord=true;
     boolean quickPunctuation=true;
+    boolean suggestionStripEnabled=true;
+    boolean wordSuggestionsEnabled=true;
+    boolean nextWordSuggestions=false;
+    boolean learnTypedWords=true;
     long lastSpaceTap=0L;
 
     float backspaceGestureStartX=0f;
@@ -251,6 +255,26 @@ public class KeyKiiService extends InputMethodService {
             true
         );
 
+        suggestionStripEnabled=keykiiPrefs.getBoolean(
+            "suggestion_strip",
+            true
+        );
+
+        wordSuggestionsEnabled=keykiiPrefs.getBoolean(
+            "word_suggestions",
+            true
+        );
+
+        nextWordSuggestions=keykiiPrefs.getBoolean(
+            "next_word_suggestions",
+            false
+        );
+
+        learnTypedWords=keykiiPrefs.getBoolean(
+            "learn_typed_words",
+            true
+        );
+
         numberRow=keykiiPrefs.getBoolean(
             "number_row",
             false
@@ -331,6 +355,26 @@ public class KeyKiiService extends InputMethodService {
 
         quickPunctuation=p.getBoolean(
             "quick_punctuation",
+            true
+        );
+
+        suggestionStripEnabled=p.getBoolean(
+            "suggestion_strip",
+            true
+        );
+
+        wordSuggestionsEnabled=p.getBoolean(
+            "word_suggestions",
+            true
+        );
+
+        nextWordSuggestions=p.getBoolean(
+            "next_word_suggestions",
+            false
+        );
+
+        learnTypedWords=p.getBoolean(
+            "learn_typed_words",
             true
         );
 
@@ -1094,7 +1138,7 @@ public class KeyKiiService extends InputMethodService {
 
 
     void rememberPredictionWord(String word) {
-        if(word==null) return;
+        if(!learnTypedWords || word==null) return;
 
         String clean=word.trim();
         if(clean.length()<2 || clean.length()>32)
@@ -1268,11 +1312,16 @@ public class KeyKiiService extends InputMethodService {
         java.util.ArrayList<String> dictionary=loadPredictionDictionary();
 
         if(q.isEmpty()) {
-            String[] starters={"I","the","you"};
-            for(String s:starters)
-                out.add(s);
+            if(nextWordSuggestions) {
+                String[] starters={"I","the","you"};
+                for(String s:starters)
+                    out.add(s);
+            }
             return out;
         }
+
+        if(!wordSuggestionsEnabled)
+            return out;
 
         // Like Gboard: keep what the user actually typed available.
         if(q.length()>=2)
@@ -1388,6 +1437,14 @@ public class KeyKiiService extends InputMethodService {
 
 
     void buildSuggestionBar() {
+        if(
+            !suggestionStripEnabled ||
+            (!wordSuggestionsEnabled && !nextWordSuggestions)
+        ) {
+            suggestionBar=null;
+            return;
+        }
+
         suggestionBar=new LinearLayout(this);
         suggestionBar.setGravity(Gravity.CENTER);
         suggestionBar.setPadding(dp(2),0,dp(2),0);
@@ -1430,8 +1487,21 @@ public class KeyKiiService extends InputMethodService {
         if(suggestionBar==null || page!=0 || symbols)
             return;
 
+        String prefix=currentWordPrefix();
+
         java.util.ArrayList<String> values=
-            predictionSuggestions(currentWordPrefix());
+            predictionSuggestions(prefix);
+
+        boolean show=
+            !values.isEmpty() &&
+            (
+                (prefix!=null && !prefix.isEmpty()) ||
+                nextWordSuggestions
+            );
+
+        suggestionBar.setVisibility(
+            show ? View.VISIBLE : View.GONE
+        );
 
         for(int i=0;i<3;i++) {
             TextView v=suggestionViews[i];
