@@ -5,64 +5,64 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
+    <!-- Large clean KeyKii keyboard mark. No badge/circle in the foreground. -->
     <group
+        android:rotation="-7"
         android:pivotX="54"
-        android:pivotY="54"
-        android:scaleX="0.72"
-        android:scaleY="0.72"
-        android:rotation="-7">
+        android:pivotY="58">
 
-        <!-- keyboard body -->
         <path
-            android:pathData="M20,43 C20,37 25,33 31,33 H77 C83,33 88,37 88,43 V70 C88,76 83,80 77,80 H31 C25,80 20,76 20,70 Z"
+            android:pathData="M15,43 C15,36 21,32 28,32 H79 C87,32 93,37 93,44 V70 C93,77 87,82 79,82 H29 C21,82 16,77 16,70 Z"
             android:fillColor="@android:color/transparent"
             android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="4.2"
+            android:strokeWidth="4.3"
             android:strokeLineCap="round"
             android:strokeLineJoin="round"/>
 
-        <!-- top row: five keys -->
-        <path android:pathData="M28,42 H36 V51 H28 Z"
+        <path android:pathData="M24,42 Q24,39 27,39 H35 Q38,39 38,42 V50 Q38,53 35,53 H27 Q24,53 24,50 Z"
             android:fillColor="@android:color/transparent"
-            android:strokeColor="#FFFFFFFF" android:strokeWidth="3"/>
-        <path android:pathData="M40,42 H48 V51 H40 Z"
+            android:strokeColor="#FFFFFFFF" android:strokeWidth="2.7"/>
+        <path android:pathData="M41,40 Q41,37 44,37 H52 Q55,37 55,40 V49 Q55,52 52,52 H44 Q41,52 41,49 Z"
             android:fillColor="@android:color/transparent"
-            android:strokeColor="#FFFFFFFF" android:strokeWidth="3"/>
-        <path android:pathData="M52,42 H60 V51 H52 Z"
+            android:strokeColor="#FFFFFFFF" android:strokeWidth="2.7"/>
+        <path android:pathData="M58,39 Q58,36 61,36 H69 Q72,36 72,39 V48 Q72,51 69,51 H61 Q58,51 58,48 Z"
             android:fillColor="@android:color/transparent"
-            android:strokeColor="#FFFFFFFF" android:strokeWidth="3"/>
-        <path android:pathData="M64,42 H72 V51 H64 Z"
+            android:strokeColor="#FFFFFFFF" android:strokeWidth="2.7"/>
+        <path android:pathData="M75,38 Q75,35 78,35 H85 Q88,35 88,38 V47 Q88,50 85,50 H78 Q75,50 75,47 Z"
             android:fillColor="@android:color/transparent"
-            android:strokeColor="#FFFFFFFF" android:strokeWidth="3"/>
-        <path android:pathData="M76,42 H82 V51 H76 Z"
-            android:fillColor="@android:color/transparent"
-            android:strokeColor="#FFFFFFFF" android:strokeWidth="3"/>
+            android:strokeColor="#FFFFFFFF" android:strokeWidth="2.7"/>
 
-        <!-- lower keys -->
-        <path android:pathData="M28,59 H38 V69 H28 Z"
+        <path android:pathData="M25,60 Q25,57 28,57 H38 Q41,57 41,60 V70 Q41,73 38,73 H28 Q25,73 25,70 Z"
             android:fillColor="@android:color/transparent"
-            android:strokeColor="#FFFFFFFF" android:strokeWidth="3"/>
-        <path android:pathData="M44,59 H68 V69 H44 Z"
+            android:strokeColor="#FFFFFFFF" android:strokeWidth="2.7"/>
+        <path android:pathData="M47,58 Q47,55 50,55 H72 Q75,55 75,58 V68 Q75,71 72,71 H50 Q47,71 47,68 Z"
             android:fillColor="@android:color/transparent"
-            android:strokeColor="#FFFFFFFF" android:strokeWidth="3"/>
-        <path android:pathData="M74,59 H82 V69 H74 Z"
+            android:strokeColor="#FFFFFFFF" android:strokeWidth="2.7"/>
+        <path android:pathData="M81,56 Q81,53 84,53 H89 Q92,53 92,56 V66 Q92,69 89,69 H84 Q81,69 81,66 Z"
             android:fillColor="@android:color/transparent"
-            android:strokeColor="#FFFFFFFF" android:strokeWidth="3"/>
+            android:strokeColor="#FFFFFFFF" android:strokeWidth="2.7"/>
     </group>
 
-    <!-- left accent strokes -->
+    <!-- two accent marks -->
     <path
-        android:pathData="M25,37 L19,32 M32,33 L29,25"
+        android:pathData="M22,39 L16,34 M31,34 L28,26"
         android:fillColor="@android:color/transparent"
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="4"
         android:strokeLineCap="round"/>
 
-    <!-- sparkles -->
+    <!-- two sparkle outlines -->
     <path
-        android:pathData="M79,18 C80,24 84,28 90,29 C84,30 80,34 79,40 C78,34 74,30 68,29 C74,28 78,24 79,18 Z"
-        android:fillColor="#FFFFFFFF"/>
+        android:pathData="M78,15 C80,22 84,26 91,28 C84,30 80,34 78,41 C76,34 72,30 65,28 C72,26 76,22 78,15 Z"
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="3.3"
+        android:strokeLineJoin="round"/>
+
     <path
-        android:pathData="M92,34 C93,38 95,40 99,41 C95,42 93,44 92,48 C91,44 89,42 85,41 C89,40 91,38 92,34 Z"
-        android:fillColor="#FFFFFFFF"/>
+        android:pathData="M94,31 C95,35 98,38 102,39 C98,40 95,43 94,47 C93,43 90,40 86,39 C90,38 93,35 94,31 Z"
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.8"
+        android:strokeLineJoin="round"/>
 </vector>
