@@ -91,7 +91,7 @@ public class KeyKiiService extends InputMethodService {
     > emojiGroupsCache=null;
 
     int keyHeight=46;
-    int floatGap=14;
+    int floatGap=52;
 
     boolean haptic=false;
     boolean keySound=false;
@@ -434,7 +434,7 @@ public class KeyKiiService extends InputMethodService {
 
         floatGap=keykiiPrefs.getInt(
             "float_gap",
-            14
+            52
         );
 
         haptic=keykiiPrefs.getBoolean(
@@ -549,38 +549,33 @@ public class KeyKiiService extends InputMethodService {
 
         if(
             !p.getBoolean(
-                "gboard_bottom_gap_migrated",
+                "gboard_bottom_inset_2353_migrated",
                 false
             )
         ) {
             int oldGap=
                 p.getInt(
                     "float_gap",
-                    96
+                    52
                 );
 
-            if(oldGap>=32) {
-                p.edit()
-                 .putInt(
-                     "float_gap",
-                     14
-                 )
-                 .putBoolean(
-                     "gboard_bottom_gap_migrated",
-                     true
-                 )
-                 .apply();
-            } else {
-                p.edit()
-                 .putBoolean(
-                     "gboard_bottom_gap_migrated",
-                     true
-                 )
-                 .apply();
+            if(oldGap<44) {
+                oldGap=52;
             }
+
+            p.edit()
+             .putInt(
+                 "float_gap",
+                 oldGap
+             )
+             .putBoolean(
+                 "gboard_bottom_inset_2353_migrated",
+                 true
+             )
+             .apply();
         }
 
-        floatGap=p.getInt("float_gap",14);
+        floatGap=p.getInt("float_gap",52);
         haptic=p.getBoolean("haptic",false);
         keySound=p.getBoolean("key_sound",false);
         keySoundVolume=p.getInt(
@@ -680,11 +675,9 @@ public class KeyKiiService extends InputMethodService {
             wideMode ? 3 : 10;
 
         int bottomPadding=
-            wideMode
-            ? Math.min(floatGap,8)
-            : hand!=0
-                ? Math.min(floatGap,10)
-                : Math.min(floatGap,20);
+            hand!=0
+            ? Math.min(floatGap,48)
+            : Math.min(floatGap,52);
 
         root.setPadding(
             dp(sidePadding),
@@ -12116,8 +12109,8 @@ public class KeyKiiService extends InputMethodService {
                 "↑  Higher"
             },
             new Runnable[]{
-                () -> resizeKeyboardBy(0,-4),
-                () -> resizeKeyboardBy(0,4)
+                () -> resizeKeyboardBy(0,-8),
+                () -> resizeKeyboardBy(0,8)
             }
         );
 
@@ -12129,7 +12122,7 @@ public class KeyKiiService extends InputMethodService {
             new Runnable[]{
                 () -> {
                     keyHeight=46;
-                    floatGap=14;
+                    floatGap=52;
 
                     getSharedPreferences(
                         "keykii_prefs",
@@ -12172,9 +12165,9 @@ public class KeyKiiService extends InputMethodService {
 
         floatGap=
             Math.max(
-                4,
+                24,
                 Math.min(
-                    32,
+                    80,
                     floatGap+gapDelta
                 )
             );
