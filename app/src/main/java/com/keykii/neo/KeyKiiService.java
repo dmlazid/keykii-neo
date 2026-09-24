@@ -168,6 +168,16 @@ public class KeyKiiService extends InputMethodService {
     int translatorCursor=0;
     int translatorRequestId=0;
 
+    // Grammar Fix runs only when opened from Tools.
+    String grammarSourceText="";
+    String grammarCorrectedText="";
+    String grammarStatus="";
+    EditText grammarSourceView=null;
+    TextView grammarCorrectedView=null;
+    TextView grammarStatusView=null;
+    int grammarCursor=0;
+    int grammarRequestId=0;
+
     long lastSpaceTap=0L;
 
     float backspaceGestureStartX=0f;
@@ -192,6 +202,8 @@ public class KeyKiiService extends InputMethodService {
                     refreshEmojiSearchResults();
                 } else if(page==8) {
                     translatorBackspace();
+                } else if(page==9) {
+                    grammarBackspace();
                 } else {
                     InputConnection ic=
                         getCurrentInputConnection();
@@ -1456,7 +1468,8 @@ public class KeyKiiService extends InputMethodService {
                     page==5 ||
                     page==6 ||
                     page==7 ||
-                    page==8
+                    page==8 ||
+                    page==9
                 ) {
                     page=0;
                 } else {
@@ -1837,6 +1850,9 @@ public class KeyKiiService extends InputMethodService {
 
         else if(page==8)
             buildTranslatorPanel();
+
+        else if(page==9)
+            buildGrammarPanel();
 
         else
             buildKeyboard();
@@ -3047,7 +3063,7 @@ public class KeyKiiService extends InputMethodService {
         // a compact shortcut bubble above the key; the center smiley opens emoji.
         box.setOnLongClickListener(v -> {
 
-            if(page==8)
+            if(page==8 || page==9)
                 return false;
 
             // SPACE gestures are handled entirely in onTouch:
@@ -3120,7 +3136,14 @@ public class KeyKiiService extends InputMethodService {
 
             if(
                 action.equals("SPACE") &&
-                page!=8
+                page==9
+            )
+                return handleGrammarSpacebarTouch(v,e);
+
+            if(
+                action.equals("SPACE") &&
+                page!=8 &&
+                page!=9
             )
                 return handleSpacebarTouch(v,e);
 
@@ -3234,7 +3257,8 @@ public class KeyKiiService extends InputMethodService {
                 action.equals("BACK") &&
                 e.getAction()==MotionEvent.ACTION_MOVE &&
                 swipeDeleteWord &&
-                page!=8
+                page!=8 &&
+                page!=9
             ){
                 float dx=
                     e.getRawX()-
@@ -7587,6 +7611,27 @@ public class KeyKiiService extends InputMethodService {
             }
         );
 
+        toolsSlideRow(
+            mainSlide,
+            new String[]{
+                "✓  Grammar Fix"
+            },
+            new Runnable[]{
+                () -> {
+                    grammarSourceText="";
+                    grammarCorrectedText="";
+                    grammarStatus="";
+                    grammarCursor=0;
+                    grammarRequestId++;
+                    symbols=false;
+                    symbolPage=1;
+                    shift=false;
+                    page=9;
+                    buildShell();
+                }
+            }
+        );
+
         LinearLayout moreSlide=
             new LinearLayout(this);
 
@@ -9906,6 +9951,970 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
+    void buildGrammarPanel() {
+
+        if(
+            grammarSourceText==null ||
+            grammarSourceText.isEmpty()
+        ) {
+            captureSelectedTextForGrammar();
+        }
+
+        LinearLayout header=
+            new LinearLayout(this);
+
+        header.setGravity(
+            Gravity.CENTER_VERTICAL
+        );
+
+        TextView back=
+            translatorLanguageButton("←");
+
+        back.setOnClickListener(
+            v -> {
+                syncGrammarSourceFromView();
+                page=4;
+                buildShell();
+            }
+        );
+
+        TextView title=
+            new TextView(this);
+
+        title.setText("Grammar Fix");
+        title.setTextColor(textColor());
+        title.setTextSize(16);
+        title.setGravity(Gravity.CENTER);
+
+        header.addView(
+            back,
+            new LinearLayout.LayoutParams(
+                dp(48),
+                dp(42)
+            )
+        );
+
+        header.addView(
+            title,
+            new LinearLayout.LayoutParams(
+                0,
+                dp(42),
+                1f
+            )
+        );
+
+        body.addView(
+            header,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(46)
+            )
+        );
+
+        grammarSourceView=
+            new EditText(this);
+
+        grammarSourceView.setTextColor(
+            textColor()
+        );
+
+        grammarSourceView.setHintTextColor(
+            textColor()
+        );
+
+        grammarSourceView.setHint(
+            "Type or select English text to correct"
+        );
+
+        grammarSourceView.setTextSize(15);
+        grammarSourceView.setGravity(
+            Gravity.START |
+            Gravity.CENTER_VERTICAL
+        );
+
+        grammarSourceView.setPadding(
+            dp(14),
+            dp(8),
+            dp(14),
+            dp(8)
+        );
+
+        grammarSourceView.setSingleLine(false);
+        grammarSourceView.setMaxLines(4);
+        grammarSourceView.setCursorVisible(true);
+        grammarSourceView.setFocusable(true);
+        grammarSourceView.setFocusableInTouchMode(true);
+        grammarSourceView.setTextIsSelectable(true);
+
+        grammarSourceView.setInputType(
+            android.text.InputType.TYPE_CLASS_TEXT |
+            android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE |
+            android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        );
+
+        if(android.os.Build.VERSION.SDK_INT>=21)
+            grammarSourceView.setShowSoftInputOnFocus(false);
+
+        grammarSourceView.setBackground(
+            round(
+                keyColor(false),
+                18,
+                borderColor()
+            )
+        );
+
+        grammarSourceView.setText(
+            grammarSourceText==null
+            ? ""
+            : grammarSourceText
+        );
+
+        grammarCursor=
+            Math.max(
+                0,
+                Math.min(
+                    grammarCursor,
+                    grammarSourceView.length()
+                )
+            );
+
+        if(
+            grammarSourceView.length()>0 &&
+            grammarCursor==0
+        ) {
+            grammarCursor=
+                grammarSourceView.length();
+        }
+
+        try {
+            grammarSourceView.setSelection(
+                grammarCursor
+            );
+        } catch(Exception ignored) {}
+
+        grammarSourceView.setOnClickListener(
+            v -> syncGrammarCursorFromView()
+        );
+
+        grammarSourceView.setOnTouchListener(
+            (v,event) -> {
+                v.post(
+                    () -> syncGrammarCursorFromView()
+                );
+                return false;
+            }
+        );
+
+        body.addView(
+            grammarSourceView,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(82)
+            )
+        );
+
+        grammarCorrectedView=
+            new TextView(this);
+
+        grammarCorrectedView.setTextColor(
+            textColor()
+        );
+
+        grammarCorrectedView.setTextSize(13);
+        grammarCorrectedView.setGravity(
+            Gravity.START |
+            Gravity.CENTER_VERTICAL
+        );
+
+        grammarCorrectedView.setPadding(
+            dp(14),
+            dp(8),
+            dp(14),
+            dp(8)
+        );
+
+        grammarCorrectedView.setMaxLines(4);
+
+        grammarCorrectedView.setBackground(
+            round(
+                keyColor(false),
+                18,
+                borderColor()
+            )
+        );
+
+        body.addView(
+            grammarCorrectedView,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(72)
+            )
+        );
+
+        toolsRow(
+            new String[]{
+                "✓  Check grammar",
+                "↳  Apply correction"
+            },
+            new Runnable[]{
+                () -> {
+                    syncGrammarSourceFromView();
+                    checkGrammarOnline();
+                },
+                () -> applyGrammarCorrection()
+            }
+        );
+
+        grammarStatusView=
+            new TextView(this);
+
+        grammarStatusView.setTextColor(
+            textColor()
+        );
+
+        grammarStatusView.setTextSize(9);
+        grammarStatusView.setAlpha(.56f);
+        grammarStatusView.setGravity(
+            Gravity.CENTER
+        );
+
+        body.addView(
+            grammarStatusView,
+            new LinearLayout.LayoutParams(
+                -1,
+                dp(24)
+            )
+        );
+
+        updateGrammarPanel();
+
+        grammarSourceView.post(
+            () -> focusGrammarSource()
+        );
+
+        buildKeyboard();
+    }
+
+
+    void captureSelectedTextForGrammar() {
+        InputConnection ic=
+            getCurrentInputConnection();
+
+        if(ic==null)
+            return;
+
+        try {
+            CharSequence selected=
+                ic.getSelectedText(0);
+
+            if(
+                selected!=null &&
+                selected.length()>0
+            ) {
+                grammarSourceText=
+                    selected.toString();
+
+                if(grammarSourceText.length()>1200)
+                    grammarSourceText=
+                        grammarSourceText.substring(
+                            0,
+                            1200
+                        );
+
+                grammarCursor=
+                    grammarSourceText.length();
+            }
+        } catch(Exception ignored) {}
+    }
+
+
+    void syncGrammarCursorFromView() {
+        if(grammarSourceView==null)
+            return;
+
+        try {
+            grammarCursor=
+                Math.max(
+                    0,
+                    grammarSourceView.getSelectionStart()
+                );
+        } catch(Exception ignored) {}
+    }
+
+
+    void syncGrammarSourceFromView() {
+        if(grammarSourceView==null)
+            return;
+
+        grammarSourceText=
+            grammarSourceView.getText()==null
+            ? ""
+            : grammarSourceView
+                .getText()
+                .toString();
+
+        syncGrammarCursorFromView();
+    }
+
+
+    void focusGrammarSource() {
+        if(grammarSourceView==null)
+            return;
+
+        grammarSourceView.requestFocus();
+        grammarSourceView.setCursorVisible(true);
+
+        grammarCursor=
+            Math.max(
+                0,
+                Math.min(
+                    grammarCursor,
+                    grammarSourceView.length()
+                )
+            );
+
+        try {
+            grammarSourceView.setSelection(
+                grammarCursor
+            );
+        } catch(Exception ignored) {}
+    }
+
+
+    void updateGrammarPanel() {
+        if(grammarSourceView!=null) {
+            String wanted=
+                grammarSourceText==null
+                ? ""
+                : grammarSourceText;
+
+            String current=
+                grammarSourceView.getText()==null
+                ? ""
+                : grammarSourceView
+                    .getText()
+                    .toString();
+
+            if(!current.equals(wanted))
+                grammarSourceView.setText(wanted);
+
+            grammarCursor=
+                Math.max(
+                    0,
+                    Math.min(
+                        grammarCursor,
+                        grammarSourceView.length()
+                    )
+                );
+
+            try {
+                grammarSourceView.setSelection(
+                    grammarCursor
+                );
+            } catch(Exception ignored) {}
+        }
+
+        if(grammarCorrectedView!=null) {
+            grammarCorrectedView.setText(
+                grammarCorrectedText==null ||
+                grammarCorrectedText.isEmpty()
+                ? "Corrected text will appear here"
+                : grammarCorrectedText
+            );
+
+            grammarCorrectedView.setAlpha(
+                grammarCorrectedText==null ||
+                grammarCorrectedText.isEmpty()
+                ? .48f
+                : 1f
+            );
+        }
+
+        if(grammarStatusView!=null) {
+            String status=
+                grammarStatus==null
+                ? ""
+                : grammarStatus;
+
+            if(status.isEmpty())
+                status=
+                    "English grammar check runs only when you tap Check grammar";
+
+            grammarStatusView.setText(
+                status
+            );
+        }
+    }
+
+
+    boolean handleGrammarSpacebarTouch(
+        View v,
+        MotionEvent e
+    ) {
+        int action=
+            e.getActionMasked();
+
+        if(action==MotionEvent.ACTION_DOWN) {
+            syncGrammarSourceFromView();
+            spaceDownX=e.getX();
+            spaceCursorDragging=false;
+            spaceStartSelection=
+                grammarCursor;
+
+            v.animate()
+             .scaleX(1.02f)
+             .scaleY(1.02f)
+             .setDuration(30)
+             .start();
+
+            return true;
+        }
+
+        if(action==MotionEvent.ACTION_MOVE) {
+            float dx=
+                e.getX()-spaceDownX;
+
+            if(Math.abs(dx)>=dp(9)) {
+                spaceCursorDragging=true;
+
+                int steps=
+                    Math.round(
+                        dx/(float)Math.max(
+                            dp(14),
+                            1
+                        )
+                    );
+
+                grammarCursor=
+                    Math.max(
+                        0,
+                        Math.min(
+                            grammarSourceText.length(),
+                            spaceStartSelection+steps
+                        )
+                    );
+
+                focusGrammarSource();
+            }
+
+            return true;
+        }
+
+        if(
+            action==MotionEvent.ACTION_UP ||
+            action==MotionEvent.ACTION_CANCEL
+        ) {
+            v.animate()
+             .scaleX(1f)
+             .scaleY(1f)
+             .setDuration(45)
+             .start();
+
+            if(
+                action==MotionEvent.ACTION_UP &&
+                !spaceCursorDragging
+            ) {
+                press("SPACE");
+            }
+
+            spaceCursorDragging=false;
+            return true;
+        }
+
+        return true;
+    }
+
+
+    boolean handleGrammarKey(
+        String action
+    ) {
+        if(page!=9)
+            return false;
+
+        if(action==null)
+            return true;
+
+        if(
+            action.equals("123") ||
+            action.equals("ABC") ||
+            action.equals("SYM1") ||
+            action.equals("SYM2") ||
+            action.equals("SHIFT")
+        ) {
+            syncGrammarSourceFromView();
+            return false;
+        }
+
+        if(action.equals("KEYS")) {
+            syncGrammarSourceFromView();
+            page=0;
+            buildShell();
+            return true;
+        }
+
+        if(action.equals("BACK")) {
+            grammarBackspace();
+            return true;
+        }
+
+        if(action.equals("ENTER")) {
+            syncGrammarSourceFromView();
+            checkGrammarOnline();
+            return true;
+        }
+
+        String value=
+            action.equals("SPACE")
+            ? " "
+            : action;
+
+        if(
+            value.length()>2 ||
+            action.equals("EMOJI") ||
+            action.equals("CLIPBOARD") ||
+            action.equals("SHORTCUTS")
+        ) {
+            return true;
+        }
+
+        if(
+            shift &&
+            !symbols &&
+            value.length()==1
+        ) {
+            value=
+                value.toUpperCase(
+                    java.util.Locale.getDefault()
+                );
+
+            if(!capsLock)
+                shift=false;
+        }
+
+        syncGrammarSourceFromView();
+
+        if(grammarSourceText==null)
+            grammarSourceText="";
+
+        grammarCursor=
+            Math.max(
+                0,
+                Math.min(
+                    grammarCursor,
+                    grammarSourceText.length()
+                )
+            );
+
+        if(grammarSourceText.length()<1200) {
+            grammarSourceText=
+                grammarSourceText.substring(
+                    0,
+                    grammarCursor
+                )+
+                value+
+                grammarSourceText.substring(
+                    grammarCursor
+                );
+
+            grammarCursor+=value.length();
+            grammarCorrectedText="";
+            grammarStatus="";
+            grammarRequestId++;
+
+            updateGrammarPanel();
+            focusGrammarSource();
+        }
+
+        return true;
+    }
+
+
+    void grammarBackspace() {
+        syncGrammarSourceFromView();
+
+        if(
+            grammarSourceText!=null &&
+            !grammarSourceText.isEmpty() &&
+            grammarCursor>0
+        ) {
+            int start=
+                grammarSourceText.offsetByCodePoints(
+                    grammarCursor,
+                    -1
+                );
+
+            grammarSourceText=
+                grammarSourceText.substring(
+                    0,
+                    start
+                )+
+                grammarSourceText.substring(
+                    grammarCursor
+                );
+
+            grammarCursor=start;
+            grammarCorrectedText="";
+            grammarStatus="";
+            grammarRequestId++;
+
+            updateGrammarPanel();
+            focusGrammarSource();
+            return;
+        }
+
+        if(
+            grammarSourceText==null ||
+            grammarSourceText.isEmpty()
+        ) {
+            InputConnection ic=
+                getCurrentInputConnection();
+
+            if(ic!=null)
+                deleteOneBeforeCursor(ic);
+        }
+    }
+
+
+    void checkGrammarOnline() {
+        syncGrammarSourceFromView();
+
+        if(
+            grammarSourceText==null ||
+            grammarSourceText.trim().isEmpty()
+        ) {
+            grammarStatus=
+                "Type or select text first";
+
+            updateGrammarPanel();
+            return;
+        }
+
+        final String sourceText=
+            grammarSourceText.length()>1200
+            ? grammarSourceText.substring(
+                0,
+                1200
+            )
+            : grammarSourceText;
+
+        final int request=
+            ++grammarRequestId;
+
+        grammarCorrectedText="";
+        grammarStatus=
+            "Checking grammar…";
+        updateGrammarPanel();
+
+        new Thread(
+            () -> {
+                java.net.HttpURLConnection connection=null;
+
+                String corrected="";
+                String status="";
+
+                try {
+                    String data=
+                        "language=en-US"+
+                        "&text="+
+                        java.net.URLEncoder.encode(
+                            sourceText,
+                            "UTF-8"
+                        );
+
+                    byte[] payload=
+                        data.getBytes(
+                            "UTF-8"
+                        );
+
+                    java.net.URL url=
+                        new java.net.URL(
+                            "https://api.languagetool.org/v2/check"
+                        );
+
+                    connection=
+                        (java.net.HttpURLConnection)
+                        url.openConnection();
+
+                    connection.setConnectTimeout(
+                        10000
+                    );
+
+                    connection.setReadTimeout(
+                        15000
+                    );
+
+                    connection.setRequestMethod(
+                        "POST"
+                    );
+
+                    connection.setDoOutput(true);
+
+                    connection.setRequestProperty(
+                        "Content-Type",
+                        "application/x-www-form-urlencoded; charset=UTF-8"
+                    );
+
+                    connection.setRequestProperty(
+                        "Accept",
+                        "application/json"
+                    );
+
+                    connection.setRequestProperty(
+                        "User-Agent",
+                        "KeyKii-Neo/2.34.0"
+                    );
+
+                    connection.setFixedLengthStreamingMode(
+                        payload.length
+                    );
+
+                    java.io.OutputStream output=
+                        connection.getOutputStream();
+
+                    output.write(payload);
+                    output.flush();
+                    output.close();
+
+                    int responseCode=
+                        connection.getResponseCode();
+
+                    if(
+                        responseCode>=200 &&
+                        responseCode<300
+                    ) {
+                        java.io.BufferedReader reader=
+                            new java.io.BufferedReader(
+                                new java.io.InputStreamReader(
+                                    connection.getInputStream(),
+                                    "UTF-8"
+                                )
+                            );
+
+                        StringBuilder raw=
+                            new StringBuilder();
+
+                        String line;
+
+                        while(
+                            (line=reader.readLine())!=null
+                        ) {
+                            raw.append(line);
+                        }
+
+                        reader.close();
+
+                        org.json.JSONObject root=
+                            new org.json.JSONObject(
+                                raw.toString()
+                            );
+
+                        org.json.JSONArray matches=
+                            root.optJSONArray(
+                                "matches"
+                            );
+
+                        java.util.ArrayList<org.json.JSONObject> usable=
+                            new java.util.ArrayList<>();
+
+                        if(matches!=null) {
+                            for(
+                                int i=0;
+                                i<matches.length();
+                                i++
+                            ) {
+                                org.json.JSONObject match=
+                                    matches.optJSONObject(i);
+
+                                if(match==null)
+                                    continue;
+
+                                org.json.JSONArray replacements=
+                                    match.optJSONArray(
+                                        "replacements"
+                                    );
+
+                                if(
+                                    replacements==null ||
+                                    replacements.length()==0
+                                ) {
+                                    continue;
+                                }
+
+                                org.json.JSONObject first=
+                                    replacements.optJSONObject(0);
+
+                                if(
+                                    first==null ||
+                                    !first.has("value")
+                                ) {
+                                    continue;
+                                }
+
+                                usable.add(match);
+                            }
+                        }
+
+                        java.util.Collections.sort(
+                            usable,
+                            (left,right) ->
+                                Integer.compare(
+                                    right.optInt(
+                                        "offset",
+                                        0
+                                    ),
+                                    left.optInt(
+                                        "offset",
+                                        0
+                                    )
+                                )
+                        );
+
+                        StringBuilder fixed=
+                            new StringBuilder(
+                                sourceText
+                            );
+
+                        int applied=0;
+
+                        for(
+                            org.json.JSONObject match:
+                            usable
+                        ) {
+                            int offset=
+                                match.optInt(
+                                    "offset",
+                                    -1
+                                );
+
+                            int length=
+                                match.optInt(
+                                    "length",
+                                    0
+                                );
+
+                            org.json.JSONArray replacements=
+                                match.optJSONArray(
+                                    "replacements"
+                                );
+
+                            org.json.JSONObject first=
+                                replacements==null
+                                ? null
+                                : replacements.optJSONObject(0);
+
+                            String replacement=
+                                first==null
+                                ? ""
+                                : first.optString(
+                                    "value",
+                                    ""
+                                );
+
+                            if(
+                                offset<0 ||
+                                length<0 ||
+                                offset>fixed.length() ||
+                                offset+length>
+                                    fixed.length()
+                            ) {
+                                continue;
+                            }
+
+                            fixed.replace(
+                                offset,
+                                offset+length,
+                                replacement
+                            );
+
+                            applied++;
+                        }
+
+                        corrected=
+                            fixed.toString();
+
+                        status=
+                            applied==0
+                            ? "No grammar issues found"
+                            : applied+
+                              (
+                                applied==1
+                                ? " correction found"
+                                : " corrections found"
+                              );
+
+                    } else {
+                        status=
+                            "Grammar service unavailable";
+                    }
+
+                } catch(Exception e) {
+                    status=
+                        "Grammar check failed • check internet";
+                } finally {
+                    if(connection!=null)
+                        connection.disconnect();
+                }
+
+                final String finalCorrected=
+                    corrected==null
+                    ? ""
+                    : corrected;
+
+                final String finalStatus=
+                    status;
+
+                new android.os.Handler(
+                    android.os.Looper.getMainLooper()
+                ).post(
+                    () -> {
+                        if(request!=grammarRequestId)
+                            return;
+
+                        grammarCorrectedText=
+                            finalCorrected;
+
+                        grammarStatus=
+                            finalStatus;
+
+                        updateGrammarPanel();
+                    }
+                );
+            },
+            "KeyKii-Grammar"
+        ).start();
+    }
+
+
+    void applyGrammarCorrection() {
+        if(
+            grammarCorrectedText==null ||
+            grammarCorrectedText.isEmpty()
+        ) {
+            voiceToast(
+                "Check grammar first"
+            );
+            return;
+        }
+
+        InputConnection ic=
+            getCurrentInputConnection();
+
+        if(ic==null)
+            return;
+
+        ic.commitText(
+            grammarCorrectedText,
+            1
+        );
+
+        grammarStatus=
+            "Applied";
+
+        page=0;
+        buildShell();
+    }
+
+
     void buildTextCasePanel() {
 
         TextView heading=
@@ -11581,6 +12590,9 @@ public class KeyKiiService extends InputMethodService {
             return;
 
         if(handleTranslatorKey(action))
+            return;
+
+        if(handleGrammarKey(action))
             return;
 
         InputConnection i=
