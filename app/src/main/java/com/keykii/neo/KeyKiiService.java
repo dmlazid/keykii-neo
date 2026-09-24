@@ -3396,7 +3396,7 @@ public class KeyKiiService extends InputMethodService {
             case "please":
                 return new String[]{"send","check","let"};
             case "thank":
-                return new String[]{"you","you","you"};
+                return new String[]{"you","everyone","again"};
             default:
                 return new String[]{"the","I","and"};
         }
