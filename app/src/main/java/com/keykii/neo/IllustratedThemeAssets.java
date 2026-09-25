@@ -87,26 +87,26 @@ final class IllustratedThemeAssets {
 
     static int space(int pack) {
         switch(pack) {
-            case 120: return R.drawable.theme_pack_space_120;
-            case 121: return R.drawable.theme_pack_space_121;
-            case 122: return R.drawable.theme_pack_space_122;
-            case 123: return R.drawable.theme_pack_space_123;
-            case 124: return R.drawable.theme_pack_space_124;
-            case 125: return R.drawable.theme_pack_space_125;
-            case 126: return R.drawable.theme_pack_space_126;
-            case 127: return R.drawable.theme_pack_space_127;
-            case 128: return R.drawable.theme_pack_space_128;
-            case 129: return R.drawable.theme_pack_space_129;
-            case 130: return R.drawable.theme_pack_space_130;
-            case 131: return R.drawable.theme_pack_space_131;
-            case 132: return R.drawable.theme_pack_space_132;
-            case 133: return R.drawable.theme_pack_space_133;
-            case 134: return R.drawable.theme_pack_space_134;
-            case 135: return R.drawable.theme_pack_space_135;
-            case 136: return R.drawable.theme_pack_space_136;
-            case 137: return R.drawable.theme_pack_space_137;
-            case 138: return R.drawable.theme_pack_space_138;
-            case 139: return R.drawable.theme_pack_space_139;
+            case 120: return R.drawable.theme_ill_space_120;
+            case 121: return R.drawable.theme_ill_space_121;
+            case 122: return R.drawable.theme_ill_space_122;
+            case 123: return R.drawable.theme_ill_space_123;
+            case 124: return R.drawable.theme_ill_space_124;
+            case 125: return R.drawable.theme_ill_space_125;
+            case 126: return R.drawable.theme_ill_space_126;
+            case 127: return R.drawable.theme_ill_space_127;
+            case 128: return R.drawable.theme_ill_space_128;
+            case 129: return R.drawable.theme_ill_space_129;
+            case 130: return R.drawable.theme_ill_space_130;
+            case 131: return R.drawable.theme_ill_space_131;
+            case 132: return R.drawable.theme_ill_space_132;
+            case 133: return R.drawable.theme_ill_space_133;
+            case 134: return R.drawable.theme_ill_space_134;
+            case 135: return R.drawable.theme_ill_space_135;
+            case 136: return R.drawable.theme_ill_space_136;
+            case 137: return R.drawable.theme_ill_space_137;
+            case 138: return R.drawable.theme_ill_space_138;
+            case 139: return R.drawable.theme_ill_space_139;
             default: return 0;
         }
     }
