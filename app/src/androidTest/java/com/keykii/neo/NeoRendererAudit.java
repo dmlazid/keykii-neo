@@ -60,14 +60,36 @@ public final class NeoRendererAudit extends Instrumentation {
                         check(recipe.add(sig),"Exact repeated visual recipe "+sig);
                     }
                     for(String filter:NeoThemeCatalog.FILTERS){
+                        int[] full=NeoThemeCatalog.page(filter,0,NeoThemeCatalog.count(filter));
                         int[] page=NeoThemeCatalog.page(filter,0,24);
                         java.util.HashSet<Integer> arch=new java.util.HashSet<>();
                         java.util.HashSet<Integer> art=new java.util.HashSet<>();
                         java.util.HashSet<Integer> allArt=new java.util.HashSet<>();
                         for(int pack=1000;pack<1512;pack++)if(NeoThemeCatalog.matches(pack,filter))allArt.add(NeoThemeCatalog.get(pack).art);
                         for(int pack:page){NeoThemeCatalog.Entry e=NeoThemeCatalog.get(pack);arch.add(e.architecture);art.add(e.art);}
+
+                        // The visible first screen must use the maximum possible number
+                        // of different base scenes before showing any variant twice.
+                        int expectedUnique=Math.min(page.length,allArt.size());
+                        check(art.size()==expectedUnique,"First page repeats root scenes for "+filter+": "+art.size()+"/"+expectedUnique);
                         check(arch.size()>=Math.min(page.length,8),"Repetitive first page for "+filter+" only "+arch.size()+" architectures");
-                        check(art.size()>=Math.min(Math.min(page.length,8),allArt.size()),"Same-scene cluster on first page for "+filter+" only "+art.size()+" artworks");
+
+                        // If a root returns inside the cooldown, prove there was no
+                        // different unused scene that could have occupied that slot.
+                        int cooldown=Math.min(12,Math.max(0,allArt.size()-1));
+                        for(int i=0;i<full.length;i++){
+                            NeoThemeCatalog.Entry current=NeoThemeCatalog.get(full[i]);
+                            java.util.HashSet<Integer> recent=new java.util.HashSet<>();
+                            for(int j=Math.max(0,i-cooldown);j<i;j++)recent.add(NeoThemeCatalog.get(full[j]).art);
+                            if(recent.contains(current.art)){
+                                boolean alternative=false;
+                                for(int j=i+1;j<full.length;j++){
+                                    int candidateArt=NeoThemeCatalog.get(full[j]).art;
+                                    if(!recent.contains(candidateArt)){alternative=true;break;}
+                                }
+                                check(!alternative,"Avoidable root repeat within "+cooldown+" cards in "+filter+": "+NeoThemeCatalog.sceneName(current.art));
+                            }
+                        }
                     }
                     for(int pack=1000;pack<1512;pack++){
                         LinearLayout body=new LinearLayout(c);body.setOrientation(LinearLayout.VERTICAL);
@@ -97,7 +119,7 @@ public final class NeoRendererAudit extends Instrumentation {
                 }catch(Throwable t){error[0]=t;}
             });
             if(error[0]!=null)throw new AssertionError(error[0]);
-            try(FileWriter out=new FileWriter(new File(dir,"result.txt"))){out.write("PASS: three artwork atlases decoded; 32 curated concept themes are uniquely named and structured; category first pages are diversity-checked; FREE/PRO architectures are exclusive; exact visual recipes do not repeat; 512 live layouts preserve all views, click/long-press handlers, height and non-overlapping hit bounds.\n");}
+            try(FileWriter out=new FileWriter(new File(dir,"result.txt"))){out.write("PASS: three artwork atlases decoded; 32 curated concept themes are uniquely named and structured; category first pages maximize unique root scenes and repeated roots use a 12-card cooldown; FREE/PRO architectures are exclusive; exact visual recipes do not repeat; 512 live layouts preserve all views, click/long-press handlers, height and non-overlapping hit bounds.\n");}
             results.putString("stream","\nTHEME_V2_AUDIT_PASS\n");finish(-1,results);
         }catch(Throwable t){results.putString("stream","\nTHEME_V2_AUDIT_FAIL: "+t+"\n");finish(1,results);}
     }

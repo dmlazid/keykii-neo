@@ -154,27 +154,75 @@ final class NeoThemeCatalog {
     private static synchronized int[] order(String f){
         String key=f==null?"all":f;
         int[] cached=ORDER_CACHE.get(key);if(cached!=null)return cached;
+
         boolean[] used=new boolean[COUNT];
+        int[] artUse=new int[48],archUse=new int[48];
+        java.util.HashSet<Integer> allArt=new java.util.HashSet<>();
+        java.util.HashSet<Integer> allArch=new java.util.HashSet<>();
+        int total=0;
+        for(Entry e:ENTRIES)if(matches(e.pack,key)){total++;allArt.add(e.art);allArch.add(e.architecture);}
+
+        // Hide a base scene for up to 12 cards before another variant can return.
+        // When a category has fewer scene roots, use the largest possible gap.
+        final int sceneCooldown=Math.min(12,Math.max(0,allArt.size()-1));
+        final int archCooldown=Math.min(4,Math.max(0,allArch.size()-1));
+        java.util.ArrayDeque<Integer> recentArt=new java.util.ArrayDeque<>();
+        java.util.ArrayDeque<Integer> recentArch=new java.util.ArrayDeque<>();
+        java.util.HashSet<Integer> seenArt=new java.util.HashSet<>();
         java.util.ArrayList<Integer> out=new java.util.ArrayList<>();
-        int total=0;for(Entry e:ENTRIES)if(matches(e.pack,key))total++;
+
         while(out.size()<total){
-            java.util.HashSet<Integer> pageArch=new java.util.HashSet<>();
-            java.util.HashSet<Integer> pageArt=new java.util.HashSet<>();
-            int slots=Math.min(PAGE_SIZE,total-out.size());
-            for(int slot=0;slot<slots;slot++){
-                int best=-1,bestScore=Integer.MIN_VALUE;
+            boolean freshSceneExists=false,safeSceneExists=false;
+            for(int i=0;i<COUNT;i++){
+                if(used[i])continue;Entry e=ENTRIES[i];if(!matches(e.pack,key))continue;
+                if(!seenArt.contains(e.art))freshSceneExists=true;
+                if(!recentArt.contains(e.art))safeSceneExists=true;
+            }
+
+            int best=-1,bestScore=Integer.MIN_VALUE;
+            for(int i=0;i<COUNT;i++){
+                if(used[i])continue;Entry e=ENTRIES[i];if(!matches(e.pack,key))continue;
+
+                // First pass through a category is root-scene unique. A second
+                // Fruit Ice / Pumpkin Porch / etc. cannot appear while an unseen
+                // root scene is still available.
+                if(freshSceneExists&&seenArt.contains(e.art))continue;
+
+                // Later variants respect the cooldown whenever another scene can
+                // safely be shown instead.
+                if(!freshSceneExists&&safeSceneExists&&recentArt.contains(e.art))continue;
+
+                int score=0;
+                if(!seenArt.contains(e.art))score+=10000;
+                if(!recentArt.contains(e.art))score+=2500;
+                if(!recentArch.contains(e.architecture))score+=500;
+                score-=artUse[e.art]*180;
+                score-=archUse[e.architecture]*45;
+                if(i<32)score+=25; // curated concepts only win ties.
+                score-=i/64;       // deterministic ordering.
+                if(score>bestScore){bestScore=score;best=i;}
+            }
+
+            if(best<0){
+                // A cooldown can become impossible near the end when only a few
+                // scene roots still have unused variants. Balance those leftovers.
                 for(int i=0;i<COUNT;i++){
                     if(used[i])continue;Entry e=ENTRIES[i];if(!matches(e.pack,key))continue;
-                    int score=(pageArch.contains(e.architecture)?0:100)+(pageArt.contains(e.art)?0:70)+(i<32?10:0);
-                    // Stable tie-breaker keeps the shop deterministic between launches.
-                    score-=i/64;
+                    int score=-artUse[e.art]*1000-archUse[e.architecture]*100-i/64;
                     if(score>bestScore){bestScore=score;best=i;}
                 }
-                if(best<0)break;
-                used[best]=true;Entry e=ENTRIES[best];out.add(e.pack);
-                pageArch.add(e.architecture);pageArt.add(e.art);
             }
+            if(best<0)break;
+
+            used[best]=true;Entry e=ENTRIES[best];out.add(e.pack);
+            seenArt.add(e.art);artUse[e.art]++;archUse[e.architecture]++;
+
+            recentArt.addLast(e.art);
+            while(recentArt.size()>sceneCooldown)recentArt.removeFirst();
+            recentArch.addLast(e.architecture);
+            while(recentArch.size()>archCooldown)recentArch.removeFirst();
         }
+
         int[] arr=new int[out.size()];for(int i=0;i<arr.length;i++)arr[i]=out.get(i);
         ORDER_CACHE.put(key,arr);return arr;
     }

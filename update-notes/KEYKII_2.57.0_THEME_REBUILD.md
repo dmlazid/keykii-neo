@@ -41,3 +41,19 @@ The Android audit now checks:
 The 2.54.4 Theme/Font performance fixes, 24-card batching, append-only Show more, original 40 themes, keyboard height/bottom spacing, translator, grammar tools, cursor control, emoji/kaomoji, language system, intro, fonts and keyboard tools remain preserved.
 
 All new artwork is original and based only on broad mood-board directions. No Pinterest screenshot, third-party character, logo or copied artwork is packaged in the APK.
+
+
+## Build 162 — root-scene anti-repeat ordering
+Phone testing showed that one category could still show Fruit Ice, Pumpkin Porch, Happy Cloud Sky, Coffee Break and other base themes repeatedly while scrolling. Different subtitles or architectures did not make that acceptable.
+
+Build 162 changes the catalog ordering itself:
+- a base scene is shown once before any second variant of that same scene;
+- if a category has 24+ different base scenes, the first 24 cards are 24 different base scenes;
+- later variants use a **12-card root-scene cooldown** whenever another unused scene is available;
+- categories with fewer scene roots use the largest possible cooldown automatically;
+- a shorter architecture cooldown also reduces repeated keyboard structures;
+- ordering remains deterministic and cached, so 24-card lazy loading and append-only Show more stay fast.
+
+The device audit now rejects unnecessary base-scene repeats on the first page and rejects any repeat inside the cooldown when a different remaining root could have been shown.
+
+Version stays **2.57.0** with versionCode **162** so it installs over the previous 2.57.0 build.
