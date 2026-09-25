@@ -3922,17 +3922,22 @@ public class SettingsActivity extends Activity {
         addThemeFilterChip(row,"Free","free");
         addThemeFilterChip(row,"Pro","pro");
         addThemeFilterChip(row,"Cute","cute");
+        addThemeFilterChip(row,"Kawaii","kawaii");
         addThemeFilterChip(row,"Aesthetic","aesthetic");
+        addThemeFilterChip(row,"Anime-inspired","anime-inspired");
         addThemeFilterChip(row,"Dreamy","dreamy");
         addThemeFilterChip(row,"Dark","dark");
-        addThemeFilterChip(row,"Nature","nature");
         addThemeFilterChip(row,"Gaming","gaming");
+        addThemeFilterChip(row,"Nature","nature");
+        addThemeFilterChip(row,"Floral","floral");
+        addThemeFilterChip(row,"Food","food");
         addThemeFilterChip(row,"Retro","retro");
+        addThemeFilterChip(row,"Y2K","y2k");
         addThemeFilterChip(row,"Minimal","minimal");
         addThemeFilterChip(row,"Luxury","luxury");
         addThemeFilterChip(row,"Space","space");
         addThemeFilterChip(row,"Ocean","ocean");
-        addThemeFilterChip(row,"Food","food");
+        addThemeFilterChip(row,"City","city");
         addThemeFilterChip(row,"Seasonal","seasonal");
 
         scroll.addView(row);
@@ -4434,7 +4439,7 @@ public class SettingsActivity extends Activity {
                 new TextView(this);
 
         sub.setText(
-                "552 keyboard themes • 512 rebuilt signature themes + 40 current favorites\nEvery new card mixes a different scene, board architecture and keycap geometry — not a recolor batch. Fonts stay separate."
+                "552 keyboard themes • 512 Theme Renderer V2 designs + 40 current favorites\n48 structural board families + 24 keycap geometries + 32 original scene systems. Preview and applied keyboard share the same renderer. Fonts stay separate."
         );
 
         sub.setTextColor(MUTED);
