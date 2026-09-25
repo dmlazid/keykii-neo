@@ -60,6 +60,10 @@ public class SettingsActivity extends Activity {
     private final java.util.HashMap<String,Integer> settingsScrollPositions =
             new java.util.HashMap<>();
 
+    private int remoteFontShownCount = 48;
+    private final java.util.concurrent.ExecutorService fontDownloadExecutor =
+            java.util.concurrent.Executors.newSingleThreadExecutor();
+
     // Gboard-style theme picker draft state. Theme tiles only update this
     // preview; nothing is saved until Apply is pressed.
     private LinearLayout themePreviewSheet;
@@ -2173,14 +2177,54 @@ public class SettingsActivity extends Activity {
             case 121: return "Fredericka the Great";
             case 122: return "Gluten";
             case 123: return "Londrina Sketch";
+            case 124: return "Black Ops One";
+            case 125: return "Bowlby One SC";
+            case 126: return "Bubblegum Sans";
+            case 127: return "Cherry Bomb One";
+            case 128: return "Codystar";
+            case 129: return "Diplomata SC";
+            case 130: return "Emblema One";
+            case 131: return "Ewert";
+            case 132: return "Faster One";
+            case 133: return "Finger Paint";
+            case 134: return "Geostar";
+            case 135: return "Geostar Fill";
+            case 136: return "Gravitas One";
+            case 137: return "Henny Penny";
+            case 138: return "Jolly Lodger";
+            case 139: return "Kablammo";
+            case 140: return "Kirang Haerang";
+            case 141: return "Lacquer";
+            case 142: return "Limelight";
+            case 143: return "Metal Mania";
+            case 144: return "Mogra";
+            case 145: return "Nosifer";
+            case 146: return "Rampart One";
+            case 147: return "Ribeye";
+            case 148: return "Rubik Beastly";
+            case 149: return "Rubik Moonrocks";
+            case 150: return "Train One";
+            case 151: return "Unifraktur Cook";
 
-            default: return "System";
+            default:
+                if(value>=RemoteFontCatalog.FIRST_STYLE) {
+                    RemoteFontCatalog.Entry e=RemoteFontCatalog.find(value);
+                    if(e!=null) return e.name;
+                }
+                return "System";
         }
     }
 
 
     private Typeface settingsKeyboardTypeface(int style) {
         try {
+            if(style>=RemoteFontCatalog.FIRST_STYLE) {
+                java.io.File remote=remoteFontFile(style);
+                if(remote.exists())
+                    return Typeface.createFromFile(remote);
+                return Typeface.create("sans-serif",Typeface.NORMAL);
+            }
+
             switch(style) {
                 case 1:
                     return Typeface.create("sans-serif-rounded",Typeface.NORMAL);
@@ -2242,6 +2286,62 @@ public class SettingsActivity extends Activity {
                     return Typeface.createFromAsset(getAssets(),"fonts/gluten.ttf");
                 case 123:
                     return Typeface.createFromAsset(getAssets(),"fonts/londrina_sketch.ttf");
+                case 124:
+                    return Typeface.createFromAsset(getAssets(),"fonts/black_ops_one.ttf");
+                case 125:
+                    return Typeface.createFromAsset(getAssets(),"fonts/bowlby_one_sc.ttf");
+                case 126:
+                    return Typeface.createFromAsset(getAssets(),"fonts/bubblegum_sans.ttf");
+                case 127:
+                    return Typeface.createFromAsset(getAssets(),"fonts/cherry_bomb_one.ttf");
+                case 128:
+                    return Typeface.createFromAsset(getAssets(),"fonts/codystar.ttf");
+                case 129:
+                    return Typeface.createFromAsset(getAssets(),"fonts/diplomata_sc.ttf");
+                case 130:
+                    return Typeface.createFromAsset(getAssets(),"fonts/emblema_one.ttf");
+                case 131:
+                    return Typeface.createFromAsset(getAssets(),"fonts/ewert.ttf");
+                case 132:
+                    return Typeface.createFromAsset(getAssets(),"fonts/faster_one.ttf");
+                case 133:
+                    return Typeface.createFromAsset(getAssets(),"fonts/finger_paint.ttf");
+                case 134:
+                    return Typeface.createFromAsset(getAssets(),"fonts/geostar.ttf");
+                case 135:
+                    return Typeface.createFromAsset(getAssets(),"fonts/geostar_fill.ttf");
+                case 136:
+                    return Typeface.createFromAsset(getAssets(),"fonts/gravitas_one.ttf");
+                case 137:
+                    return Typeface.createFromAsset(getAssets(),"fonts/henny_penny.ttf");
+                case 138:
+                    return Typeface.createFromAsset(getAssets(),"fonts/jolly_lodger.ttf");
+                case 139:
+                    return Typeface.createFromAsset(getAssets(),"fonts/kablammo.ttf");
+                case 140:
+                    return Typeface.createFromAsset(getAssets(),"fonts/kirang_haerang.ttf");
+                case 141:
+                    return Typeface.createFromAsset(getAssets(),"fonts/lacquer.ttf");
+                case 142:
+                    return Typeface.createFromAsset(getAssets(),"fonts/limelight.ttf");
+                case 143:
+                    return Typeface.createFromAsset(getAssets(),"fonts/metal_mania.ttf");
+                case 144:
+                    return Typeface.createFromAsset(getAssets(),"fonts/mogra.ttf");
+                case 145:
+                    return Typeface.createFromAsset(getAssets(),"fonts/nosifer.ttf");
+                case 146:
+                    return Typeface.createFromAsset(getAssets(),"fonts/rampart_one.ttf");
+                case 147:
+                    return Typeface.createFromAsset(getAssets(),"fonts/ribeye.ttf");
+                case 148:
+                    return Typeface.createFromAsset(getAssets(),"fonts/rubik_beastly.ttf");
+                case 149:
+                    return Typeface.createFromAsset(getAssets(),"fonts/rubik_moonrocks.ttf");
+                case 150:
+                    return Typeface.createFromAsset(getAssets(),"fonts/train_one.ttf");
+                case 151:
+                    return Typeface.createFromAsset(getAssets(),"fonts/unifraktur_cook.ttf");
                 default:
                     return Typeface.create("sans-serif",Typeface.NORMAL);
             }
@@ -2296,14 +2396,14 @@ public class SettingsActivity extends Activity {
         hero.setBackground(heroBg);
 
         TextView heroTitle=new TextView(this);
-        heroTitle.setText("31 keyboard font styles");
+        heroTitle.setText("1,083 keyboard font styles");
         heroTitle.setTextColor(TEXT);
         heroTitle.setTextSize(19);
         heroTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
 
         TextView heroSub=new TextView(this);
         heroSub.setText(
-                "Cute, handwritten, script, retro, pixel, serif and decorative styles. " +
+                "1,052 new styles added: 320 watch-ad fonts, 704 Pro fonts, plus 28 new featured fonts. " +
                 "Fonts stay separate from themes."
         );
         heroSub.setTextColor(MUTED);
@@ -2357,6 +2457,39 @@ public class SettingsActivity extends Activity {
         addFontStoreCard(page,121,"Fredericka the Great","Sketchy artistic",true);
         addFontStoreCard(page,122,"Gluten","Bouncy playful",true);
         addFontStoreCard(page,123,"Londrina Sketch","Hand-drawn outline",true);
+
+        addSection(page,"New featured fonts");
+        addFontStoreCard(page,124,"Black Ops One","Bold tactical display",false);
+        addFontStoreCard(page,125,"Bowlby One SC","Chunky poster caps",false);
+        addFontStoreCard(page,126,"Bubblegum Sans","Cute bubbly sans",false);
+        addFontStoreCard(page,127,"Cherry Bomb One","Playful chunky display",false);
+        addFontStoreCard(page,128,"Codystar","Dotted retro display",false);
+        addFontStoreCard(page,129,"Diplomata SC","Decorative engraved caps",false);
+        addFontStoreCard(page,130,"Emblema One","Vintage emblem display",false);
+        addFontStoreCard(page,131,"Ewert","Western decorative inline",false);
+        addFontStoreCard(page,132,"Faster One","Fast racing display",false);
+        addFontStoreCard(page,133,"Finger Paint","Painted hand lettering",false);
+        addFontStoreCard(page,134,"Geostar","Geometric outline",false);
+        addFontStoreCard(page,135,"Geostar Fill","Geometric filled display",false);
+        addFontStoreCard(page,136,"Gravitas One","Heavy classic serif",true);
+        addFontStoreCard(page,137,"Henny Penny","Whimsical handwritten",true);
+        addFontStoreCard(page,138,"Jolly Lodger","Playful spooky display",true);
+        addFontStoreCard(page,139,"Kablammo","Explosive variable display",true);
+        addFontStoreCard(page,140,"Kirang Haerang","Casual marker style",true);
+        addFontStoreCard(page,141,"Lacquer","Brush display lettering",true);
+        addFontStoreCard(page,142,"Limelight","Art deco display",true);
+        addFontStoreCard(page,143,"Metal Mania","Heavy metal display",true);
+        addFontStoreCard(page,144,"Mogra","Soft playful lettering",true);
+        addFontStoreCard(page,145,"Nosifer","Dripping horror display",true);
+        addFontStoreCard(page,146,"Rampart One","Outlined block display",true);
+        addFontStoreCard(page,147,"Ribeye","Friendly decorative serif",true);
+        addFontStoreCard(page,148,"Rubik Beastly","Wild decorative display",true);
+        addFontStoreCard(page,149,"Rubik Moonrocks","Rocky playful display",true);
+        addFontStoreCard(page,150,"Train One","Industrial line display",true);
+        addFontStoreCard(page,151,"Unifraktur Cook","Blackletter gothic",true);
+
+        addSection(page,"1,024 more fonts");
+        addRemoteFontCollection(page);
 
         addInfoCard(
                 page,
@@ -2513,6 +2646,251 @@ public class SettingsActivity extends Activity {
     }
 
 
+    private java.io.File remoteFontFile(int style) {
+        java.io.File dir=new java.io.File(getFilesDir(),"keykii_fonts");
+        if(!dir.exists()) dir.mkdirs();
+        return new java.io.File(dir,style+".ttf");
+    }
+
+    private String remoteFontUrl(RemoteFontCatalog.Entry entry) {
+        return "https://raw.githubusercontent.com/google/fonts/" +
+                RemoteFontCatalog.GOOGLE_FONTS_REV + "/" +
+                android.net.Uri.encode(entry.path,"/");
+    }
+
+    private boolean downloadRemoteFont(RemoteFontCatalog.Entry entry) {
+        java.io.File target=remoteFontFile(entry.style);
+        if(target.exists() && target.length()>1024) return true;
+
+        java.io.File part=new java.io.File(target.getAbsolutePath()+".part");
+        java.net.HttpURLConnection conn=null;
+
+        try {
+            java.net.URL url=new java.net.URL(remoteFontUrl(entry));
+            conn=(java.net.HttpURLConnection)url.openConnection();
+            conn.setConnectTimeout(12000);
+            conn.setReadTimeout(20000);
+            conn.setInstanceFollowRedirects(true);
+            conn.setRequestProperty("User-Agent","KeyKii-Neo/2.51");
+
+            int code=conn.getResponseCode();
+            if(code<200 || code>=300) return false;
+
+            java.io.InputStream in=conn.getInputStream();
+            java.io.FileOutputStream out=new java.io.FileOutputStream(part);
+            byte[] buffer=new byte[8192];
+            int read;
+            long total=0;
+
+            while((read=in.read(buffer))!=-1) {
+                total+=read;
+                if(total>12000000L) {
+                    out.close();
+                    in.close();
+                    part.delete();
+                    return false;
+                }
+                out.write(buffer,0,read);
+            }
+
+            out.flush();
+            out.close();
+            in.close();
+
+            if(part.length()<1024) {
+                part.delete();
+                return false;
+            }
+
+            if(target.exists()) target.delete();
+            return part.renameTo(target);
+
+        } catch(Exception ignored) {
+            part.delete();
+            return false;
+
+        } finally {
+            if(conn!=null) conn.disconnect();
+        }
+    }
+
+    private void queueRemoteFontCardPreview(
+            RemoteFontCatalog.Entry entry,
+            TextView sample
+    ) {
+        java.io.File file=remoteFontFile(entry.style);
+
+        if(file.exists()) {
+            try {
+                sample.setTypeface(Typeface.createFromFile(file));
+                sample.setAlpha(1f);
+            } catch(Exception ignored) {}
+            return;
+        }
+
+        sample.setAlpha(.62f);
+        sample.setTag(entry.style);
+
+        fontDownloadExecutor.execute(() -> {
+            boolean ok=downloadRemoteFont(entry);
+            if(!ok) return;
+
+            runOnUiThread(() -> {
+                Object tag=sample.getTag();
+                if(!(tag instanceof Integer) || ((Integer)tag)!=entry.style)
+                    return;
+
+                try {
+                    sample.setTypeface(
+                            Typeface.createFromFile(remoteFontFile(entry.style))
+                    );
+                    sample.setAlpha(1f);
+                } catch(Exception ignored) {}
+            });
+        });
+    }
+
+    private void openRemoteFontPreview(RemoteFontCatalog.Entry entry) {
+        java.io.File file=remoteFontFile(entry.style);
+
+        if(file.exists()) {
+            showFontPreview(entry.style,entry.name,entry.pro);
+            return;
+        }
+
+        toast("Downloading "+entry.name+" preview…");
+
+        new Thread(() -> {
+            boolean ok=downloadRemoteFont(entry);
+
+            runOnUiThread(() -> {
+                if(ok) {
+                    showFontPreview(entry.style,entry.name,entry.pro);
+                } else {
+                    toast("Could not download this font. Check your internet connection.");
+                }
+            });
+        },"KeyKii-Font-Preview").start();
+    }
+
+    private void addRemoteFontCollection(LinearLayout page) {
+        int count=Math.min(remoteFontShownCount,RemoteFontCatalog.ITEMS.length);
+
+        for(int i=0;i<count;i++)
+            addRemoteFontStoreCard(page,RemoteFontCatalog.ITEMS[i]);
+
+        if(count<RemoteFontCatalog.ITEMS.length) {
+            TextView more=textButton(
+                    "Show 48 more  •  "+count+"/"+RemoteFontCatalog.ITEMS.length
+            );
+            more.setTextSize(14);
+            more.setOnClickListener(v -> {
+                remoteFontShownCount=Math.min(
+                        RemoteFontCatalog.ITEMS.length,
+                        remoteFontShownCount+48
+                );
+                showFonts();
+            });
+
+            LinearLayout.LayoutParams mp=
+                    new LinearLayout.LayoutParams(-1,dp(52));
+            mp.setMargins(0,dp(8),0,dp(10));
+            page.addView(more,mp);
+        }
+    }
+
+    private void addRemoteFontStoreCard(
+            LinearLayout page,
+            RemoteFontCatalog.Entry entry
+    ) {
+        boolean selected=
+                prefs.getInt("keyboard_font_style",0)==entry.style;
+
+        LinearLayout row=new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(16),dp(7),dp(10),dp(7));
+
+        int surface;
+        switch(entry.style%5) {
+            case 0: surface=Color.rgb(248,249,244); break;
+            case 1: surface=Color.rgb(250,247,240); break;
+            case 2: surface=Color.rgb(247,249,245); break;
+            case 3: surface=Color.rgb(250,245,246); break;
+            default: surface=Color.rgb(248,246,250); break;
+        }
+
+        if(selected) surface=Color.rgb(247,239,252);
+
+        GradientDrawable bg=round(surface,13);
+        bg.setStroke(
+                dp(selected ? 2 : 1),
+                selected ? Color.rgb(181,143,204) : Color.rgb(238,232,227)
+        );
+        row.setBackground(bg);
+
+        LinearLayout words=new LinearLayout(this);
+        words.setOrientation(LinearLayout.VERTICAL);
+        words.setGravity(Gravity.CENTER);
+        words.setPadding(0,0,dp(8),0);
+
+        TextView sample=new TextView(this);
+        sample.setText(entry.name);
+        sample.setTextColor(TEXT);
+        sample.setTextSize(20);
+        sample.setGravity(Gravity.CENTER);
+        sample.setSingleLine(true);
+        sample.setTypeface(settingsKeyboardTypeface(entry.style));
+
+        TextView sub=new TextView(this);
+        sub.setText(
+                entry.pro
+                        ? "Pro font • tap for live preview"
+                        : "Free with rewarded ad • tap for preview"
+        );
+        sub.setTextColor(MUTED);
+        sub.setTextSize(9);
+        sub.setGravity(Gravity.CENTER);
+        sub.setSingleLine(true);
+
+        words.addView(sample,new LinearLayout.LayoutParams(-1,dp(32)));
+        words.addView(sub,new LinearLayout.LayoutParams(-1,dp(16)));
+
+        row.addView(words,new LinearLayout.LayoutParams(0,dp(50),1f));
+
+        TextView badge=new TextView(this);
+        badge.setText(selected ? "✓" : (entry.pro ? "PRO" : "AD"));
+        badge.setTextSize(selected ? 18 : 10);
+        badge.setGravity(Gravity.CENTER);
+        badge.setTextColor(
+                selected
+                        ? Color.rgb(114,79,133)
+                        : (entry.pro
+                            ? Color.rgb(184,95,115)
+                            : Color.rgb(80,145,96))
+        );
+        badge.setBackground(
+                round(
+                        selected
+                                ? Color.rgb(239,224,248)
+                                : (entry.pro
+                                    ? Color.rgb(253,239,240)
+                                    : Color.rgb(233,247,235)),
+                        11
+                )
+        );
+
+        row.addView(badge,new LinearLayout.LayoutParams(dp(52),dp(28)));
+        row.setOnClickListener(v -> openRemoteFontPreview(entry));
+
+        LinearLayout.LayoutParams rp=new LinearLayout.LayoutParams(-1,dp(66));
+        rp.setMargins(0,dp(3),0,dp(3));
+        page.addView(row,rp);
+
+        queueRemoteFontCardPreview(entry,sample);
+    }
+
+
     private void showFontPreview(
             int style,
             String name,
@@ -2549,9 +2927,22 @@ public class SettingsActivity extends Activity {
 
         if(pro) {
             TextView note=new TextView(this);
-            note.setText("PRO preview • unlocked for testing in KeyKii 2.50.0");
+            note.setText(
+                    style>=RemoteFontCatalog.FIRST_STYLE
+                            ? "PRO preview • direct apply is enabled in this development build"
+                            : "PRO preview • unlocked for testing in KeyKii 2.51.0"
+            );
             note.setTextColor(Color.rgb(169,92,181));
             note.setTextSize(11);
+            note.setGravity(Gravity.CENTER);
+            sheet.addView(note,new LinearLayout.LayoutParams(-1,dp(34)));
+        }
+
+        if(style>=RemoteFontCatalog.FIRST_STYLE && !pro) {
+            TextView note=new TextView(this);
+            note.setText("Rewarded-ad font • direct apply is enabled until an ad provider is connected");
+            note.setTextColor(Color.rgb(80,145,96));
+            note.setTextSize(10);
             note.setGravity(Gravity.CENTER);
             sheet.addView(note,new LinearLayout.LayoutParams(-1,dp(34)));
         }

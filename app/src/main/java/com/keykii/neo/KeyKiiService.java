@@ -17059,6 +17059,34 @@ public class KeyKiiService extends InputMethodService {
 
         android.graphics.Typeface result;
 
+        if(style>=RemoteFontCatalog.FIRST_STYLE) {
+            java.io.File remote=
+                    new java.io.File(
+                            new java.io.File(getFilesDir(),"keykii_fonts"),
+                            style+".ttf"
+                    );
+
+            if(remote.exists()) {
+                try {
+                    result=android.graphics.Typeface.createFromFile(remote);
+                } catch(Exception ignored) {
+                    result=android.graphics.Typeface.create(
+                            "sans-serif",
+                            android.graphics.Typeface.NORMAL
+                    );
+                }
+            } else {
+                result=android.graphics.Typeface.create(
+                        "sans-serif",
+                        android.graphics.Typeface.NORMAL
+                );
+            }
+
+            cachedKeyboardTypefaceStyle=style;
+            cachedKeyboardTypeface=result;
+            return result;
+        }
+
         switch(style) {
             case 1:
                 result=android.graphics.Typeface.create(
@@ -17167,6 +17195,90 @@ public class KeyKiiService extends InputMethodService {
                 break;
             case 123:
                 result=assetKeyboardTypeface("fonts/londrina_sketch.ttf");
+                break;
+            case 124:
+                result=assetKeyboardTypeface("fonts/black_ops_one.ttf");
+                break;
+            case 125:
+                result=assetKeyboardTypeface("fonts/bowlby_one_sc.ttf");
+                break;
+            case 126:
+                result=assetKeyboardTypeface("fonts/bubblegum_sans.ttf");
+                break;
+            case 127:
+                result=assetKeyboardTypeface("fonts/cherry_bomb_one.ttf");
+                break;
+            case 128:
+                result=assetKeyboardTypeface("fonts/codystar.ttf");
+                break;
+            case 129:
+                result=assetKeyboardTypeface("fonts/diplomata_sc.ttf");
+                break;
+            case 130:
+                result=assetKeyboardTypeface("fonts/emblema_one.ttf");
+                break;
+            case 131:
+                result=assetKeyboardTypeface("fonts/ewert.ttf");
+                break;
+            case 132:
+                result=assetKeyboardTypeface("fonts/faster_one.ttf");
+                break;
+            case 133:
+                result=assetKeyboardTypeface("fonts/finger_paint.ttf");
+                break;
+            case 134:
+                result=assetKeyboardTypeface("fonts/geostar.ttf");
+                break;
+            case 135:
+                result=assetKeyboardTypeface("fonts/geostar_fill.ttf");
+                break;
+            case 136:
+                result=assetKeyboardTypeface("fonts/gravitas_one.ttf");
+                break;
+            case 137:
+                result=assetKeyboardTypeface("fonts/henny_penny.ttf");
+                break;
+            case 138:
+                result=assetKeyboardTypeface("fonts/jolly_lodger.ttf");
+                break;
+            case 139:
+                result=assetKeyboardTypeface("fonts/kablammo.ttf");
+                break;
+            case 140:
+                result=assetKeyboardTypeface("fonts/kirang_haerang.ttf");
+                break;
+            case 141:
+                result=assetKeyboardTypeface("fonts/lacquer.ttf");
+                break;
+            case 142:
+                result=assetKeyboardTypeface("fonts/limelight.ttf");
+                break;
+            case 143:
+                result=assetKeyboardTypeface("fonts/metal_mania.ttf");
+                break;
+            case 144:
+                result=assetKeyboardTypeface("fonts/mogra.ttf");
+                break;
+            case 145:
+                result=assetKeyboardTypeface("fonts/nosifer.ttf");
+                break;
+            case 146:
+                result=assetKeyboardTypeface("fonts/rampart_one.ttf");
+                break;
+            case 147:
+                result=assetKeyboardTypeface("fonts/ribeye.ttf");
+                break;
+            case 148:
+                result=assetKeyboardTypeface("fonts/rubik_beastly.ttf");
+                break;
+            case 149:
+                result=assetKeyboardTypeface("fonts/rubik_moonrocks.ttf");
+                break;
+            case 150:
+                result=assetKeyboardTypeface("fonts/train_one.ttf");
+                break;
+            case 151:
+                result=assetKeyboardTypeface("fonts/unifraktur_cook.ttf");
                 break;
             default:
                 result=android.graphics.Typeface.create(
