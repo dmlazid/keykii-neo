@@ -116,7 +116,7 @@ final class NeoThemeCatalog {
             String displayName;
             if(i<HERO_NAMES.length){
                 architecture=HERO_ARCH[i];composition=0;art=HERO_ART[i];motif=HERO_MOTIF[i];
-                material=MATERIAL[architecture];pro=proFamily(architecture);displayName=HERO_NAMES[i];
+                material=Math.floorMod(MATERIAL[architecture]+1,5);pro=proFamily(architecture);displayName=HERO_NAMES[i];
             }else{
                 int slot=i-HERO_NAMES.length;
                 composition=slot/48;
