@@ -4106,69 +4106,32 @@ public class SettingsActivity extends Activity {
         };
 
         if(totalNew>0) {
-            addThemeSection(
-                    themeCategoryContent,
-                    "✦ NEW ARCHITECTURE COLLECTION • "+
-                    totalNew+
-                    " THEMES"
-            );
-
-            addStylePackGridIncremental(
-                    themeCategoryContent,
-                    visibleNew,
-                    generation,
-                    () -> {
-                        if(generation!=themeRenderGeneration)
-                            return;
-
-                        if(visibleNew.length<totalNew) {
-                            TextView more=textButton(
-                                    "Show more themes  •  "+
-                                    visibleNew.length+
-                                    " / "+
-                                    totalNew
-                            );
-
-                            more.setTextSize(13);
-                            more.setTypeface(
-                                    Typeface.DEFAULT,
-                                    Typeface.BOLD
-                            );
-
-                            LinearLayout.LayoutParams mp=
-                                    new LinearLayout.LayoutParams(
-                                            -1,
-                                            dp(52)
-                                    );
-
-                            mp.setMargins(
-                                    dp(6),
-                                    dp(8),
-                                    dp(6),
-                                    dp(10)
-                            );
-
-                            more.setOnClickListener(v -> {
-                                neoThemeShownCount=
-                                        Math.min(
-                                                totalNew,
-                                                neoThemeShownCount+
-                                                NeoThemeCatalog.PAGE_SIZE
-                                        );
-
-                                renderThemeCategoryContent();
-                            });
-
-                            themeCategoryContent.addView(
-                                    more,
-                                    mp
-                            );
-                        }
-
-                        legacyAndTools.run();
-                    }
-            );
-
+            addThemeSection(themeCategoryContent,"✦ NEW THEME COLLECTION • "+totalNew+" THEMES");
+            LinearLayout newGrid=new LinearLayout(this);
+            newGrid.setOrientation(LinearLayout.VERTICAL);
+            themeCategoryContent.addView(newGrid);
+            TextView more=textButton("Show more themes");
+            more.setTextSize(13);
+            more.setVisibility(View.GONE);
+            themeCategoryContent.addView(more,new LinearLayout.LayoutParams(-1,dp(52)));
+            Runnable updateMore=() -> {
+                if(generation!=themeRenderGeneration)return;
+                more.setText("Show more themes  •  "+neoThemeShownCount+" / "+totalNew);
+                more.setEnabled(true);
+                more.setVisibility(neoThemeShownCount<totalNew?View.VISIBLE:View.GONE);
+            };
+            more.setOnClickListener(v -> {
+                if(generation!=themeRenderGeneration)return;
+                more.setEnabled(false);
+                int[] next=NeoThemeCatalog.page(themeBrowseMode,neoThemeShownCount,NeoThemeCatalog.PAGE_SIZE);
+                neoThemeShownCount=Math.min(totalNew,neoThemeShownCount+next.length);
+                addStylePackGridIncremental(newGrid,next,generation,updateMore);
+            });
+            addStylePackGridIncremental(newGrid,visibleNew,generation,() -> {
+                if(generation!=themeRenderGeneration)return;
+                neoThemeShownCount=visibleNew.length;
+                updateMore.run();legacyAndTools.run();
+            });
             return;
         }
 
@@ -4439,7 +4402,7 @@ public class SettingsActivity extends Activity {
                 new TextView(this);
 
         sub.setText(
-                "552 keyboard themes • 512 Theme Renderer V2 designs + 40 current favorites\n48 structural board families + 24 keycap geometries + 32 original scene systems. Preview and applied keyboard share the same renderer. Fonts stay separate."
+                "Explore 512 new theme compositions and your 40 original favorites. Sculpted keys, illustrated scenes, glass, plush and more. Keep your favorite font with any theme."
         );
 
         sub.setTextColor(MUTED);
@@ -4651,6 +4614,16 @@ public class SettingsActivity extends Activity {
             int pack,
             boolean large
     ) {
+        if(NeoThemeCatalog.isNeoPack(pack)) {
+            LinearLayout host=new LinearLayout(this);
+            host.setOrientation(LinearLayout.VERTICAL);
+            host.addView(new NeoThemePreview(this,pack,
+                    settingsKeyboardTypeface(prefs.getInt("keyboard_font_style",0)),
+                    prefs.getBoolean("number_row",false)),
+                    new LinearLayout.LayoutParams(-1,-1));
+            return host;
+        }
+
         int[] spec=
                 stylePackSpec(pack);
 

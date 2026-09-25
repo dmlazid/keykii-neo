@@ -2845,123 +2845,10 @@ public class KeyKiiService extends InputMethodService {
     }
 
 
-    String keyboardLanguageLabel() {
-        switch(activeKeyboardLanguage) {
-            case "en-GB":
-                return "English (UK)";
-            case "fil":
-                return "Filipino";
-            case "ceb":
-                return "Cebuano";
-            case "es":
-                return "Español";
-            case "fr":
-                return "Français";
-            case "de":
-                return "Deutsch";
-            case "tr":
-                return "Türkçe";
-            case "pt":
-                return "Português";
-            case "it":
-                return "Italiano";
-            case "en-US":
-            default:
-                return "English";
-        }
-    }
-
-
-    String[] keyboardTopRow() {
-        switch(activeKeyboardLanguage) {
-            case "fr":
-                return new String[]{
-                    "a","z","e","r","t",
-                    "y","u","i","o","p"
-                };
-
-            case "de":
-                return new String[]{
-                    "q","w","e","r","t",
-                    "z","u","i","o","p"
-                };
-
-            case "tr":
-                return new String[]{
-                    "q","w","e","r","t",
-                    "y","u","ı","o","p","ğ","ü"
-                };
-
-            default:
-                return new String[]{
-                    "q","w","e","r","t",
-                    "y","u","i","o","p"
-                };
-        }
-    }
-
-
-    String[] keyboardMiddleRow() {
-        switch(activeKeyboardLanguage) {
-            case "fr":
-                return new String[]{
-                    "q","s","d","f","g",
-                    "h","j","k","l","m"
-                };
-
-            case "es":
-                return new String[]{
-                    "a","s","d","f","g",
-                    "h","j","k","l","ñ"
-                };
-
-            case "pt":
-                return new String[]{
-                    "a","s","d","f","g",
-                    "h","j","k","l","ç"
-                };
-
-            case "tr":
-                return new String[]{
-                    "a","s","d","f","g",
-                    "h","j","k","l","ş","i"
-                };
-
-            default:
-                return new String[]{
-                    "a","s","d","f","g",
-                    "h","j","k","l"
-                };
-        }
-    }
-
-
-    String[] keyboardBottomLetters() {
-        switch(activeKeyboardLanguage) {
-            case "fr":
-                return new String[]{
-                    "w","x","c","v","b","n"
-                };
-
-            case "de":
-                return new String[]{
-                    "y","x","c","v","b","n","m"
-                };
-
-            case "tr":
-                return new String[]{
-                    "z","x","c","v",
-                    "b","n","m","ö","ç"
-                };
-
-            default:
-                return new String[]{
-                    "z","x","c","v",
-                    "b","n","m"
-                };
-        }
-    }
-
+    String keyboardLanguageLabel() { return NeoKeyboardLanguage.label(activeKeyboardLanguage); }
+    String[] keyboardTopRow() { return NeoKeyboardLanguage.top(activeKeyboardLanguage); }
+    String[] keyboardMiddleRow() { return NeoKeyboardLanguage.middle(activeKeyboardLanguage); }
+    String[] keyboardBottomLetters() { return NeoKeyboardLanguage.bottom(activeKeyboardLanguage); }
 
     void cycleKeyboardLanguage() {
         SharedPreferences prefs=
@@ -3037,6 +2924,8 @@ public class KeyKiiService extends InputMethodService {
                 new TextView[3];
         }
 
+        final int neoRowsStart=body.getChildCount();
+
         if(!symbols) {
 
             if(numberRow) {
@@ -3100,6 +2989,10 @@ public class KeyKiiService extends InputMethodService {
         }
 
         bottom();
+        SharedPreferences themePrefs=getSharedPreferences("keykii_prefs",MODE_PRIVATE);
+        if(page==0 && themePrefs.getInt("theme_surface_mode",0)==2) {
+            NeoKeyboardLayout.adopt(body,neoRowsStart,themePrefs.getInt("keykii_style_pack",-1));
+        }
     }
 
 
@@ -4622,6 +4515,7 @@ public class KeyKiiService extends InputMethodService {
             dp(2)
         );
 
+        box.setTag(new NeoKeyboardLayout.Tag(action,weight,special));
         r.addView(box,p);
     }
 
@@ -13955,43 +13849,7 @@ public class KeyKiiService extends InputMethodService {
         return v;
     }
 
-    String hintFor(String s){
-
-        switch(s){
-
-            case "q": return "1";
-            case "w": return "2";
-            case "e": return "3";
-            case "r": return "4";
-            case "t": return "5";
-            case "y": return "6";
-            case "u": return "7";
-            case "i": return "8";
-            case "o": return "9";
-            case "p": return "0";
-
-            case "a": return "@";
-            case "s": return "#";
-            case "d": return "$";
-            case "f": return "%";
-            case "g": return "&";
-            case "h": return "-";
-            case "j": return "+";
-            case "k": return "(";
-            case "l": return ")";
-
-            case "z": return "*";
-            case "x": return "\"";
-            case "c": return "'";
-            case "v": return ":";
-            case "b": return ";";
-            case "n": return "!";
-            case "m": return "?";
-            case ",": return "☺";
-
-            default: return "";
-        }
-    }
+    String hintFor(String s){ return NeoKeyboardLanguage.hint(s); }
 
     String alternativesFor(String s) {
 

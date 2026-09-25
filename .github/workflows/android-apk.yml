@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'app/src/**'
+      - 'tests/**'
       - 'scripts/**'
       - 'theme-assets/**'
       - 'app/build.gradle'
@@ -21,7 +22,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
 
@@ -59,10 +60,44 @@ jobs:
           python3 -m pip install --disable-pip-version-check pillow cairosvg
           python3 scripts/rasterize_theme_assets_248.py
 
+      - name: Audit theme geometry
+        run: bash tests/run-theme-audit.sh
+
       - name: Build APK
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon :app:assembleDebug
+          ./gradlew --no-daemon :app:assembleDebug :app:assembleDebugAndroidTest
+
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Verify native renderer and capture all families
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: |
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
+            adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            adb shell am instrument -w com.keykii.neo.test/com.keykii.neo.NeoRendererAudit > renderer-audit.log
+            cat renderer-audit.log
+            grep -q THEME_V2_AUDIT_PASS renderer-audit.log
+            adb pull /sdcard/Android/data/com.keykii.neo/files/theme-v2-audit renderer-audit
+
+      - name: Upload renderer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Theme-Renderer-V2-Audit
+          path: |
+            renderer-audit/
+            renderer-audit.log
+          if-no-files-found: warn
 
       - name: Rename APK with KeyKii version
         id: package
