@@ -2142,6 +2142,7 @@ public class SettingsActivity extends Activity {
         int value=prefs.getInt("keyboard_font_style",0);
 
         switch(value) {
+
             case 1: return "Rounded";
             case 2: return "Serif";
             case 3: return "Mono";
@@ -2156,6 +2157,23 @@ public class SettingsActivity extends Activity {
             case 105: return "Bungee";
             case 106: return "Press Start 2P";
             case 107: return "Cinzel Decorative";
+            case 108: return "Pacifico";
+            case 109: return "Caveat";
+            case 110: return "Berkshire Swash";
+            case 111: return "Kaushan Script";
+            case 112: return "Fascinate Inline";
+            case 113: return "Monoton";
+            case 114: return "Frijole";
+            case 115: return "Barrio";
+            case 116: return "Knewave";
+            case 117: return "Rye";
+            case 118: return "Creepster";
+            case 119: return "Baloo 2";
+            case 120: return "Modak";
+            case 121: return "Fredericka the Great";
+            case 122: return "Gluten";
+            case 123: return "Londrina Sketch";
+
             default: return "System";
         }
     }
@@ -2192,6 +2210,38 @@ public class SettingsActivity extends Activity {
                     return Typeface.createFromAsset(getAssets(),"fonts/press_start_2p.ttf");
                 case 107:
                     return Typeface.createFromAsset(getAssets(),"fonts/cinzel_decorative.ttf");
+                case 108:
+                    return Typeface.createFromAsset(getAssets(),"fonts/pacifico.ttf");
+                case 109:
+                    return Typeface.createFromAsset(getAssets(),"fonts/caveat.ttf");
+                case 110:
+                    return Typeface.createFromAsset(getAssets(),"fonts/berkshire_swash.ttf");
+                case 111:
+                    return Typeface.createFromAsset(getAssets(),"fonts/kaushan_script.ttf");
+                case 112:
+                    return Typeface.createFromAsset(getAssets(),"fonts/fascinate_inline.ttf");
+                case 113:
+                    return Typeface.createFromAsset(getAssets(),"fonts/monoton.ttf");
+                case 114:
+                    return Typeface.createFromAsset(getAssets(),"fonts/frijole.ttf");
+                case 115:
+                    return Typeface.createFromAsset(getAssets(),"fonts/barrio.ttf");
+                case 116:
+                    return Typeface.createFromAsset(getAssets(),"fonts/knewave.ttf");
+                case 117:
+                    return Typeface.createFromAsset(getAssets(),"fonts/rye.ttf");
+                case 118:
+                    return Typeface.createFromAsset(getAssets(),"fonts/creepster.ttf");
+                case 119:
+                    return Typeface.createFromAsset(getAssets(),"fonts/baloo2.ttf");
+                case 120:
+                    return Typeface.createFromAsset(getAssets(),"fonts/modak.ttf");
+                case 121:
+                    return Typeface.createFromAsset(getAssets(),"fonts/fredericka_the_great.ttf");
+                case 122:
+                    return Typeface.createFromAsset(getAssets(),"fonts/gluten.ttf");
+                case 123:
+                    return Typeface.createFromAsset(getAssets(),"fonts/londrina_sketch.ttf");
                 default:
                     return Typeface.create("sans-serif",Typeface.NORMAL);
             }
@@ -2201,48 +2251,87 @@ public class SettingsActivity extends Activity {
     }
 
 
+    private int fontDisplayTextSize(int style) {
+        switch(style) {
+            case 106:
+                return 13;
+            case 105:
+            case 112:
+            case 113:
+            case 114:
+            case 118:
+            case 120:
+            case 123:
+                return 18;
+            default:
+                return 23;
+        }
+    }
+
+
     private void showFonts() {
         screen="fonts";
 
         LinearLayout page=page(
                 "Fonts",
-                "Preview keyboard fonts before applying",
+                "Tap a style to preview it on your keyboard",
                 true
         );
 
         addInfoCard(
                 page,
                 "Separate from Themes",
-                "Themes never change your selected font. Fonts only change how the KeyKii keyboard letters and numbers look; the text you type stays normal."
+                "Your theme and font are independent. A font only changes the KeyKii keyboard letters and numbers; the text you type into apps stays normal."
         );
 
-        addSection(page,"Free fonts");
-        addFontStoreCard(page,0,"System","Clean Android keyboard lettering",false);
-        addFontStoreCard(page,1,"Rounded","Soft and friendly system style",false);
-        addFontStoreCard(page,2,"Serif","Classic system lettering",false);
-        addFontStoreCard(page,3,"Mono","Simple fixed-width system style",false);
+        addSection(page,"Free essentials");
+        addFontStoreCard(page,0,"System","Clean Android lettering",false);
+        addFontStoreCard(page,1,"Rounded","Soft rounded lettering",false);
+        addFontStoreCard(page,2,"Serif","Classic book-style lettering",false);
+        addFontStoreCard(page,3,"Mono","Fixed-width modern lettering",false);
+        addFontStoreCard(page,4,"Condensed","Slim space-saving lettering",false);
+        addFontStoreCard(page,5,"Casual","Relaxed handwritten system style",false);
+        addFontStoreCard(page,6,"Medium","Clean slightly bolder lettering",false);
 
-        addSection(page,"KeyKii Pro fonts");
+        addSection(page,"Popular styles");
 
         addInfoCard(
                 page,
-                "PRO PREVIEW",
-                "Premium fonts are unlocked in this test build. Later these can be purchased with KeyKii Pro without changing the Font Store design."
+                "24 KeyKii font styles",
+                "Playful, handwritten, script, pixel, retro and decorative fonts. PRO styles are unlocked for testing in this build."
         );
 
-        addFontStoreCard(page,100,"Fredoka","Round, playful and bold",true);
-        addFontStoreCard(page,101,"DynaPuff","Puffy hand-drawn display style",true);
-        addFontStoreCard(page,102,"Rubik Bubbles","Bubble-outline lettering",true);
-        addFontStoreCard(page,103,"Patrick Hand","Natural handwritten style",true);
+        addFontStoreCard(page,100,"Fredoka","Round and friendly",true);
+        addFontStoreCard(page,101,"DynaPuff","Puffy hand-drawn style",true);
+        addFontStoreCard(page,102,"Rubik Bubbles","Bubble outline lettering",true);
+        addFontStoreCard(page,103,"Patrick Hand","Natural handwriting",true);
         addFontStoreCard(page,104,"Lobster","Bold connected script",true);
-        addFontStoreCard(page,105,"Bungee","Strong arcade display lettering",true);
-        addFontStoreCard(page,106,"Press Start 2P","Retro pixel-game lettering",true);
-        addFontStoreCard(page,107,"Cinzel Decorative","Elegant decorative lettering",true);
+        addFontStoreCard(page,105,"Bungee","Arcade display style",true);
+        addFontStoreCard(page,106,"Press Start 2P","Pixel game lettering",true);
+        addFontStoreCard(page,107,"Cinzel Decorative","Elegant decorative serif",true);
+        addFontStoreCard(page,108,"Pacifico","Smooth brush script",true);
+        addFontStoreCard(page,109,"Caveat","Loose handwritten notes",true);
+        addFontStoreCard(page,110,"Berkshire Swash","Fancy swash lettering",true);
+        addFontStoreCard(page,111,"Kaushan Script","Energetic handwritten script",true);
+
+        addSection(page,"More styles");
+        addFontStoreCard(page,112,"Fascinate Inline","Retro inline display",true);
+        addFontStoreCard(page,113,"Monoton","Neon line display style",true);
+        addFontStoreCard(page,114,"Frijole","Chunky decorative lettering",true);
+        addFontStoreCard(page,115,"Barrio","Playful irregular display",true);
+        addFontStoreCard(page,116,"Knewave","Bold painted lettering",true);
+        addFontStoreCard(page,117,"Rye","Vintage western serif",true);
+        addFontStoreCard(page,118,"Creepster","Spooky display lettering",true);
+        addFontStoreCard(page,119,"Baloo 2","Soft chunky rounded style",true);
+        addFontStoreCard(page,120,"Modak","Extra-puffy display style",true);
+        addFontStoreCard(page,121,"Fredericka the Great","Sketchy artistic serif",true);
+        addFontStoreCard(page,122,"Gluten","Bouncy playful lettering",true);
+        addFontStoreCard(page,123,"Londrina Sketch","Hand-drawn outline style",true);
 
         addInfoCard(
                 page,
-                "Licensing",
-                "These preview fonts are bundled from open-license font projects, and their license text is included in the app assets."
+                "Font licenses",
+                "The bundled collection uses open-license Google Fonts projects. The SIL Open Font License text is included in the app assets."
         );
 
         setContentView(wrap(page));
@@ -2256,77 +2345,116 @@ public class SettingsActivity extends Activity {
             String description,
             boolean pro
     ) {
+        boolean selected=
+                prefs.getInt("keyboard_font_style",0)==style;
+
         LinearLayout card=new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dp(16),dp(13),dp(16),dp(13));
+        card.setPadding(dp(15),dp(10),dp(15),dp(9));
 
-        GradientDrawable bg=round(CARD,20);
-        bg.setStroke(dp(1),BORDER);
+        int surface;
+        switch(Math.abs(style)%4) {
+            case 0:
+                surface=Color.rgb(249,249,245);
+                break;
+            case 1:
+                surface=Color.rgb(248,246,241);
+                break;
+            case 2:
+                surface=Color.rgb(246,248,245);
+                break;
+            default:
+                surface=Color.rgb(250,246,247);
+                break;
+        }
+
+        if(selected)
+            surface=Color.rgb(247,239,252);
+
+        GradientDrawable bg=round(surface,17);
+        bg.setStroke(
+                dp(selected ? 2 : 1),
+                selected
+                        ? Color.rgb(182,145,205)
+                        : Color.rgb(236,230,226)
+        );
         card.setBackground(bg);
-        card.setElevation(dp(1));
+
+        FrameLayout top=new FrameLayout(this);
 
         TextView sample=new TextView(this);
-        sample.setText("Aa Bb Cc  123");
+        sample.setText(name);
         sample.setTextColor(TEXT);
-        sample.setTextSize(style==106 ? 16 : 24);
+        sample.setTextSize(fontDisplayTextSize(style));
         sample.setGravity(Gravity.CENTER);
+        sample.setSingleLine(true);
         sample.setTypeface(settingsKeyboardTypeface(style));
 
-        card.addView(
+        top.addView(
                 sample,
-                new LinearLayout.LayoutParams(
+                new FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
-                        dp(55)
+                        dp(42),
+                        Gravity.CENTER
                 )
         );
 
-        LinearLayout info=new LinearLayout(this);
-        info.setGravity(Gravity.CENTER_VERTICAL);
+        TextView badge=new TextView(this);
+        badge.setText(
+                selected
+                        ? "✓"
+                        : (pro ? "PRO" : "FREE")
+        );
+        badge.setTextColor(
+                pro && !selected
+                        ? Color.rgb(169,92,181)
+                        : Color.rgb(95,139,106)
+        );
+        badge.setTextSize(selected ? 18 : 10);
+        badge.setGravity(Gravity.CENTER);
 
-        LinearLayout words=new LinearLayout(this);
-        words.setOrientation(LinearLayout.VERTICAL);
+        GradientDrawable badgeBg=
+                round(
+                        pro
+                                ? Color.rgb(249,234,251)
+                                : Color.rgb(232,247,235),
+                        10
+                );
 
-        TextView title=new TextView(this);
-        title.setText((pro ? "PRO PREVIEW • " : "FREE • ")+name);
-        title.setTextColor(TEXT);
-        title.setTextSize(16);
+        badge.setBackground(badgeBg);
+
+        FrameLayout.LayoutParams badgeParams=
+                new FrameLayout.LayoutParams(
+                        dp(selected ? 34 : 48),
+                        dp(24),
+                        Gravity.END | Gravity.CENTER_VERTICAL
+                );
+
+        top.addView(badge,badgeParams);
+        card.addView(top,new LinearLayout.LayoutParams(-1,dp(44)));
 
         TextView sub=new TextView(this);
-        sub.setText(description);
+        sub.setText(description+"  •  Aa Bb Cc 123");
         sub.setTextColor(MUTED);
-        sub.setTextSize(11);
+        sub.setTextSize(10);
+        sub.setGravity(Gravity.CENTER);
+        sub.setSingleLine(true);
+        sub.setTypeface(settingsKeyboardTypeface(style));
 
-        words.addView(title);
-        words.addView(sub);
-
-        info.addView(
-                words,
+        card.addView(
+                sub,
                 new LinearLayout.LayoutParams(
-                        0,
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        1f
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(25)
                 )
         );
-
-        TextView arrow=new TextView(this);
-        arrow.setText("›");
-        arrow.setTextColor(MUTED);
-        arrow.setTextSize(28);
-        arrow.setGravity(Gravity.CENTER);
-
-        info.addView(
-                arrow,
-                new LinearLayout.LayoutParams(dp(34),dp(42))
-        );
-
-        card.addView(info);
 
         card.setOnClickListener(v ->
                 showFontPreview(style,name,pro)
         );
 
         LinearLayout.LayoutParams cp=cardParams();
-        cp.setMargins(0,dp(6),0,dp(6));
+        cp.setMargins(0,dp(4),0,dp(4));
         page.addView(card,cp);
     }
 
@@ -2345,19 +2473,20 @@ public class SettingsActivity extends Activity {
         sheet.setBackground(round(Color.WHITE,26));
 
         TextView title=new TextView(this);
-        title.setText((pro ? "PRO PREVIEW • " : "")+name);
+        title.setText(name);
         title.setTextColor(TEXT);
-        title.setTextSize(22);
+        title.setTextSize(fontDisplayTextSize(style)+2);
         title.setGravity(Gravity.CENTER);
-        sheet.addView(title,new LinearLayout.LayoutParams(-1,dp(42)));
+        title.setTypeface(settingsKeyboardTypeface(style));
+        sheet.addView(title,new LinearLayout.LayoutParams(-1,dp(48)));
 
         TextView sample=new TextView(this);
         sample.setText("The quick brown fox  •  Aa Bb Cc 123");
         sample.setTextColor(TEXT);
-        sample.setTextSize(style==106 ? 14 : 22);
+        sample.setTextSize(style==106 ? 13 : 20);
         sample.setGravity(Gravity.CENTER);
         sample.setTypeface(settingsKeyboardTypeface(style));
-        sheet.addView(sample,new LinearLayout.LayoutParams(-1,dp(62)));
+        sheet.addView(sample,new LinearLayout.LayoutParams(-1,dp(58)));
 
         sheet.addView(
                 buildFontKeyboardPreview(style),
@@ -2366,8 +2495,8 @@ public class SettingsActivity extends Activity {
 
         if(pro) {
             TextView note=new TextView(this);
-            note.setText("Unlocked for testing in 2.40.0 • Future KeyKii Pro font");
-            note.setTextColor(MUTED);
+            note.setText("PRO preview • unlocked for testing in KeyKii 2.49.0");
+            note.setTextColor(Color.rgb(169,92,181));
             note.setTextSize(11);
             note.setGravity(Gravity.CENTER);
             sheet.addView(note,new LinearLayout.LayoutParams(-1,dp(34)));
@@ -2377,7 +2506,7 @@ public class SettingsActivity extends Activity {
         actions.setGravity(Gravity.CENTER);
 
         TextView cancel=textButton("Cancel");
-        TextView apply=textButton(pro ? "Apply for testing" : "Apply");
+        TextView apply=textButton("Apply font");
         cancel.setTextSize(16);
         apply.setTextSize(16);
 
@@ -2388,7 +2517,7 @@ public class SettingsActivity extends Activity {
                     .putInt("keyboard_font_style",style)
                     .apply();
 
-            toast(name+" font applied");
+            toast(name+" applied to KeyKii");
             dialog.dismiss();
             showFonts();
         });

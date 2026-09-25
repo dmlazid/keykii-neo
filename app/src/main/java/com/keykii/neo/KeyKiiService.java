@@ -17061,107 +17061,118 @@ public class KeyKiiService extends InputMethodService {
 
         switch(style) {
             case 1:
-                result=
-                    android.graphics.Typeface.create(
-                        "sans-serif-rounded",
-                        android.graphics.Typeface.NORMAL
-                    );
+                result=android.graphics.Typeface.create(
+                    "sans-serif-rounded",
+                    android.graphics.Typeface.NORMAL
+                );
                 break;
-
             case 2:
-                result=
-                    android.graphics.Typeface.create(
-                        "serif",
-                        android.graphics.Typeface.NORMAL
-                    );
+                result=android.graphics.Typeface.create(
+                    "serif",
+                    android.graphics.Typeface.NORMAL
+                );
                 break;
-
             case 3:
-                result=
-                    android.graphics.Typeface.create(
-                        "monospace",
-                        android.graphics.Typeface.NORMAL
-                    );
+                result=android.graphics.Typeface.create(
+                    "monospace",
+                    android.graphics.Typeface.NORMAL
+                );
                 break;
-
             case 4:
-                result=
-                    android.graphics.Typeface.create(
-                        "sans-serif-condensed",
-                        android.graphics.Typeface.NORMAL
-                    );
+                result=android.graphics.Typeface.create(
+                    "sans-serif-condensed",
+                    android.graphics.Typeface.NORMAL
+                );
                 break;
-
             case 5:
-                result=
-                    android.graphics.Typeface.create(
-                        "cursive",
-                        android.graphics.Typeface.NORMAL
-                    );
+                result=android.graphics.Typeface.create(
+                    "cursive",
+                    android.graphics.Typeface.NORMAL
+                );
                 break;
-
             case 6:
-                result=
-                    android.graphics.Typeface.create(
-                        "sans-serif-medium",
-                        android.graphics.Typeface.NORMAL
-                    );
+                result=android.graphics.Typeface.create(
+                    "sans-serif-medium",
+                    android.graphics.Typeface.NORMAL
+                );
                 break;
-
             case 100:
-                result=assetKeyboardTypeface(
-                    "fonts/fredoka.ttf"
-                );
+                result=assetKeyboardTypeface("fonts/fredoka.ttf");
                 break;
-
             case 101:
-                result=assetKeyboardTypeface(
-                    "fonts/dynapuff.ttf"
-                );
+                result=assetKeyboardTypeface("fonts/dynapuff.ttf");
                 break;
-
             case 102:
-                result=assetKeyboardTypeface(
-                    "fonts/rubik_bubbles.ttf"
-                );
+                result=assetKeyboardTypeface("fonts/rubik_bubbles.ttf");
                 break;
-
             case 103:
-                result=assetKeyboardTypeface(
-                    "fonts/patrick_hand.ttf"
-                );
+                result=assetKeyboardTypeface("fonts/patrick_hand.ttf");
                 break;
-
             case 104:
-                result=assetKeyboardTypeface(
-                    "fonts/lobster.ttf"
-                );
+                result=assetKeyboardTypeface("fonts/lobster.ttf");
                 break;
-
             case 105:
-                result=assetKeyboardTypeface(
-                    "fonts/bungee.ttf"
-                );
+                result=assetKeyboardTypeface("fonts/bungee.ttf");
                 break;
-
             case 106:
-                result=assetKeyboardTypeface(
-                    "fonts/press_start_2p.ttf"
-                );
+                result=assetKeyboardTypeface("fonts/press_start_2p.ttf");
                 break;
-
             case 107:
-                result=assetKeyboardTypeface(
-                    "fonts/cinzel_decorative.ttf"
-                );
+                result=assetKeyboardTypeface("fonts/cinzel_decorative.ttf");
                 break;
-
+            case 108:
+                result=assetKeyboardTypeface("fonts/pacifico.ttf");
+                break;
+            case 109:
+                result=assetKeyboardTypeface("fonts/caveat.ttf");
+                break;
+            case 110:
+                result=assetKeyboardTypeface("fonts/berkshire_swash.ttf");
+                break;
+            case 111:
+                result=assetKeyboardTypeface("fonts/kaushan_script.ttf");
+                break;
+            case 112:
+                result=assetKeyboardTypeface("fonts/fascinate_inline.ttf");
+                break;
+            case 113:
+                result=assetKeyboardTypeface("fonts/monoton.ttf");
+                break;
+            case 114:
+                result=assetKeyboardTypeface("fonts/frijole.ttf");
+                break;
+            case 115:
+                result=assetKeyboardTypeface("fonts/barrio.ttf");
+                break;
+            case 116:
+                result=assetKeyboardTypeface("fonts/knewave.ttf");
+                break;
+            case 117:
+                result=assetKeyboardTypeface("fonts/rye.ttf");
+                break;
+            case 118:
+                result=assetKeyboardTypeface("fonts/creepster.ttf");
+                break;
+            case 119:
+                result=assetKeyboardTypeface("fonts/baloo2.ttf");
+                break;
+            case 120:
+                result=assetKeyboardTypeface("fonts/modak.ttf");
+                break;
+            case 121:
+                result=assetKeyboardTypeface("fonts/fredericka_the_great.ttf");
+                break;
+            case 122:
+                result=assetKeyboardTypeface("fonts/gluten.ttf");
+                break;
+            case 123:
+                result=assetKeyboardTypeface("fonts/londrina_sketch.ttf");
+                break;
             default:
-                result=
-                    android.graphics.Typeface.create(
-                        "sans-serif",
-                        android.graphics.Typeface.NORMAL
-                    );
+                result=android.graphics.Typeface.create(
+                    "sans-serif",
+                    android.graphics.Typeface.NORMAL
+                );
                 break;
         }
 

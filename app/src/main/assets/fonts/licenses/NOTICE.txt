@@ -1,0 +1,13 @@
+KeyKii Neo bundled font collection
+
+Source: Google Fonts (google/fonts)
+License: SIL Open Font License 1.1
+
+Bundled families:
+Fredoka, DynaPuff, Rubik Bubbles, Patrick Hand, Lobster, Bungee,
+Press Start 2P, Cinzel Decorative, Pacifico, Caveat, Berkshire Swash,
+Kaushan Script, Fascinate Inline, Monoton, Frijole, Barrio, Knewave,
+Rye, Creepster, Baloo 2, Modak, Fredericka the Great, Gluten,
+and Londrina Sketch.
+
+See OFL-1.1.txt in this folder for the license text.
