@@ -87,6 +87,8 @@ public class SettingsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences("keykii_prefs", MODE_PRIVATE);
+        themeBrowseMode=prefs.getString("theme_browse_mode","all");
+        fontBrowseMode=prefs.getString("font_browse_mode","all");
 
         String openScreen=
                 getIntent().getStringExtra(
@@ -2458,7 +2460,6 @@ public class SettingsActivity extends Activity {
     private void showTheme() {
         screen = "theme";
         hideSoftKeyboardNow();
-        themeBrowseMode=prefs.getString("theme_browse_mode","all");
         initThemeDraftFromPrefs();
         themeSelectableTiles.clear();
 
@@ -2962,7 +2963,6 @@ public class SettingsActivity extends Activity {
     private void showFonts(){
         screen="fonts";
         hideSoftKeyboardNow();
-        fontBrowseMode=prefs.getString("font_browse_mode","all");
         LinearLayout page=page("Fonts","Choose a font style for your KeyKii keyboard",false);
         page.setPadding(dp(18),dp(18),dp(18),dp(120));
 
@@ -3090,12 +3090,25 @@ public class SettingsActivity extends Activity {
         addFontFilterChip(row,"Color Fonts","color");
         scroll.addView(row);
         page.addView(scroll,new LinearLayout.LayoutParams(-1,dp(58)));
+
+        final String wanted="font_filter_"+fontBrowseMode;
+        scroll.post(() -> {
+            View selected=row.findViewWithTag(wanted);
+            if(selected!=null) {
+                int target=Math.max(
+                        0,
+                        selected.getLeft()-dp(18)
+                );
+                scroll.scrollTo(target,0);
+            }
+        });
     }
 
     private void addFontFilterChip(LinearLayout row,String label,String mode){
         boolean selected=mode.equals(fontBrowseMode);
         TextView chip=new TextView(this);
         chip.setText(ui(label));
+        chip.setTag("theme_filter_"+mode);
         chip.setTextSize(12);
         chip.setGravity(Gravity.CENTER);
         chip.setTextColor(selected?Color.rgb(120,66,149):Color.rgb(88,80,92));
@@ -3808,6 +3821,18 @@ public class SettingsActivity extends Activity {
 
         scroll.addView(row);
         page.addView(scroll,new LinearLayout.LayoutParams(-1,dp(58)));
+
+        final String wanted="theme_filter_"+themeBrowseMode;
+        scroll.post(() -> {
+            View selected=row.findViewWithTag(wanted);
+            if(selected!=null) {
+                int target=Math.max(
+                        0,
+                        selected.getLeft()-dp(18)
+                );
+                scroll.scrollTo(target,0);
+            }
+        });
     }
 
     private void addThemeFilterChip(
@@ -3819,6 +3844,7 @@ public class SettingsActivity extends Activity {
 
         TextView chip=new TextView(this);
         chip.setText(ui(label));
+        chip.setTag("font_filter_"+mode);
         chip.setTextSize(12);
         chip.setGravity(Gravity.CENTER);
         chip.setTextColor(
