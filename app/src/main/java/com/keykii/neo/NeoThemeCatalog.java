@@ -30,8 +30,8 @@ final class NeoThemeCatalog {
     };
     private static final String[] TAGS={
         "cute kawaii aesthetic", "dark floral luxury", "ocean nature aesthetic", "cute kawaii food", "anime-inspired dreamy dark", "food cute", "gaming city dark", "aesthetic retro nature floral", "space dreamy dark", "nature floral aesthetic", "floral nature dreamy", "minimal nature floral retro", "gaming retro cute dark", "y2k aesthetic luxury", "dark luxury", "city dreamy dark", "seasonal city dark", "seasonal nature dreamy", "seasonal cute dark", "food cute kawaii", "ocean nature dreamy dark", "anime-inspired city dreamy dark", "floral nature aesthetic", "luxury dark", "minimal nature", "gaming dark", "luxury dreamy aesthetic", "kawaii cute dreamy", "aesthetic floral cute", "retro gaming minimal", "city dark aesthetic", "cute kawaii nature dark",
-        "space dreamy aesthetic kawaii","cute kawaii aesthetic floral","cute kawaii aesthetic","food retro aesthetic cute","cute kawaii aesthetic y2k","floral dreamy nature aesthetic","dreamy cute kawaii aesthetic","space dreamy dark aesthetic",
-        "dreamy floral aesthetic nature","aesthetic cute dreamy","retro y2k gaming cute","food cute retro","minimal retro aesthetic","ocean nature dreamy aesthetic","nature floral minimal aesthetic","city gaming dark y2k"
+        "space dreamy aesthetic kawaii anime-inspired","cute kawaii aesthetic floral seasonal","cute kawaii aesthetic anime-inspired y2k","food retro aesthetic cute","cute kawaii aesthetic y2k anime-inspired","floral dreamy nature aesthetic seasonal ocean","dreamy cute kawaii aesthetic anime-inspired","space dreamy dark aesthetic anime-inspired",
+        "dreamy floral aesthetic nature seasonal ocean","aesthetic cute dreamy anime-inspired city","retro y2k gaming cute city","food cute retro luxury","minimal retro aesthetic luxury","ocean nature dreamy aesthetic seasonal","nature floral minimal aesthetic seasonal","city gaming dark y2k space"
     };
     // Art direction per structural family. These are deliberate choices, not unrelated
     // backgrounds assigned by modular arithmetic. Editions also alter real geometry.
@@ -122,7 +122,7 @@ final class NeoThemeCatalog {
                 composition=slot/48;
                 int base=slot%48;
                 architecture=Math.floorMod(base*17+composition*13,48);
-                art=Math.floorMod(base*11+composition*7+architecture*3,48);
+                art=Math.floorMod(base*7+composition*11+architecture*2,48);
                 motif=MOTIF[art];
                 material=Math.floorMod(MATERIAL[architecture]+composition,5);
                 pro=proFamily(architecture);
