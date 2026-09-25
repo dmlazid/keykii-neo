@@ -61,6 +61,7 @@ public class SettingsActivity extends Activity {
             new java.util.HashMap<>();
 
     private int remoteFontShownCount = 48;
+    private String fontBrowseMode = "categories";
     private final java.util.concurrent.ExecutorService fontDownloadExecutor =
             java.util.concurrent.Executors.newSingleThreadExecutor();
 
@@ -2403,8 +2404,8 @@ public class SettingsActivity extends Activity {
 
         TextView heroSub=new TextView(this);
         heroSub.setText(
-                "1,052 new styles added: 320 watch-ad fonts, 704 Pro fonts, plus 28 new featured fonts. " +
-                "Fonts stay separate from themes."
+                "Mix cute, handwritten, retro, bold, elegant and playful alphabet styles with any KeyKii theme. " +
+                "Choose a section below to browse."
         );
         heroSub.setTextColor(MUTED);
         heroSub.setTextSize(11);
@@ -2420,6 +2421,109 @@ public class SettingsActivity extends Activity {
                 );
         hp.setMargins(0,dp(6),0,dp(14));
         page.addView(hero,hp);
+
+        addFontBrowseNavigation(page);
+
+        if("new".equals(fontBrowseMode)) {
+            addSection(page,"New featured fonts");
+            addFontStoreCard(page,124,"Black Ops One","Bold tactical display",false);
+            addFontStoreCard(page,125,"Bowlby One SC","Chunky poster caps",false);
+            addFontStoreCard(page,126,"Bubblegum Sans","Cute bubbly sans",false);
+            addFontStoreCard(page,127,"Cherry Bomb One","Playful chunky display",false);
+            addFontStoreCard(page,128,"Codystar","Dotted retro display",false);
+            addFontStoreCard(page,129,"Diplomata SC","Decorative engraved caps",false);
+            addFontStoreCard(page,130,"Emblema One","Vintage emblem display",false);
+            addFontStoreCard(page,131,"Ewert","Western decorative inline",false);
+            addFontStoreCard(page,132,"Faster One","Fast racing display",false);
+            addFontStoreCard(page,133,"Finger Paint","Painted hand lettering",false);
+            addFontStoreCard(page,134,"Geostar","Geometric outline",false);
+            addFontStoreCard(page,135,"Geostar Fill","Geometric filled display",false);
+            addFontStoreCard(page,136,"Gravitas One","Heavy classic serif",true);
+            addFontStoreCard(page,137,"Henny Penny","Whimsical handwritten",true);
+            addFontStoreCard(page,138,"Jolly Lodger","Playful spooky display",true);
+            addFontStoreCard(page,139,"Kablammo","Explosive variable display",true);
+            addFontStoreCard(page,140,"Kirang Haerang","Casual marker style",true);
+            addFontStoreCard(page,141,"Lacquer","Brush display lettering",true);
+            addFontStoreCard(page,142,"Limelight","Art deco display",true);
+            addFontStoreCard(page,143,"Metal Mania","Heavy metal display",true);
+            addFontStoreCard(page,144,"Mogra","Soft playful lettering",true);
+            addFontStoreCard(page,145,"Nosifer","Dripping horror display",true);
+            addFontStoreCard(page,146,"Rampart One","Outlined block display",true);
+            addFontStoreCard(page,147,"Ribeye","Friendly decorative serif",true);
+            addFontStoreCard(page,148,"Rubik Beastly","Wild decorative display",true);
+            addFontStoreCard(page,149,"Rubik Moonrocks","Rocky playful display",true);
+            addFontStoreCard(page,150,"Train One","Industrial line display",true);
+            addFontStoreCard(page,151,"Unifraktur Cook","Blackletter gothic",true);
+
+            addSection(page,"New additions from full library");
+            addRemoteFontSlice(page,0,36);
+
+        } else if("colorful".equals(fontBrowseMode)) {
+            addSection(page,"Colorful & expressive");
+            addFontStoreCard(page,101,"DynaPuff","Puffy hand-drawn",true);
+            addFontStoreCard(page,102,"Rubik Bubbles","Bubble outline",true);
+            addFontStoreCard(page,105,"Bungee","Arcade display",true);
+            addFontStoreCard(page,108,"Pacifico","Smooth brush script",true);
+            addFontStoreCard(page,112,"Fascinate Inline","Retro inline",true);
+            addFontStoreCard(page,113,"Monoton","Neon line",true);
+            addFontStoreCard(page,114,"Frijole","Chunky decorative",true);
+            addFontStoreCard(page,115,"Barrio","Playful irregular",true);
+            addFontStoreCard(page,116,"Knewave","Bold painted",true);
+            addFontStoreCard(page,119,"Baloo 2","Soft chunky",true);
+            addFontStoreCard(page,120,"Modak","Extra puffy",true);
+            addFontStoreCard(page,122,"Gluten","Bouncy playful",true);
+            addFontStoreCard(page,126,"Bubblegum Sans","Cute bubbly sans",false);
+            addFontStoreCard(page,127,"Cherry Bomb One","Playful chunky display",false);
+            addFontStoreCard(page,133,"Finger Paint","Painted hand lettering",false);
+            addFontStoreCard(page,137,"Henny Penny","Whimsical handwritten",true);
+            addFontStoreCard(page,139,"Kablammo","Explosive variable display",true);
+            addFontStoreCard(page,141,"Lacquer","Brush display lettering",true);
+            addFontStoreCard(page,142,"Limelight","Art deco display",true);
+            addFontStoreCard(page,144,"Mogra","Soft playful lettering",true);
+            addFontStoreCard(page,148,"Rubik Beastly","Wild decorative display",true);
+            addFontStoreCard(page,149,"Rubik Moonrocks","Rocky playful display",true);
+
+            addSection(page,"More expressive styles");
+            addRemoteFontNameMatches(page,
+                    new String[]{
+                            "bubble","comic","paint","brush","pop","party","magic",
+                            "happy","moon","star","cherry","candy","flower","cookie",
+                            "funk","jelly","rainbow","neon","doodle","dream"
+                    },
+                    36
+            );
+
+        } else if("selected".equals(fontBrowseMode)) {
+            addSection(page,"Selected font");
+            addCurrentlySelectedFontCard(page);
+
+            addInfoCard(
+                    page,
+                    "Your font + your theme",
+                    "Your selected font stays active when you change themes, so you can mix any keyboard alphabet style with any theme."
+            );
+
+        } else if("trending".equals(fontBrowseMode)) {
+            addSection(page,"Trending now");
+            addFontStoreCard(page,100,"Fredoka","Round & friendly",true);
+            addFontStoreCard(page,101,"DynaPuff","Puffy hand-drawn",true);
+            addFontStoreCard(page,102,"Rubik Bubbles","Bubble outline",true);
+            addFontStoreCard(page,103,"Patrick Hand","Natural handwriting",true);
+            addFontStoreCard(page,104,"Lobster","Bold connected script",true);
+            addFontStoreCard(page,105,"Bungee","Arcade display",true);
+            addFontStoreCard(page,106,"Press Start 2P","Pixel game",true);
+            addFontStoreCard(page,108,"Pacifico","Smooth brush script",true);
+            addFontStoreCard(page,109,"Caveat","Loose handwritten",true);
+            addFontStoreCard(page,119,"Baloo 2","Soft chunky",true);
+            addFontStoreCard(page,126,"Bubblegum Sans","Cute bubbly sans",false);
+            addFontStoreCard(page,127,"Cherry Bomb One","Playful chunky display",false);
+            addFontStoreCard(page,139,"Kablammo","Explosive variable display",true);
+            addFontStoreCard(page,149,"Rubik Moonrocks","Rocky playful display",true);
+
+            addSection(page,"Trending from full library");
+            addRemoteFontSlice(page,36,30);
+
+        } else {
 
         addSection(page,"Free collection");
         addFontStoreCard(page,0,"System","Clean Android",false);
@@ -2491,6 +2595,8 @@ public class SettingsActivity extends Activity {
         addSection(page,"1,024 more fonts");
         addRemoteFontCollection(page);
 
+        }
+
         addInfoCard(
                 page,
                 "Font behavior",
@@ -2499,6 +2605,171 @@ public class SettingsActivity extends Activity {
         );
 
         setContentView(wrap(page));
+    }
+
+
+    private void addFontBrowseNavigation(LinearLayout page) {
+        LinearLayout row=new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER);
+
+        row.addView(
+                fontBrowseTab("N","New","new",Color.rgb(226,194,255)),
+                new LinearLayout.LayoutParams(0,dp(88),1f)
+        );
+        row.addView(
+                fontBrowseTab("◉","Categories","categories",Color.rgb(190,226,255)),
+                new LinearLayout.LayoutParams(0,dp(88),1f)
+        );
+        row.addView(
+                fontBrowseTab("◐","Colorful","colorful",Color.rgb(238,194,255)),
+                new LinearLayout.LayoutParams(0,dp(88),1f)
+        );
+        row.addView(
+                fontBrowseTab("♥","Selected","selected",Color.rgb(255,206,220)),
+                new LinearLayout.LayoutParams(0,dp(88),1f)
+        );
+        row.addView(
+                fontBrowseTab("▮▮▮","Trending","trending",Color.rgb(190,246,224)),
+                new LinearLayout.LayoutParams(0,dp(88),1f)
+        );
+
+        LinearLayout.LayoutParams rp=
+                new LinearLayout.LayoutParams(-1,dp(94));
+        rp.setMargins(0,0,0,dp(10));
+        page.addView(row,rp);
+    }
+
+    private LinearLayout fontBrowseTab(
+            String icon,
+            String label,
+            String mode,
+            int bubbleColor
+    ) {
+        boolean active=mode.equals(fontBrowseMode);
+
+        LinearLayout item=new LinearLayout(this);
+        item.setOrientation(LinearLayout.VERTICAL);
+        item.setGravity(Gravity.CENTER);
+        item.setPadding(dp(2),dp(3),dp(2),dp(2));
+        item.setOnClickListener(v -> {
+            fontBrowseMode=mode;
+            remoteFontShownCount=48;
+            settingsScrollPositions.put("fonts",0);
+            showFonts();
+        });
+
+        TextView bubble=new TextView(this);
+        bubble.setText(icon);
+        bubble.setTextColor(
+                active
+                        ? Color.rgb(73,54,84)
+                        : Color.rgb(91,78,99)
+        );
+        bubble.setTextSize(label.equals("Trending") ? 14 : 22);
+        bubble.setGravity(Gravity.CENTER);
+        bubble.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+
+        GradientDrawable bg=round(
+                active ? bubbleColor : Color.argb(170,
+                        Color.red(bubbleColor),
+                        Color.green(bubbleColor),
+                        Color.blue(bubbleColor)),
+                17
+        );
+        if(active)
+            bg.setStroke(dp(2),Color.rgb(181,143,204));
+        bubble.setBackground(bg);
+
+        item.addView(
+                bubble,
+                new LinearLayout.LayoutParams(dp(48),dp(48))
+        );
+
+        TextView text=new TextView(this);
+        text.setText(label);
+        text.setTextColor(active ? TEXT : MUTED);
+        text.setTextSize(label.equals("Categories") ? 9 : 10);
+        text.setGravity(Gravity.CENTER);
+        text.setSingleLine(true);
+        if(active) text.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+
+        item.addView(
+                text,
+                new LinearLayout.LayoutParams(-1,dp(28))
+        );
+
+        return item;
+    }
+
+    private void addRemoteFontSlice(
+            LinearLayout page,
+            int start,
+            int count
+    ) {
+        int end=Math.min(
+                RemoteFontCatalog.ITEMS.length,
+                start+count
+        );
+
+        for(int i=Math.max(0,start);i<end;i++)
+            addRemoteFontStoreCard(page,RemoteFontCatalog.ITEMS[i]);
+    }
+
+    private void addRemoteFontNameMatches(
+            LinearLayout page,
+            String[] words,
+            int limit
+    ) {
+        int added=0;
+
+        for(RemoteFontCatalog.Entry entry:RemoteFontCatalog.ITEMS) {
+            String lower=entry.name.toLowerCase(java.util.Locale.ROOT);
+            boolean match=false;
+
+            for(String word:words) {
+                if(lower.contains(word)) {
+                    match=true;
+                    break;
+                }
+            }
+
+            if(match) {
+                addRemoteFontStoreCard(page,entry);
+                added++;
+
+                if(added>=limit)
+                    break;
+            }
+        }
+
+        if(added==0)
+            addRemoteFontSlice(page,0,Math.min(limit,24));
+    }
+
+    private void addCurrentlySelectedFontCard(LinearLayout page) {
+        int style=prefs.getInt("keyboard_font_style",0);
+
+        if(style>=RemoteFontCatalog.FIRST_STYLE) {
+            RemoteFontCatalog.Entry entry=RemoteFontCatalog.find(style);
+
+            if(entry!=null) {
+                addRemoteFontStoreCard(page,entry);
+                return;
+            }
+        }
+
+        boolean pro=
+                (style>=100 && style<=123) ||
+                (style>=136 && style<=151);
+
+        addFontStoreCard(
+                page,
+                style,
+                keyboardFontName(),
+                "Currently selected keyboard alphabet",
+                pro
+        );
     }
 
 
