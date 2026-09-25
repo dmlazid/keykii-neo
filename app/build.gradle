@@ -44,8 +44,8 @@ android {
         applicationId 'com.keykii.neo'
         minSdk 23
         targetSdk 35
-        versionCode 166
-        versionName '2.57.4'
+        versionCode 167
+        versionName '2.57.5'
         testInstrumentationRunner 'com.keykii.neo.NeoRendererAudit'
         manifestPlaceholders = [ADMOB_APP_ID: admobAppId]
         buildConfigField 'String', 'ADMOB_REWARDED_ID', '"'+admobRewardedId+'"'

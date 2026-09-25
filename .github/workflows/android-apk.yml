@@ -125,7 +125,7 @@ jobs:
         id: package
         shell: bash
         run: |
-          VERSION=$(sed -n "s/.*versionName '\([^']*\)'.*/\1/p" app/build.gradle | head -n 1)
+          VERSION=$(sed -n "s/.*versionName '\\([^']*\\)'.*/\\1/p" app/build.gradle | head -n 1)
           APK_NAME="KeyKii-Neo-${VERSION}.apk"
           AAB_NAME="KeyKii-Neo-${VERSION}-Play.aab"
           AUDIT_NAME="Theme-Renderer-V2-Audit-${VERSION}.zip"
@@ -150,26 +150,26 @@ jobs:
           mkdir -p "${RELEASE_DIR}"
           cp "${APK_NAME}" "${AAB_NAME}" "${AUDIT_NAME}" "${SHA_NAME}" "${RELEASE_DIR}/"
 
-          cat > "${RELEASE_DIR}/README.md" <<EOF
-# KeyKii Neo ${VERSION}
+          printf '%s\n' \
+            "# KeyKii Neo ${VERSION}" \
+            "" \
+            "Everything for this update is kept together in this folder:" \
+            "" \
+            "- ${APK_NAME} — install/test on Android" \
+            "- ${AAB_NAME} — upload to Google Play Console" \
+            "- ${SHA_NAME} — SHA-256 checksums" \
+            "- ${AUDIT_NAME} — renderer/device audit evidence" \
+            > "${RELEASE_DIR}/README.md"
 
-Everything for this update is kept together in this folder:
-
-- ${APK_NAME} — install/test on Android
-- ${AAB_NAME} — upload to Google Play Console
-- ${SHA_NAME} — SHA-256 checksums
-- ${AUDIT_NAME} — renderer/device audit evidence
-EOF
-
-          cat > release-files/README.md <<EOF
-# KeyKii Neo release files
-
-All future KeyKii build downloads are kept in this one GitHub folder.
-
-**Latest:** [${VERSION}](./${VERSION}/)
-
-Each version folder contains the APK, Play AAB, SHA-256 file, renderer audit ZIP and a short README.
-EOF
+          printf '%s\n' \
+            "# KeyKii Neo release files" \
+            "" \
+            "All future KeyKii build downloads are kept in this one GitHub folder." \
+            "" \
+            "**Latest:** [${VERSION}](./${VERSION}/)" \
+            "" \
+            "Each version folder contains the APK, Play AAB, SHA-256 file, renderer audit ZIP and a short README." \
+            > release-files/README.md
 
           if [ -f "$GITHUB_WORKSPACE/.play-signing/keykii-upload.jks" ]; then
             echo "Play bundle was signed in CI with the configured upload key."
@@ -183,7 +183,6 @@ EOF
           echo "audit_name=${AUDIT_NAME}" >> "$GITHUB_OUTPUT"
           echo "sha_name=${SHA_NAME}" >> "$GITHUB_OUTPUT"
           echo "release_dir=${RELEASE_DIR}" >> "$GITHUB_OUTPUT"
-
 
       - name: Save release files in one GitHub folder
         shell: bash

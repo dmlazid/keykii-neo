@@ -1431,6 +1431,13 @@ public class SettingsActivity extends Activity {
                 KeyKiiThemeCollection.favoriteCount(this)+" favorites",
                 v -> showTheme()
         );
+        addRow(
+                page,
+                "Aa",
+                "Saved fonts",
+                KeyKiiFontCollection.favoriteCount(this)+" favorites",
+                v -> showFonts()
+        );
 
         int[] favorites=KeyKiiThemeCollection.favorites(this,12);
         addThemeSection(page,"♥ FAVORITE THEMES");
@@ -1445,7 +1452,7 @@ public class SettingsActivity extends Activity {
         }
 
         int[] recents=KeyKiiThemeCollection.recents(this,8);
-        addThemeSection(page,"↻ RECENTLY USED");
+        addThemeSection(page,"↻ RECENTLY USED THEMES");
         if(recents.length==0){
             addInfoCard(
                     page,
@@ -1456,7 +1463,32 @@ public class SettingsActivity extends Activity {
             addStylePackGrid(page,recents);
         }
 
+        addThemeSection(page,"Aa SAVED FONTS");
+        int[] savedFonts=KeyKiiFontCollection.favorites(this,8);
+        if(savedFonts.length==0){
+            addInfoCard(
+                    page,
+                    "No saved fonts yet",
+                    "Open any font preview and tap ♡ Save. Your favorite fonts will appear here."
+            );
+        }else{
+            for(int style:savedFonts)addFontCollectionCard(page,style);
+        }
+
+        addThemeSection(page,"↻ RECENTLY USED FONTS");
+        int[] recentFonts=KeyKiiFontCollection.recents(this,6);
+        if(recentFonts.length==0){
+            addInfoCard(
+                    page,
+                    "No recent fonts yet",
+                    "Fonts you apply will appear here automatically."
+            );
+        }else{
+            for(int style:recentFonts)addFontCollectionCard(page,style);
+        }
+
         addActionButton(page,"Discover more themes",v -> showTheme());
+        addActionButton(page,"Discover more fonts",v -> showFonts());
         setContentView(shopRoot(wrap(page),"mine"));
     }
 
@@ -2944,6 +2976,15 @@ public class SettingsActivity extends Activity {
             addSection(page,"Selected");
             addCurrentlySelectedFontCard(page);
 
+        } else if("saved".equals(fontBrowseMode)) {
+            addSection(page,"Saved fonts");
+            int[] saved=KeyKiiFontCollection.favorites(this,60);
+            if(saved.length==0){
+                addInfoCard(page,"No saved fonts yet","Open a font preview and tap ♡ Save.");
+            }else{
+                for(int style:saved)addFontCollectionCard(page,style);
+            }
+
         } else if("free".equals(fontBrowseMode)) {
             addSection(page,"Free");
 
@@ -3131,6 +3172,7 @@ public class SettingsActivity extends Activity {
 
         addFontFilterChip(fontFilterRow,"All","all");
         addFontFilterChip(fontFilterRow,"Selected","selected");
+        addFontFilterChip(fontFilterRow,"Saved","saved");
         addFontFilterChip(fontFilterRow,"Free","free");
         addFontFilterChip(fontFilterRow,"Pro","pro");
         addFontFilterChip(fontFilterRow,"Trending","trending");
@@ -3316,7 +3358,12 @@ public class SettingsActivity extends Activity {
         sample.setGravity(Gravity.CENTER);
         sample.setSingleLine(true);
         sample.setTypeface(settingsKeyboardTypeface(entry.baseStyle));
-        applyColorFontText(sample,entry.name,entry.style,TEXT);
+        applyColorFontText(
+                sample,
+                (KeyKiiFontCollection.isFavorite(this,entry.style) ? "♥ " : "")+entry.name,
+                entry.style,
+                TEXT
+        );
 
         TextView sub=new TextView(this);
         sub.setText(
@@ -3359,6 +3406,60 @@ public class SettingsActivity extends Activity {
         int end=Math.min(RemoteFontCatalog.ITEMS.length,start+count);
         for(int i=Math.max(0,start);i<end;i++)addRemoteFontStoreCard(page,RemoteFontCatalog.ITEMS[i]);
     }
+
+    private String fontNameForAnyStyle(int style){
+        if(ColorFontCatalog.isColorStyle(style)){
+            ColorFontCatalog.Entry e=ColorFontCatalog.find(style);
+            if(e!=null)return e.name;
+        }
+        if(style>=RemoteFontCatalog.FIRST_STYLE){
+            RemoteFontCatalog.Entry e=RemoteFontCatalog.find(style);
+            if(e!=null)return e.name;
+        }
+        switch(style){
+            case 0:return "System";
+            case 1:return "Rounded";
+            case 2:return "Serif";
+            case 3:return "Mono";
+            case 4:return "Condensed";
+            case 5:return "Casual";
+            case 6:return "Medium";
+            default:return fontNameForStyle(style);
+        }
+    }
+
+    private boolean fontProForStyle(int style){
+        if(ColorFontCatalog.isColorStyle(style)){
+            ColorFontCatalog.Entry e=ColorFontCatalog.find(style);
+            return e!=null&&e.pro;
+        }
+        if(style>=RemoteFontCatalog.FIRST_STYLE){
+            RemoteFontCatalog.Entry e=RemoteFontCatalog.find(style);
+            return e!=null&&e.pro;
+        }
+        return (style>=100&&style<=123)||(style>=136&&style<=151);
+    }
+
+    private void addFontCollectionCard(LinearLayout page,int style){
+        if(ColorFontCatalog.isColorStyle(style)){
+            ColorFontCatalog.Entry e=ColorFontCatalog.find(style);
+            if(e!=null)addColorFontStoreCard(page,e);
+            return;
+        }
+        if(style>=RemoteFontCatalog.FIRST_STYLE){
+            RemoteFontCatalog.Entry e=RemoteFontCatalog.find(style);
+            if(e!=null)addRemoteFontStoreCard(page,e);
+            return;
+        }
+        addFontStoreCard(
+                page,
+                style,
+                fontNameForAnyStyle(style),
+                "Saved keyboard alphabet",
+                fontProForStyle(style)
+        );
+    }
+
 
     private void addCurrentlySelectedFontCard(LinearLayout page){
         int style=prefs.getInt("keyboard_font_style",0);
@@ -3423,7 +3524,9 @@ public class SettingsActivity extends Activity {
         words.setPadding(0,0,dp(8),0);
 
         TextView sample=new TextView(this);
-        sample.setText(name);
+        sample.setText(
+                (KeyKiiFontCollection.isFavorite(this,style) ? "♥ " : "")+name
+        );
         sample.setTextColor(TEXT);
         sample.setTextSize(fontDisplayTextSize(style));
         sample.setGravity(Gravity.CENTER);
@@ -3706,7 +3809,9 @@ public class SettingsActivity extends Activity {
         words.setPadding(0,0,dp(8),0);
 
         TextView sample=new TextView(this);
-        sample.setText(entry.name);
+        sample.setText(
+                (KeyKiiFontCollection.isFavorite(this,entry.style) ? "♥ " : "")+entry.name
+        );
         sample.setTextColor(TEXT);
         sample.setTextSize(20);
         sample.setGravity(Gravity.CENTER);
@@ -3815,11 +3920,23 @@ public class SettingsActivity extends Activity {
         actions.setGravity(Gravity.CENTER);
 
         TextView cancel=textButton("Cancel");
+        TextView favorite=textButton(
+                KeyKiiFontCollection.isFavorite(this,style)
+                        ? "♥ Saved"
+                        : "♡ Save"
+        );
         TextView apply=textButton(adGated&&!hasAdAccess() ? "Watch ad • 24h" : "Apply font");
-        cancel.setTextSize(16);
-        apply.setTextSize(16);
+        cancel.setTextSize(14);
+        favorite.setTextSize(14);
+        apply.setTextSize(14);
 
         cancel.setOnClickListener(v -> dialog.dismiss());
+
+        favorite.setOnClickListener(v -> {
+            boolean saved=KeyKiiFontCollection.toggleFavorite(this,style);
+            favorite.setText(saved ? "♥ Saved" : "♡ Save");
+            toast(saved ? "Font saved to Mine" : "Font removed from favorites");
+        });
 
         apply.setOnClickListener(v -> {
             Runnable applyFont=() -> {
@@ -3827,6 +3944,7 @@ public class SettingsActivity extends Activity {
                         .putInt("keyboard_font_style",style)
                         .apply();
 
+                KeyKiiFontCollection.rememberApplied(this,style);
                 toast(name+" applied to KeyKii");
                 dialog.dismiss();
                 renderFontCategoryContent();
@@ -3846,6 +3964,7 @@ public class SettingsActivity extends Activity {
         bp.setMargins(dp(4),dp(8),dp(4),0);
 
         actions.addView(cancel,bp);
+        actions.addView(favorite,bp);
         actions.addView(apply,bp);
         sheet.addView(actions);
 
