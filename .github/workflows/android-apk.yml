@@ -30,6 +30,7 @@ jobs:
       KEYKII_UPLOAD_STORE_PASSWORD: ${{ secrets.KEYKII_UPLOAD_STORE_PASSWORD }}
       KEYKII_UPLOAD_KEY_ALIAS: ${{ secrets.KEYKII_UPLOAD_KEY_ALIAS }}
       KEYKII_UPLOAD_KEY_PASSWORD: ${{ secrets.KEYKII_UPLOAD_KEY_PASSWORD }}
+      KEYKII_UPLOAD_KEYSTORE_B64: ${{ secrets.KEYKII_UPLOAD_KEYSTORE_B64 }}
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
@@ -61,13 +62,11 @@ jobs:
           cp "$HOME/.keykii/keykii-debug.keystore" "$HOME/.android/debug.keystore"
 
       - name: Restore optional Play upload key
-        if: ${{ secrets.KEYKII_UPLOAD_KEYSTORE_B64 != '' }}
+        if: ${{ env.KEYKII_UPLOAD_KEYSTORE_B64 != '' }}
         shell: bash
-        env:
-          KEYSTORE_B64: ${{ secrets.KEYKII_UPLOAD_KEYSTORE_B64 }}
         run: |
           mkdir -p "$GITHUB_WORKSPACE/.play-signing"
-          printf '%s' "$KEYSTORE_B64" | base64 --decode > "$GITHUB_WORKSPACE/.play-signing/keykii-upload.jks"
+          printf '%s' "$KEYKII_UPLOAD_KEYSTORE_B64" | base64 --decode > "$GITHUB_WORKSPACE/.play-signing/keykii-upload.jks"
           chmod 600 "$GITHUB_WORKSPACE/.play-signing/keykii-upload.jks"
 
       - name: Install Android SDK
