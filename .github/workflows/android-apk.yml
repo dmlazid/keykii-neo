@@ -80,10 +80,14 @@ jobs:
       - name: Audit theme geometry
         run: bash tests/run-theme-audit.sh
 
-      - name: Build APK and Play App Bundle
+      - name: Build APK and Android test
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon :app:assembleDebug :app:assembleDebugAndroidTest :app:bundleRelease
+          ./gradlew --no-daemon :app:assembleDebug :app:assembleDebugAndroidTest
+
+      - name: Build Play App Bundle
+        run: |
+          ./gradlew --no-daemon --max-workers=1 :app:bundleRelease
 
       - name: Enable emulator acceleration
         run: |
