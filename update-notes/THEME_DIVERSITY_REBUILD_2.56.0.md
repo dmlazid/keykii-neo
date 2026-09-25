@@ -1,22 +1,27 @@
-# KeyKii Neo 2.56.0 — True Theme Diversity Rebuild
+# KeyKii Neo 2.56.0 — Theme Renderer V2
 
-The 2.55.1 rollout was not visually diverse enough. Its first page grouped many themes under the same Capsule Grid architecture, which made the collection look like recolors.
+This rebuild replaces the rejected 2.55.1 theme-generation model. The goal is structural variety, not palette swapping.
 
-## Rebuilt catalog order
-- Consecutive theme cards now rotate through all architecture slots instead of showing one architecture 32 times.
-- World, architecture, scene and key geometry are independently interleaved.
-- The first screen now contains visibly different board structures and keycap shapes.
+## Renderer architecture
+- 48 distinct board/layout families are now supported by the renderer.
+- 24 keycap geometry modes are available, including capsule, pill, cut-corner, bevel, gem, ticket, oval, circle, squircle, sticker, mechanical, paper-tab, plush, pixel and outline styles.
+- 32 original scene systems can be layered into themes.
+- The 512-theme catalog interleaves board family, scene, palette, key geometry and free/pro state so adjacent Theme Shop cards do not look like recolors of the same template.
 
-## Signature scenes
-The renderer now adds large recognizable original scene compositions instead of relying only on small pattern overlays. Scene families include:
-Ribbon Atelier, Moon Window, Cloud Bedroom, Pixel Station, Cherry Picnic, Cat Cafe, Bunny Studio, Teddy Bakery, Starlight Desk, Jelly Aquarium, Mushroom Garden, Crystal Vanity, Retro Cassette, Game Lounge, Ocean Shell, Book Nook, Butterfly Gallery, Perfume Shelf, Sunset Balcony, Rainy Loft, Candy Counter, Flower Market, Night Skyline, Aurora Room, Polaroid Wall, Strawberry Milk, Pumpkin Porch, Snow Globe, Lantern Festival, Planet Observatory, Music Corner and Glass Greenhouse.
+## New structural families
+Examples include Floating Candy, Sticker Scrapbook, Split Mechanical, Cloud Islands, Offset Bento, Ticket Rows, Glass Shelves, Pixel Console, Notebook Tabs, Petal Cluster, Arcade Blocks, Ribbon Stacks, Asymmetric Cards, Jewel Facets, Plush, Photo Frames, City Panels, Orbit, Mosaic, Cyber Rails, Garden Trellis, Dessert Board, Ocean Pebbles, Luxury Plaques, Y2K Chrome, Gothic Windows, Dream Bedroom, Retro Cassette, Kawaii Room, Space Console, Minimal Lines, Lantern Steps, Mechanical Deck, Polaroid Wall, Book Page, Neon Circuit, Frosted Dock, Teddy Shelf, Flower Market, Game Desk, Night Skyline, Candy Shop, Aurora Glass, Moon Window, Sticker Parade, Wave Deck and Zen Stones.
 
-These are original KeyKii vector scenes drawn directly by the app; they are not copied images from the web.
+## Theme Shop
+- Batch size stays at 24 themes.
+- Category switching keeps the 2.54.4 instant-render behavior.
+- Added categories: Kawaii, Anime-inspired, Floral, Y2K and City.
+- Existing categories remain: All, New, Free, Pro, Cute, Aesthetic, Dreamy, Dark, Gaming, Nature, Food, Retro, Minimal, Luxury, Space, Ocean and Seasonal.
+- Existing 40 legacy themes remain available and are not downgraded.
 
-## Applied keyboard
-The Theme Shop preview and the real keyboard still share the same NeoTheme renderer, so the scene and key geometry selected in the shop are also used by the applied keyboard.
+## Preview/applied parity
+The Theme Shop preview and the real keyboard use the same `NeoThemeCatalog`, `NeoThemeDrawable` and `NeoThemeKeyDrawable` data path. A selected theme therefore uses the same board family, scene and key geometry after it is applied.
 
-## Catalog size
-512 rebuilt new themes + 40 current favorites = 552 themes.
+## Preservation
+No keyboard tool, translator, grammar tool, cursor-control, emoji/kaomoji, language, keyboard height, bottom-spacing, intro or font-category code was intentionally removed by this rebuild.
 
-Version 2.56.0.
+Version: 2.56.0
