@@ -8,6 +8,8 @@ ROOT=Path(__file__).resolve().parents[1]
 SRC=ROOT/"theme-assets"/"2.48"/"theme_atlas.svg"
 OUT=ROOT/"app"/"src"/"main"/"res"/"drawable-nodpi"
 OUT.mkdir(parents=True,exist_ok=True)
+V2_ASSET_OUT=ROOT/"app"/"src"/"main"/"assets"/"themes"/"v2"
+V2_ASSET_OUT.mkdir(parents=True,exist_ok=True)
 
 png=cairosvg.svg2png(bytestring=SRC.read_bytes(),output_width=1200,output_height=14400)
 atlas=Image.open(io.BytesIO(png)).convert("RGBA")
@@ -32,4 +34,10 @@ for idx,pack in enumerate(range(120,140)):
     space.putalpha(mask)
     space.save(OUT/f"theme_ill_space_{pack}.webp","WEBP",quality=92,method=6)
 
-print("Rasterized 20 committed illustrated boards and matching spacebars.")
+# 2.57 adds a third original 4x4 scene atlas. It is source-controlled as SVG
+# and rasterized during CI so the APK contains the exact art reviewed in source.
+scene_c=ROOT/"theme-assets"/"2.57"/"scenes-c.svg"
+if scene_c.exists():
+    cairosvg.svg2png(bytestring=scene_c.read_bytes(),write_to=str(V2_ASSET_OUT/"scenes-c.png"),output_width=2048,output_height=1280)
+
+print("Rasterized 20 illustrated boards, matching spacebars, and 2.57 scene atlas.")
