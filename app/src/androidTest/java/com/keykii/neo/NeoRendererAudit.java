@@ -19,8 +19,8 @@ public final class NeoRendererAudit extends Instrumentation {
         try{
             Context c=getTargetContext();NeoArt.preload(c);
             long until=System.currentTimeMillis()+15000;
-            while((NeoArt.atlas(0)==null||NeoArt.atlas(16)==null)&&System.currentTimeMillis()<until)Thread.sleep(25);
-            check(NeoArt.atlas(0)!=null&&NeoArt.atlas(16)!=null,"Original artwork did not load");
+            while((NeoArt.atlas(0)==null||NeoArt.atlas(16)==null||NeoArt.atlas(32)==null)&&System.currentTimeMillis()<until)Thread.sleep(25);
+            check(NeoArt.atlas(0)!=null&&NeoArt.atlas(16)!=null&&NeoArt.atlas(32)!=null,"2.57 artwork atlases did not load");
             File dir=new File(c.getExternalFilesDir(null),"theme-v2-audit");dir.mkdirs();
             final Throwable[] error={null};
             runOnMainSync(()->{
@@ -40,17 +40,30 @@ public final class NeoRendererAudit extends Instrumentation {
                         }
                         try(FileOutputStream out=new FileOutputStream(new File(dir,"families-"+sheet+".png"))){bm.compress(Bitmap.CompressFormat.PNG,100,out);}bm.recycle();
                     }
-                    // Duplicate guard: every structural family is exclusively FREE or PRO,
-                    // and its 11 compositions must not recycle the same artwork.
-                    for(int family=0;family<48;family++){
-                        Boolean tier=null;java.util.HashSet<Integer> artSeen=new java.util.HashSet<>();
-                        for(int composition=0;composition<11;composition++){
-                            int pack=1000+composition*48+family;
-                            if(pack>=1512)continue;
-                            NeoThemeCatalog.Entry entry=NeoThemeCatalog.get(pack);
-                            if(tier==null)tier=entry.pro;else check(tier==entry.pro,"FREE/PRO family duplicate "+family);
-                            check(artSeen.add(entry.art),"Repeated scene in family "+family+" composition "+composition);
-                        }
+                    // 2.57 duplicate guard: the curated concept designs must really
+                    // be separate layouts, category pages must open with structural variety,
+                    // and one architecture may not cross FREE/PRO tiers.
+                    java.util.HashSet<String> heroNames=new java.util.HashSet<>();
+                    java.util.HashSet<Integer> heroArchitectures=new java.util.HashSet<>();
+                    for(int i=0;i<32;i++){
+                        NeoThemeCatalog.Entry entry=NeoThemeCatalog.get(1000+i);
+                        check(heroNames.add(entry.name),"Duplicate curated 2.57 hero name: "+entry.name);
+                        check(heroArchitectures.add(entry.architecture),"Curated concept reused architecture "+entry.architecture);
+                    }
+                    Boolean[] tier=new Boolean[48];
+                    java.util.HashSet<String> recipe=new java.util.HashSet<>();
+                    for(int pack=1000;pack<1512;pack++){
+                        NeoThemeCatalog.Entry entry=NeoThemeCatalog.get(pack);
+                        if(tier[entry.architecture]==null)tier[entry.architecture]=entry.pro;
+                        else check(tier[entry.architecture]==entry.pro,"FREE/PRO architecture crossover "+entry.architecture);
+                        String sig=entry.architecture+":"+entry.art+":"+entry.material+":"+entry.composition;
+                        check(recipe.add(sig),"Exact repeated visual recipe "+sig);
+                    }
+                    for(String filter:NeoThemeCatalog.FILTERS){
+                        int[] page=NeoThemeCatalog.page(filter,0,24);
+                        java.util.HashSet<Integer> arch=new java.util.HashSet<>();
+                        for(int pack:page)arch.add(NeoThemeCatalog.get(pack).architecture);
+                        check(arch.size()>=Math.min(page.length,8),"Repetitive first page for "+filter+" only "+arch.size()+" architectures");
                     }
                     for(int pack=1000;pack<1512;pack++){
                         LinearLayout body=new LinearLayout(c);body.setOrientation(LinearLayout.VERTICAL);
@@ -80,7 +93,7 @@ public final class NeoRendererAudit extends Instrumentation {
                 }catch(Throwable t){error[0]=t;}
             });
             if(error[0]!=null)throw new AssertionError(error[0]);
-            try(FileWriter out=new FileWriter(new File(dir,"result.txt"))){out.write("PASS: artwork decoded; 48 family previews captured; FREE/PRO families are structurally exclusive; family scenes do not repeat; 512 live layouts preserve all views, click/long-press handlers, height and non-overlapping hit bounds.\n");}
+            try(FileWriter out=new FileWriter(new File(dir,"result.txt"))){out.write("PASS: three artwork atlases decoded; 32 curated concept themes are uniquely named and structured; category first pages are diversity-checked; FREE/PRO architectures are exclusive; exact visual recipes do not repeat; 512 live layouts preserve all views, click/long-press handlers, height and non-overlapping hit bounds.\n");}
             results.putString("stream","\nTHEME_V2_AUDIT_PASS\n");finish(-1,results);
         }catch(Throwable t){results.putString("stream","\nTHEME_V2_AUDIT_FAIL: "+t+"\n");finish(1,results);}
     }
