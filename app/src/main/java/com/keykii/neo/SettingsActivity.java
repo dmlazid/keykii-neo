@@ -60,13 +60,21 @@ public class SettingsActivity extends Activity {
     private final java.util.HashMap<String,Integer> settingsScrollPositions =
             new java.util.HashMap<>();
 
-    private int remoteFontShownCount = 48;
-    private int colorFontShownCount = 60;
+    private int remoteFontShownCount = 24;
+    private int colorFontShownCount = 30;
     private String fontBrowseMode = "all";
     private String themeBrowseMode = "all";
+
     private LinearLayout themeCategoryContent;
     private android.widget.HorizontalScrollView themeFilterScroll;
     private final java.util.ArrayList<TextView> themeFilterChips =
+            new java.util.ArrayList<>();
+    private int themeRenderGeneration = 0;
+
+    private LinearLayout fontCategoryContent;
+    private android.widget.HorizontalScrollView fontFilterScroll;
+    private LinearLayout fontFilterRow;
+    private final java.util.ArrayList<TextView> fontFilterChips =
             new java.util.ArrayList<>();
     private final java.util.concurrent.ExecutorService fontDownloadExecutor =
             java.util.concurrent.Executors.newSingleThreadExecutor();
@@ -92,7 +100,11 @@ public class SettingsActivity extends Activity {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences("keykii_prefs", MODE_PRIVATE);
         themeBrowseMode="all";
-        fontBrowseMode=prefs.getString("font_browse_mode","all");
+        fontBrowseMode="all";
+        prefs.edit()
+                .remove("theme_browse_mode")
+                .remove("font_browse_mode")
+                .apply();
 
         String openScreen=
                 getIntent().getStringExtra(
@@ -2463,6 +2475,7 @@ public class SettingsActivity extends Activity {
 
     private void showTheme() {
         screen = "theme";
+        themeBrowseMode="all";
         hideSoftKeyboardNow();
         initThemeDraftFromPrefs();
         themeSelectableTiles.clear();
@@ -2802,16 +2815,29 @@ public class SettingsActivity extends Activity {
 
     private void showFonts(){
         screen="fonts";
+        fontBrowseMode="all";
+        remoteFontShownCount=24;
+        colorFontShownCount=30;
         hideSoftKeyboardNow();
-        LinearLayout page=page("Fonts","Choose a font style for your KeyKii keyboard",false);
+
+        LinearLayout page=page(
+                "Fonts",
+                "Choose a font style for your KeyKii keyboard",
+                false
+        );
         page.setPadding(dp(18),dp(18),dp(18),dp(120));
 
         LinearLayout hero=new LinearLayout(this);
         hero.setOrientation(LinearLayout.VERTICAL);
         hero.setPadding(dp(18),dp(16),dp(18),dp(15));
+
         GradientDrawable heroBg=new GradientDrawable(
                 GradientDrawable.Orientation.TL_BR,
-                new int[]{Color.rgb(255,244,235),Color.rgb(246,248,239),Color.rgb(250,242,250)}
+                new int[]{
+                        Color.rgb(255,244,235),
+                        Color.rgb(246,248,239),
+                        Color.rgb(250,242,250)
+                }
         );
         heroBg.setCornerRadius(dp(24));
         heroBg.setStroke(dp(1),Color.rgb(238,229,224));
@@ -2825,53 +2851,148 @@ public class SettingsActivity extends Activity {
         hero.addView(heroTitle);
 
         TextView heroSub=new TextView(this);
-        heroSub.setText(ui("Choose an alphabet style for your keyboard and combine it with any KeyKii theme."));
+        heroSub.setText(
+                ui("Choose an alphabet style for your keyboard and combine it with any KeyKii theme.")
+        );
         heroSub.setTextColor(MUTED);
         heroSub.setTextSize(11);
         heroSub.setPadding(0,dp(5),0,0);
         hero.addView(heroSub);
 
-        LinearLayout.LayoutParams hp=new LinearLayout.LayoutParams(-1,ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams hp=
+                new LinearLayout.LayoutParams(
+                        -1,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
         hp.setMargins(0,dp(6),0,dp(12));
         page.addView(hero,hp);
+
         addFontFilterBar(page);
 
-        if("selected".equals(fontBrowseMode)){
+        fontCategoryContent=new LinearLayout(this);
+        fontCategoryContent.setOrientation(LinearLayout.VERTICAL);
+        page.addView(
+                fontCategoryContent,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+        );
+
+        renderFontCategoryContent();
+
+        setContentView(
+                shopRoot(
+                        wrap(page),
+                        "fonts"
+                )
+        );
+    }
+
+    private void renderFontCategoryContent() {
+        if(fontCategoryContent==null)
+            return;
+
+        LinearLayout page=fontCategoryContent;
+        page.removeAllViews();
+
+        if("selected".equals(fontBrowseMode)) {
             addSection(page,"Selected");
             addCurrentlySelectedFontCard(page);
-        }else if("free".equals(fontBrowseMode)){
+
+        } else if("free".equals(fontBrowseMode)) {
             addSection(page,"Free");
-            int[] base={0,1,2,3,4,5,6,124,125,126,127,128,129,130,131,132,133,134,135};
-            String[] names={"System","Rounded","Serif","Mono","Condensed","Casual","Medium",
-                    "Black Ops One","Bowlby One SC","Bubblegum Sans","Cherry Bomb One","Codystar",
-                    "Diplomata SC","Emblema One","Ewert","Faster One","Finger Paint","Geostar","Geostar Fill"};
-            for(int i=0;i<base.length;i++)addFontStoreCard(page,base[i],names[i],"Free keyboard alphabet",false);
+
+            int[] base={
+                    0,1,2,3,4,5,6,
+                    124,125,126,127,128,129,130,131,132,133,134,135
+            };
+            String[] names={
+                    "System","Rounded","Serif","Mono","Condensed","Casual","Medium",
+                    "Black Ops One","Bowlby One SC","Bubblegum Sans","Cherry Bomb One",
+                    "Codystar","Diplomata SC","Emblema One","Ewert","Faster One",
+                    "Finger Paint","Geostar","Geostar Fill"
+            };
+
+            for(int i=0;i<base.length;i++)
+                addFontStoreCard(
+                        page,
+                        base[i],
+                        names[i],
+                        "Free keyboard alphabet",
+                        false
+                );
+
             addSection(page,"Free / Watch Ad");
             addRemoteFontAccessCollection(page,false);
+
             addSection(page,"Color Fonts • Free / Watch Ad");
             addColorFontCollection(page,false);
-        }else if("pro".equals(fontBrowseMode)){
+
+        } else if("pro".equals(fontBrowseMode)) {
             addSection(page,"Pro");
-            int[] pro={100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,
-                    136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151};
-            for(int style:pro)addFontStoreCard(page,style,fontNameForStyle(style),"Premium keyboard alphabet",true);
+
+            int[] pro={
+                    100,101,102,103,104,105,106,107,108,109,110,111,
+                    112,113,114,115,116,117,118,119,120,121,122,123,
+                    136,137,138,139,140,141,142,143,144,145,146,147,
+                    148,149,150,151
+            };
+
+            for(int style:pro)
+                addFontStoreCard(
+                        page,
+                        style,
+                        fontNameForStyle(style),
+                        "Premium keyboard alphabet",
+                        true
+                );
+
             addSection(page,"More Pro fonts");
             addRemoteFontAccessCollection(page,true);
+
             addSection(page,"Color Fonts • Pro");
             addColorFontCollection(page,true);
-        }else if("trending".equals(fontBrowseMode)){
+
+        } else if("trending".equals(fontBrowseMode)) {
             addSection(page,"Trending");
-            int[] trend={100,101,102,103,104,105,106,108,109,119,126,127,139,149};
-            for(int style:trend)addFontStoreCard(page,style,fontNameForStyle(style),"Popular keyboard alphabet",
-                    (style>=100&&style<=123)||style>=136);
+
+            int[] trend={
+                    100,101,102,103,104,105,106,
+                    108,109,119,126,127,139,149
+            };
+
+            for(int style:trend)
+                addFontStoreCard(
+                        page,
+                        style,
+                        fontNameForStyle(style),
+                        "Popular keyboard alphabet",
+                        (style>=100&&style<=123)||style>=136
+                );
+
             addSection(page,"Trending color fonts");
-            for(int i=0;i<24;i++)addColorFontStoreCard(page,ColorFontCatalog.find(ColorFontCatalog.FIRST_STYLE+i));
-        }else if("color".equals(fontBrowseMode)){
+
+            for(int i=0;i<24;i++)
+                addColorFontStoreCard(
+                        page,
+                        ColorFontCatalog.find(
+                                ColorFontCatalog.FIRST_STYLE+i
+                        )
+                );
+
+        } else if("color".equals(fontBrowseMode)) {
             addSection(page,"300 Color Fonts");
-            addInfoCard(page,"Color Fonts",
-                    "These styles color the letters and numbers on your KeyKii keyboard. They type normal text into apps and can be mixed with any theme.");
+
+            addInfoCard(
+                    page,
+                    "Color Fonts",
+                    "These styles color the letters and numbers on your KeyKii keyboard. They type normal text into apps and can be mixed with any theme."
+            );
+
             addColorFontCollection(page,null);
-        }else{
+
+        } else {
             addSection(page,"Free collection");
             addFontStoreCard(page,0,"System","Clean Android",false);
             addFontStoreCard(page,1,"Rounded","Soft rounded",false);
@@ -2882,16 +3003,49 @@ public class SettingsActivity extends Activity {
             addFontStoreCard(page,6,"Medium","Clean bold",false);
 
             addSection(page,"Popular font styles");
-            for(int style=100;style<=123;style++)addFontStoreCard(page,style,fontNameForStyle(style),"Premium keyboard alphabet",true);
+
+            for(int style=100;style<=123;style++)
+                addFontStoreCard(
+                        page,
+                        style,
+                        fontNameForStyle(style),
+                        "Premium keyboard alphabet",
+                        true
+                );
+
             addSection(page,"New featured fonts");
-            for(int style=124;style<=151;style++)addFontStoreCard(page,style,fontNameForStyle(style),"Featured keyboard alphabet",style>=136);
+
+            for(int style=124;style<=151;style++)
+                addFontStoreCard(
+                        page,
+                        style,
+                        fontNameForStyle(style),
+                        "Featured keyboard alphabet",
+                        style>=136
+                );
 
             addSection(page,"300 Color Fonts");
-            for(int i=0;i<20;i++)addColorFontStoreCard(page,ColorFontCatalog.find(ColorFontCatalog.FIRST_STYLE+i));
+
+            for(int i=0;i<12;i++)
+                addColorFontStoreCard(
+                        page,
+                        ColorFontCatalog.find(
+                                ColorFontCatalog.FIRST_STYLE+i
+                        )
+                );
+
             TextView colors=textButton("Browse all 300 Color Fonts");
             colors.setTextSize(14);
-            colors.setOnClickListener(v->{fontBrowseMode="color";colorFontShownCount=60;settingsScrollPositions.put("fonts",0);showFonts();});
-            LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,dp(50));
+            colors.setOnClickListener(v -> {
+                fontBrowseMode="color";
+                colorFontShownCount=30;
+                refreshFontFilterStyles();
+                keepActiveFontFilterVisible();
+                renderFontCategoryContent();
+            });
+
+            LinearLayout.LayoutParams cp=
+                    new LinearLayout.LayoutParams(-1,dp(50));
             cp.setMargins(0,dp(6),0,dp(10));
             page.addView(colors,cp);
 
@@ -2899,10 +3053,13 @@ public class SettingsActivity extends Activity {
             addRemoteFontCollection(page);
         }
 
-        addInfoCard(page,"Font behavior",
-                "The selected font changes the alphabet design shown on the KeyKii keyboard. Text sent into apps remains normal.");
-        setContentView(shopRoot(wrap(page),"fonts"));
+        addInfoCard(
+                page,
+                "Font behavior",
+                "The selected font changes the alphabet design shown on the KeyKii keyboard. Text sent into apps remains normal."
+        );
     }
+
 
     private String fontNameForStyle(int style){
         String[] n={"Fredoka","DynaPuff","Rubik Bubbles","Patrick Hand","Lobster","Bungee","Press Start 2P",
@@ -2917,51 +3074,156 @@ public class SettingsActivity extends Activity {
     }
 
     private void addFontFilterBar(LinearLayout page){
-        android.widget.HorizontalScrollView scroll=new android.widget.HorizontalScrollView(this);
-        scroll.setHorizontalScrollBarEnabled(false);
-        LinearLayout row=new LinearLayout(this);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(2),dp(2),dp(2),dp(6));
-        addFontFilterChip(row,"All","all");
-        addFontFilterChip(row,"Selected","selected");
-        addFontFilterChip(row,"Free","free");
-        addFontFilterChip(row,"Pro","pro");
-        addFontFilterChip(row,"Trending","trending");
-        addFontFilterChip(row,"Color Fonts","color");
-        scroll.addView(row);
-        page.addView(scroll,new LinearLayout.LayoutParams(-1,dp(58)));
+        fontFilterChips.clear();
 
-        final String wanted="font_filter_"+fontBrowseMode;
-        scroll.post(() -> {
-            View selected=row.findViewWithTag(wanted);
-            if(selected!=null) {
-                int target=Math.max(
-                        0,
-                        selected.getLeft()-dp(18)
-                );
-                scroll.scrollTo(target,0);
+        fontFilterScroll=
+                new android.widget.HorizontalScrollView(this);
+        fontFilterScroll.setHorizontalScrollBarEnabled(false);
+        fontFilterScroll.setFillViewport(false);
+
+        fontFilterRow=new LinearLayout(this);
+        fontFilterRow.setGravity(Gravity.CENTER_VERTICAL);
+        fontFilterRow.setPadding(dp(2),dp(2),dp(2),dp(6));
+
+        addFontFilterChip(fontFilterRow,"All","all");
+        addFontFilterChip(fontFilterRow,"Selected","selected");
+        addFontFilterChip(fontFilterRow,"Free","free");
+        addFontFilterChip(fontFilterRow,"Pro","pro");
+        addFontFilterChip(fontFilterRow,"Trending","trending");
+        addFontFilterChip(fontFilterRow,"Color Fonts","color");
+
+        fontFilterScroll.addView(fontFilterRow);
+        page.addView(
+                fontFilterScroll,
+                new LinearLayout.LayoutParams(-1,dp(58))
+        );
+
+        keepActiveFontFilterVisible();
+    }
+
+    private void addFontFilterChip(
+            LinearLayout row,
+            String label,
+            String mode
+    ) {
+        TextView chip=new TextView(this);
+        chip.setText(ui(label));
+        chip.setTag(mode);
+        chip.setTextSize(12);
+        chip.setGravity(Gravity.CENTER);
+        chip.setPadding(dp(18),0,dp(18),0);
+
+        fontFilterChips.add(chip);
+        styleFontFilterChip(
+                chip,
+                mode.equals(fontBrowseMode)
+        );
+
+        chip.setOnClickListener(v -> {
+            if(mode.equals(fontBrowseMode)) {
+                keepActiveFontFilterVisible();
+                return;
             }
+
+            fontBrowseMode=mode;
+            remoteFontShownCount=24;
+            colorFontShownCount=30;
+
+            refreshFontFilterStyles();
+            keepActiveFontFilterVisible();
+            renderFontCategoryContent();
+        });
+
+        LinearLayout.LayoutParams p=
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        dp(42)
+                );
+        p.setMargins(dp(3),0,dp(3),0);
+        row.addView(chip,p);
+    }
+
+    private void styleFontFilterChip(
+            TextView chip,
+            boolean selected
+    ) {
+        chip.setTextColor(
+                selected
+                        ? Color.rgb(120,66,149)
+                        : Color.rgb(88,80,92)
+        );
+
+        chip.setTypeface(
+                Typeface.DEFAULT,
+                selected ? Typeface.BOLD : Typeface.NORMAL
+        );
+
+        GradientDrawable bg=round(
+                selected
+                        ? Color.rgb(247,224,251)
+                        : Color.WHITE,
+                20
+        );
+        bg.setStroke(
+                dp(selected ? 2 : 1),
+                selected
+                        ? Color.rgb(193,132,215)
+                        : Color.rgb(232,226,235)
+        );
+        chip.setBackground(bg);
+    }
+
+    private void refreshFontFilterStyles() {
+        for(TextView chip:fontFilterChips) {
+            Object tag=chip.getTag();
+            styleFontFilterChip(
+                    chip,
+                    tag!=null &&
+                    fontBrowseMode.equals(
+                            String.valueOf(tag)
+                    )
+            );
+        }
+    }
+
+    private void keepActiveFontFilterVisible() {
+        if(fontFilterScroll==null)
+            return;
+
+        fontFilterScroll.post(() -> {
+            TextView selected=null;
+
+            for(TextView chip:fontFilterChips) {
+                Object tag=chip.getTag();
+                if(
+                        tag!=null &&
+                        fontBrowseMode.equals(
+                                String.valueOf(tag)
+                        )
+                ) {
+                    selected=chip;
+                    break;
+                }
+            }
+
+            if(selected==null)
+                return;
+
+            int viewport=fontFilterScroll.getWidth();
+            int target=
+                    selected.getLeft() -
+                    Math.max(
+                            dp(12),
+                            (viewport-selected.getWidth())/2
+                    );
+
+            fontFilterScroll.smoothScrollTo(
+                    Math.max(0,target),
+                    0
+            );
         });
     }
 
-    private void addFontFilterChip(LinearLayout row,String label,String mode){
-        boolean selected=mode.equals(fontBrowseMode);
-        TextView chip=new TextView(this);
-        chip.setText(ui(label));
-        chip.setTag("theme_filter_"+mode);
-        chip.setTextSize(12);
-        chip.setGravity(Gravity.CENTER);
-        chip.setTextColor(selected?Color.rgb(120,66,149):Color.rgb(88,80,92));
-        if(selected)chip.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
-        GradientDrawable bg=round(selected?Color.rgb(247,224,251):Color.WHITE,20);
-        bg.setStroke(dp(selected?2:1),selected?Color.rgb(193,132,215):Color.rgb(232,226,235));
-        chip.setBackground(bg);
-        chip.setOnClickListener(v->{fontBrowseMode=mode;prefs.edit().putString("font_browse_mode",mode).apply();remoteFontShownCount=48;colorFontShownCount=60;settingsScrollPositions.put("fonts",0);showFonts();});
-        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,dp(42));
-        p.setMargins(dp(3),0,dp(3),0);
-        chip.setPadding(dp(18),0,dp(18),0);
-        row.addView(chip,p);
-    }
 
     private void addRemoteFontAccessCollection(LinearLayout page,boolean pro){
         int shown=0,available=0;
@@ -2971,8 +3233,8 @@ public class SettingsActivity extends Activity {
             if(shown<remoteFontShownCount){addRemoteFontStoreCard(page,entry);shown++;}
         }
         if(shown<available){
-            TextView more=textButton("Show 48 more  •  "+shown+"/"+available);
-            more.setOnClickListener(v->{remoteFontShownCount+=48;showFonts();});
+            TextView more=textButton("Show 24 more  •  "+shown+"/"+available);
+            more.setOnClickListener(v->{remoteFontShownCount+=24;renderFontCategoryContent();});
             page.addView(more,new LinearLayout.LayoutParams(-1,dp(50)));
         }
     }
@@ -2986,8 +3248,8 @@ public class SettingsActivity extends Activity {
             if(shown<colorFontShownCount){addColorFontStoreCard(page,entry);shown++;}
         }
         if(shown<available){
-            TextView more=textButton("Show 60 more  •  "+shown+"/"+available);
-            more.setOnClickListener(v->{colorFontShownCount+=60;showFonts();});
+            TextView more=textButton("Show 30 more  •  "+shown+"/"+available);
+            more.setOnClickListener(v->{colorFontShownCount+=30;renderFontCategoryContent();});
             page.addView(more,new LinearLayout.LayoutParams(-1,dp(50)));
         }
     }
@@ -3340,15 +3602,15 @@ public class SettingsActivity extends Activity {
 
         if(count<RemoteFontCatalog.ITEMS.length) {
             TextView more=textButton(
-                    "Show 48 more  •  "+count+"/"+RemoteFontCatalog.ITEMS.length
+                    "Show 24 more  •  "+count+"/"+RemoteFontCatalog.ITEMS.length
             );
             more.setTextSize(14);
             more.setOnClickListener(v -> {
                 remoteFontShownCount=Math.min(
                         RemoteFontCatalog.ITEMS.length,
-                        remoteFontShownCount+48
+                        remoteFontShownCount+24
                 );
-                showFonts();
+                renderFontCategoryContent();
             });
 
             LinearLayout.LayoutParams mp=
@@ -3521,7 +3783,7 @@ public class SettingsActivity extends Activity {
 
             toast(name+" applied to KeyKii");
             dialog.dismiss();
-            showFonts();
+            renderFontCategoryContent();
         });
 
         LinearLayout.LayoutParams bp=
@@ -3704,21 +3966,7 @@ public class SettingsActivity extends Activity {
             if(themePreviewSheet!=null)
                 themePreviewSheet.setVisibility(View.GONE);
 
-            if(themeCategoryContent==null)
-                return;
-
-            themeCategoryContent.animate()
-                    .alpha(0f)
-                    .setDuration(80)
-                    .withEndAction(() -> {
-                        renderThemeCategoryContent();
-                        themeCategoryContent.setAlpha(0f);
-                        themeCategoryContent.animate()
-                                .alpha(1f)
-                                .setDuration(140)
-                                .start();
-                    })
-                    .start();
+            renderThemeCategoryContent();
         });
 
         LinearLayout.LayoutParams p=
@@ -3798,184 +4046,238 @@ public class SettingsActivity extends Activity {
         if(themeCategoryContent==null)
             return;
 
+        final int generation=++themeRenderGeneration;
+
         themeCategoryContent.removeAllViews();
         themeSelectableTiles.clear();
+        themeCategoryContent.setAlpha(1f);
 
         if("free".equals(themeBrowseMode)) {
             addThemeSection(themeCategoryContent,"FREE THEMES");
-            addStylePackGrid(
+            addStylePackGridIncremental(
                     themeCategoryContent,
-                    new int[]{100,102,106,108,113,117,120,122,126,128,133,137}
+                    new int[]{100,102,106,108,113,117,120,122,126,128,133,137},
+                    generation,
+                    null
             );
+            return;
+        }
 
-        } else if("pro".equals(themeBrowseMode)) {
+        if("pro".equals(themeBrowseMode)) {
             addThemeSection(themeCategoryContent,"✦ PRO THEMES");
-            addStylePackGrid(
+            addStylePackGridIncremental(
                     themeCategoryContent,
                     new int[]{
                             101,103,104,105,107,109,110,111,112,114,115,116,
                             118,119,121,123,124,125,127,129,130,131,132,134,
                             135,136,138,139
-                    }
+                    },
+                    generation,
+                    null
             );
+            return;
+        }
 
-        } else if("cute".equals(themeBrowseMode)) {
+        if("cute".equals(themeBrowseMode)) {
             addThemeSection(themeCategoryContent,"🎀 CUTE & KAWAII");
-            addStylePackGrid(
+            addStylePackGridIncremental(
                     themeCategoryContent,
                     new int[]{
                             100,102,103,104,106,108,109,110,113,114,
                             117,120,122,123,127,131,133,134,136,137
-                    }
+                    },
+                    generation,
+                    null
             );
+            return;
+        }
 
-        } else if("aesthetic".equals(themeBrowseMode)) {
+        if("aesthetic".equals(themeBrowseMode)) {
             addThemeSection(themeCategoryContent,"✨ AESTHETIC");
-            addStylePackGrid(
+            addStylePackGridIncremental(
                     themeCategoryContent,
                     new int[]{
                             100,103,104,110,115,116,117,120,124,130,
                             131,133,135,139
-                    }
+                    },
+                    generation,
+                    null
             );
+            return;
+        }
 
-        } else if("dreamy".equals(themeBrowseMode)) {
+        if("dreamy".equals(themeBrowseMode)) {
             addThemeSection(themeCategoryContent,"☁ DREAMY");
-            addStylePackGrid(
+            addStylePackGridIncremental(
                     themeCategoryContent,
                     new int[]{
                             101,107,110,112,116,119,121,124,125,128,
                             129,133,138
-                    }
-            );
-
-        } else if("dark".equals(themeBrowseMode)) {
-            addThemeSection(themeCategoryContent,"🖤 DARK");
-            addStylePackGrid(
-                    themeCategoryContent,
-                    new int[]{105,107,118,125,132,139}
-            );
-
-        } else if("nature".equals(themeBrowseMode)) {
-            addThemeSection(themeCategoryContent,"🌿 NATURE");
-            addStylePackGrid(
-                    themeCategoryContent,
-                    new int[]{102,108,111,115,116,122,126,129,130,133,135}
-            );
-
-        } else if("seasonal".equals(themeBrowseMode)) {
-            addThemeSection(themeCategoryContent,"❄ SEASONAL");
-            addStylePackGrid(
-                    themeCategoryContent,
-                    new int[]{100,106,111,119,120,128,131}
-            );
-
-        } else {
-            addThemeSection(themeCategoryContent,"🎀 New asset packs • Kawaii & Sweet");
-            addStylePackGrid(
-                    themeCategoryContent,
-                    new int[]{120,122,123,127,131,134,136,137}
-            );
-
-            addThemeSection(themeCategoryContent,"☁ New asset packs • Dream & Nature");
-            addStylePackGrid(
-                    themeCategoryContent,
-                    new int[]{121,124,125,126,129,130,133,135,138}
-            );
-
-            addThemeSection(themeCategoryContent,"🌙 New asset packs • Cozy, Dark & Seasonal");
-            addStylePackGrid(
-                    themeCategoryContent,
-                    new int[]{128,132,139}
-            );
-
-            addThemeSection(themeCategoryContent,"✨ Current aesthetic collection");
-            addStylePackGrid(
-                    themeCategoryContent,
-                    new int[]{100,101,102,103}
-            );
-
-            addThemeSection(themeCategoryContent,"🎀 Cute & Kawaii");
-            addStylePackGrid(
-                    themeCategoryContent,
-                    new int[]{104,106,108,109,113,114}
-            );
-
-            addThemeSection(themeCategoryContent,"☁ Dreamy & Nature");
-            addStylePackGrid(
-                    themeCategoryContent,
-                    new int[]{107,111,112,115,116}
-            );
-
-            addThemeSection(themeCategoryContent,"🖤 Dark & Stylish");
-            addStylePackGrid(
-                    themeCategoryContent,
-                    new int[]{105,118}
-            );
-
-            addThemeSection(themeCategoryContent,"♡ Soft & Seasonal");
-            addStylePackGrid(
-                    themeCategoryContent,
-                    new int[]{110,117,119}
-            );
-
-            addThemeSection(themeCategoryContent,"My themes");
-            addMyThemeTiles(themeCategoryContent);
-
-            addThemeSection(themeCategoryContent,"Fine tune");
-
-            addChoiceRow(
-                    themeCategoryContent,
-                    "Accent color",
-                    accentColorName(),
-                    new String[]{
-                            "Blue","Rose","Purple","Teal",
-                            "Green","Orange","Gold","Cyan",
-                            "Magenta","Red","Black","White"
                     },
-                    new int[]{
-                            Color.rgb(93,118,171),
-                            Color.rgb(210,91,113),
-                            Color.rgb(142,96,190),
-                            Color.rgb(57,145,151),
-                            Color.rgb(85,145,91),
-                            Color.rgb(217,133,62),
-                            Color.rgb(214,166,46),
-                            Color.rgb(61,183,211),
-                            Color.rgb(194,32,128),
-                            Color.rgb(208,48,52),
-                            Color.rgb(35,35,38),
-                            Color.rgb(240,240,242)
-                    },
-                    "accent_color",
-                    Color.rgb(93,118,171),
-                    this::updateThemePreview
+                    generation,
+                    null
             );
-
-            addChoiceRow(
-                    themeCategoryContent,
-                    "Keyboard transparency",
-                    themeTransparencyName(),
-                    new String[]{"More transparent","Transparent","Balanced","Solid"},
-                    new int[]{55,70,85,100},
-                    "theme_transparency",
-                    55,
-                    this::updateThemePreview
-            );
-
-            addChoiceRow(
-                    themeCategoryContent,
-                    "Key corner roundness",
-                    keyCornerName(),
-                    new String[]{"Small","Medium","Default","Very round"},
-                    new int[]{6,11,15,22},
-                    "key_corner_radius",
-                    15,
-                    this::updateThemePreview
-            );
+            return;
         }
 
-        refreshThemeTileSelection();
+        if("dark".equals(themeBrowseMode)) {
+            addThemeSection(themeCategoryContent,"🖤 DARK");
+            addStylePackGridIncremental(
+                    themeCategoryContent,
+                    new int[]{105,107,118,125,132,139},
+                    generation,
+                    null
+            );
+            return;
+        }
+
+        if("nature".equals(themeBrowseMode)) {
+            addThemeSection(themeCategoryContent,"🌿 NATURE");
+            addStylePackGridIncremental(
+                    themeCategoryContent,
+                    new int[]{102,108,111,115,116,122,126,129,130,133,135},
+                    generation,
+                    null
+            );
+            return;
+        }
+
+        if("seasonal".equals(themeBrowseMode)) {
+            addThemeSection(themeCategoryContent,"❄ SEASONAL");
+            addStylePackGridIncremental(
+                    themeCategoryContent,
+                    new int[]{100,106,111,119,120,128,131},
+                    generation,
+                    null
+            );
+            return;
+        }
+
+        addThemeSection(themeCategoryContent,"✨ ALL THEMES");
+
+        int[] allPacks=new int[40];
+        for(int i=0;i<40;i++)
+            allPacks[i]=100+i;
+
+        addStylePackGridIncremental(
+                themeCategoryContent,
+                allPacks,
+                generation,
+                () -> {
+                    if(generation!=themeRenderGeneration)
+                        return;
+
+                    addThemeSection(themeCategoryContent,"My themes");
+                    addMyThemeTiles(themeCategoryContent);
+
+                    addThemeSection(themeCategoryContent,"Fine tune");
+
+                    addChoiceRow(
+                            themeCategoryContent,
+                            "Accent color",
+                            accentColorName(),
+                            new String[]{
+                                    "Blue","Rose","Purple","Teal",
+                                    "Green","Orange","Gold","Cyan",
+                                    "Magenta","Red","Black","White"
+                            },
+                            new int[]{
+                                    Color.rgb(93,118,171),
+                                    Color.rgb(210,91,113),
+                                    Color.rgb(142,96,190),
+                                    Color.rgb(57,145,151),
+                                    Color.rgb(85,145,91),
+                                    Color.rgb(217,133,62),
+                                    Color.rgb(214,166,46),
+                                    Color.rgb(61,183,211),
+                                    Color.rgb(194,32,128),
+                                    Color.rgb(208,48,52),
+                                    Color.rgb(35,35,38),
+                                    Color.rgb(240,240,242)
+                            },
+                            "accent_color",
+                            Color.rgb(93,118,171),
+                            this::updateThemePreview
+                    );
+
+                    addChoiceRow(
+                            themeCategoryContent,
+                            "Keyboard transparency",
+                            themeTransparencyName(),
+                            new String[]{"More transparent","Transparent","Balanced","Solid"},
+                            new int[]{55,70,85,100},
+                            "theme_transparency",
+                            55,
+                            this::updateThemePreview
+                    );
+
+                    addChoiceRow(
+                            themeCategoryContent,
+                            "Key corner roundness",
+                            keyCornerName(),
+                            new String[]{"Small","Medium","Default","Very round"},
+                            new int[]{6,11,15,22},
+                            "key_corner_radius",
+                            15,
+                            this::updateThemePreview
+                    );
+                }
+        );
+    }
+
+    private void addStylePackGridIncremental(
+            LinearLayout page,
+            int[] packs,
+            int generation,
+            Runnable onComplete
+    ) {
+        if(packs==null || packs.length==0) {
+            if(onComplete!=null) onComplete.run();
+            return;
+        }
+
+        final int[] index={0};
+
+        Runnable addNextRow=new Runnable() {
+            @Override
+            public void run() {
+                if(generation!=themeRenderGeneration)
+                    return;
+
+                if(index[0]>=packs.length) {
+                    refreshThemeTileSelection();
+                    if(onComplete!=null)
+                        onComplete.run();
+                    return;
+                }
+
+                LinearLayout row=new LinearLayout(SettingsActivity.this);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+
+                addStylePackTileToRow(
+                        row,
+                        createStylePackTile(packs[index[0]])
+                );
+                index[0]++;
+
+                if(index[0]<packs.length) {
+                    addStylePackTileToRow(
+                            row,
+                            createStylePackTile(packs[index[0]])
+                    );
+                    index[0]++;
+                } else {
+                    addStylePackSpacer(row);
+                }
+
+                page.addView(row);
+                refreshThemeTileSelection();
+
+                page.postDelayed(this,8);
+            }
+        };
+
+        page.post(addNextRow);
     }
 
 
