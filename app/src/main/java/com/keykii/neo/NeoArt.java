@@ -7,18 +7,19 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
-/** Two original atlases, decoded once off the UI thread. Never decodes in draw(). */
+/** Three original atlases, decoded once off the UI thread. Never decodes in draw(). */
 final class NeoArt {
-    private static final Bitmap[] atlases=new Bitmap[2];
+    private static final Bitmap[] atlases=new Bitmap[3];
     private static boolean loading;
     private static final ArrayList<WeakReference<View>> waiting=new ArrayList<>();
     static synchronized void preload(Context context){
         if(loading || atlases[0]!=null)return;
         loading=true; final Context app=context.getApplicationContext();
         new Thread(()->{
-            for(int i=0;i<2;i++){
+            for(int i=0;i<3;i++){
                 Bitmap bitmap=null;
-                try(InputStream in=app.getAssets().open("themes/v2/scenes-"+(i==0?"a":"b")+".png")){
+                String suffix=i==0?"a":i==1?"b":"c";
+                try(InputStream in=app.getAssets().open("themes/v2/scenes-"+suffix+".png")){
                     BitmapFactory.Options o=new BitmapFactory.Options();
                     o.inPreferredConfig=Bitmap.Config.RGB_565;
                     bitmap=BitmapFactory.decodeStream(in,null,o);
@@ -33,7 +34,7 @@ final class NeoArt {
         },"KeyKii-Theme-Art").start();
     }
     static synchronized void watch(View view){
-        if(atlases[0]!=null&&atlases[1]!=null)return;
+        if(atlases[0]!=null&&atlases[1]!=null&&atlases[2]!=null)return;
         for(WeakReference<View> r:waiting)if(r.get()==view)return;
         waiting.add(new WeakReference<>(view));preload(view.getContext());
     }
@@ -48,7 +49,7 @@ final class NeoArt {
             ((View)parent).invalidate();parent=parent.getParent();
         }
     }
-    static synchronized Bitmap atlas(int scene){return atlases[Math.floorMod(scene,32)/16];}
+    static synchronized Bitmap atlas(int scene){return atlases[Math.floorMod(scene,48)/16];}
     static void draw(Canvas c,int scene,RectF dest,Paint p){
         drawSlice(c,scene,dest,p,0,0,1,1);
     }
