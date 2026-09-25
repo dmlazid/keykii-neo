@@ -39,3 +39,17 @@ The original theme IDs 100–139 and their assets are unchanged. Translator, gra
 
 ## Limits to review on the phone
 This is a renderer/artwork rebuild, not proof that every composition meets a subjective premium-art standard. Reused art scenes are documented above. A passing build and layout audit do not replace real typing, category responsiveness and visual approval on the user's device.
+
+
+## Duplicate-theme correction — build 160
+Phone review showed that some later compositions repeated the same scene inside the same structural family, which made FREE and PRO cards look like lightly renamed copies. This pass corrects that without changing the version name.
+
+- FREE and PRO now use **different structural families**. One architecture cannot appear in both tiers.
+- Compositions 6–10 use an additional explicit scene assignment table instead of wrapping back to the first six scenes.
+- Within one structural family, all available compositions use different scene artwork.
+- The renderer adds original motif treatments based on scene direction: cosmic planets/stars, felt/embroidered seams, scrapbook doodles, painterly brush swirls, cozy flatlay objects, botanical leaves, cafe rings, pearl/bubble highlights and sticker/candy confetti.
+- These directions are inspired by the newly supplied mood-board screenshots only. No Pinterest image, branded character, screenshot, logo or copyrighted artwork is embedded in the APK.
+- The Theme Shop preview and live IME continue to share the same renderer and geometry.
+- The 2.54.4 category-performance behavior remains unchanged: 24-card batching, append-only Show more, generation cancellation and asynchronously decoded shared atlases.
+- Version remains **2.56.0** and version code is **160** so it installs over the previous 2.56.0 test build.
+- Android instrumentation now fails if a family crosses FREE/PRO tiers or reuses a scene across its compositions.
