@@ -19,8 +19,8 @@ android {
         applicationId 'com.keykii.neo'
         minSdk 23
         targetSdk 35
-        versionCode 162
-        versionName '2.57.0'
+        versionCode 163
+        versionName '2.57.1'
         testInstrumentationRunner 'com.keykii.neo.NeoRendererAudit'
     }
 

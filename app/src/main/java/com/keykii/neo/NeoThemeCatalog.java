@@ -9,6 +9,7 @@ import android.graphics.Color;
  */
 final class NeoThemeCatalog {
     static final int FIRST_PACK=1000, COUNT=512, PAGE_SIZE=24;
+    static final int PRICE_REGULAR=19, PRICE_PREMIUM=29, PRICE_PACK_5=79, PRICE_CATEGORY=99, PRICE_LIFETIME_LAUNCH=249;
     static final String[] FILTERS={"all","new","free","pro","cute","kawaii","aesthetic","anime-inspired","dreamy","dark","gaming","nature","floral","food","retro","y2k","minimal","luxury","space","ocean","city","seasonal"};
     static final String[] ARCH_NAMES={"Candy Floats","Scrapbook Stickers","Split Mechanical","Cloud Islands","Round Bubbles","Bento Blocks","Ticket Rows","Glass Shelves","Pixel Console","Notebook Tabs","Petal Keys","Arcade Blocks","Ribbon Rows","Asymmetric Cards","Jewel Facets","Plush Keycaps","Picture Frames","City Columns","Orbit Keys","Mosaic Tiles","Cyber Rails","Garden Trellis","Dessert Keys","Ocean Pebbles","Luxury Plaques","Liquid Chrome","Gothic Arches","Dream Bedroom","Retro Cassette","Kawaii Room","Space Console","Minimal Lines","Lantern Steps","Mechanical Deck","Polaroid Wall","Book Pages","Neon Circuit","Frosted Dock","Teddy Shelf","Flower Market","Game Desk","Night Skyline","Candy Counter","Aurora Glass","Moon Window","Sticker Parade","Wave Keys","Zen Stones"};
     static final String[] SCENE_NAMES={"Bunny Atelier","Velvet Rose","Ink Tide","Teddy Bakery","Moonlit Muse","Fruit Ice","Neon Rain","Pressed Memories","Aurora Observatory","Jade Greenhouse","Sakura Path","Field Journal","Pixel Hideaway","Pearl Hologram","Amethyst Abbey","Amber Loft","Lantern Lake","Alpine Frost","Pumpkin Porch","Strawberry Cream","Pearl Aquarium","Sunset Sonata","Dahlia Market","Emerald Deco","Sand & Moss","Carbon Desk","Rose Quartz","Cloud Nursery","Ribbon Linen","Mint Arcade","Rainy Tram","Lotus Reader","Galaxy Clouds","Felt Patch Garden","Kawaii Cats","Coffee Break","Pink Self Care","Sunset Tulips","Happy Cloud Sky","Painted Star Field","Pastel Brush Village","Cozy Study Desk","Retro Cute Tech","Chocolate Dream","Mosaic Ceramic","Ocean Shells","Botanical Notebook","City Neon Window"};
@@ -141,6 +142,12 @@ final class NeoThemeCatalog {
     static {for(int i=0;i<COUNT;i++)ENTRIES[i]=new Entry(i);}
     static boolean isNeoPack(int p){return p>=FIRST_PACK&&p<FIRST_PACK+COUNT;}
     static Entry get(int p){return isNeoPack(p)?ENTRIES[p-FIRST_PACK]:null;}
+    static int pricePeso(int p){
+        Entry e=get(p);if(e==null||!e.pro)return 0;
+        boolean premium=e.material>=3||e.motif==2||e.motif==3||e.motif==4||e.motif==5||
+                e.architecture==2||e.architecture==5||e.architecture==18||e.architecture==34;
+        return premium?PRICE_PREMIUM:PRICE_REGULAR;
+    }
     static int[] spec(int p){Entry e=get(p);return e==null?null:new int[]{e.start,e.end,e.accent,e.corner,e.transparency,1,e.dark?0:1,0,0};}
     static boolean matches(int p,String filter){
         Entry e=get(p);if(e==null)return false;

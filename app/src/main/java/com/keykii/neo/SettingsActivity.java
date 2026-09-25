@@ -2508,6 +2508,7 @@ public class SettingsActivity extends Activity {
         );
 
         addThemeStoreHero(page);
+        addThemePricingCard(page);
 
         addThemeFilterBar(page);
 
@@ -4402,7 +4403,7 @@ public class SettingsActivity extends Activity {
                 new TextView(this);
 
         sub.setText(
-                "Explore 512 new theme compositions and your 40 original favorites. Sculpted keys, illustrated scenes, glass, plush and more. Keep your favorite font with any theme."
+                "Explore 512 new theme compositions and your 40 original favorites. FREE themes stay free, while PRO themes now show their launch price before you preview them."
         );
 
         sub.setTextColor(MUTED);
@@ -4430,6 +4431,40 @@ public class SettingsActivity extends Activity {
         );
 
         page.addView(hero,p);
+    }
+
+    private void addThemePricingCard(LinearLayout page) {
+        LinearLayout card=new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(16),dp(13),dp(16),dp(13));
+        GradientDrawable bg=round(Color.WHITE,20);
+        bg.setStroke(dp(1),Color.rgb(229,217,236));
+        card.setBackground(bg);
+
+        TextView title=new TextView(this);
+        title.setText("Launch pricing");
+        title.setTextColor(TEXT);
+        title.setTextSize(15);
+        title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        card.addView(title);
+
+        TextView prices=new TextView(this);
+        prices.setText("PRO themes ₱19–₱29  •  5-theme pack ₱79\nCategory pack ₱99  •  Lifetime PRO ₱249");
+        prices.setTextColor(Color.rgb(126,78,151));
+        prices.setTextSize(12);
+        prices.setPadding(0,dp(4),0,0);
+        card.addView(prices);
+
+        TextView note=new TextView(this);
+        note.setText("Preview any paid theme before purchase. Checkout will be connected to Google Play before public release.");
+        note.setTextColor(MUTED);
+        note.setTextSize(10);
+        note.setPadding(0,dp(4),0,0);
+        card.addView(note);
+
+        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,ViewGroup.LayoutParams.WRAP_CONTENT);
+        p.setMargins(0,dp(2),0,dp(5));
+        page.addView(card,p);
     }
 
 
@@ -4581,7 +4616,7 @@ public class SettingsActivity extends Activity {
 
         badge.setText(
                 stylePackPro(pack)
-                        ? "✦ PRO PREVIEW"
+                        ? stylePackPriceLabel(pack)+" • PRO"
                         : "FREE"
         );
 
@@ -4952,7 +4987,7 @@ public class SettingsActivity extends Activity {
 
         badge.setText(
                 stylePackPro(pack)
-                        ? "✦ KEYKII PRO PREVIEW"
+                        ? "KEYKII PRO • "+stylePackPriceLabel(pack)+" ONE-TIME"
                         : "FREE THEME"
         );
 
@@ -4989,7 +5024,9 @@ public class SettingsActivity extends Activity {
 
         sub.setText(
                 stylePackSubtitle(pack)+
-                "\nUses your current font • Fonts stay separate"
+                (stylePackPro(pack)
+                        ? "\n"+stylePackPriceLabel(pack)+" launch price • Preview before buying"
+                        : "\nFree theme • Uses your current font")
         );
 
         sub.setTextColor(MUTED);
@@ -5013,7 +5050,7 @@ public class SettingsActivity extends Activity {
         TextView apply=
                 textButton(
                         stylePackPro(pack)
-                                ? "Apply for testing"
+                                ? "Preview keyboard"
                                 : "Apply"
                 );
 
@@ -5790,6 +5827,18 @@ public class SettingsActivity extends Activity {
             default:
                 return pack>=100 && pack<=139;
         }
+    }
+
+    private int stylePackPricePeso(int pack) {
+        if(!stylePackPro(pack)) return 0;
+        NeoThemeCatalog.Entry neo=NeoThemeCatalog.get(pack);
+        if(neo!=null) return NeoThemeCatalog.pricePeso(pack);
+        return NeoThemeCatalog.PRICE_REGULAR;
+    }
+
+    private String stylePackPriceLabel(int pack) {
+        int price=stylePackPricePeso(pack);
+        return price<=0 ? "FREE" : "₱"+price;
     }
 
 
