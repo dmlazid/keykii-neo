@@ -132,8 +132,13 @@ final class NeoThemeCatalog {
         if(!isNeoPack(pack)) return null;
 
         int index=pack-FIRST_PACK;
-        int world=index & 31;
-        int architecture=(index >> 5) & 31;
+
+        // Interleave the catalog so neighboring cards never share the same
+        // architecture. 13 and 7 are coprime with 32, so the first 32 cards
+        // cycle through all 32 architecture/world slots instead of showing
+        // 32 recolors of one keyboard.
+        int architecture=(index*13) & 31;
+        int world=(index*7 + (index>>5)*11) & 31;
 
         int[] base=BASE_PALETTES[world];
 
@@ -166,11 +171,16 @@ final class NeoThemeCatalog {
         int transparency=62 + ((world*7 + architecture*11)%30);
         boolean borders=((world+architecture)%5)!=0;
         boolean pro=(index%10)>=3;
-        int keyMode=(architecture%16)+1;
+        int keyMode=((index*11 + architecture*5 + world*3)%16)+1;
+        int scene=((index*19 + architecture*3 + world*5)&31);
 
-        String name=WORLD_NAMES[world]+" "+ARCH_NAMES[architecture];
+        String name=
+                WORLD_NAMES[world]+" "+
+                sceneName(scene)+" "+
+                architectureName(architecture);
+
         String subtitle=
-                WORLD_NAMES[world]+" world • "+
+                sceneName(scene)+" scene • "+
                 ARCH_NAMES[architecture].toLowerCase(java.util.Locale.ROOT)+
                 " • "+KEY_NAMES[keyMode-1]+" keys";
 
@@ -288,6 +298,30 @@ final class NeoThemeCatalog {
         int[] out=new int[count];
         System.arraycopy(temp,0,out,0,count);
         return out;
+    }
+
+    static int sceneForPack(int pack) {
+        Entry e=get(pack);
+        if(e==null) return 0;
+        return ((e.index*19 + e.architecture*3 + e.world*5)&31);
+    }
+
+    static String sceneName(int scene) {
+        String[] names={
+                "Ribbon Atelier","Moon Window","Cloud Bedroom","Pixel Station",
+                "Cherry Picnic","Cat Cafe","Bunny Studio","Teddy Bakery",
+                "Starlight Desk","Jelly Aquarium","Mushroom Garden","Crystal Vanity",
+                "Retro Cassette","Game Lounge","Ocean Shell","Book Nook",
+                "Butterfly Gallery","Perfume Shelf","Sunset Balcony","Rainy Loft",
+                "Candy Counter","Flower Market","Night Skyline","Aurora Room",
+                "Polaroid Wall","Strawberry Milk","Pumpkin Porch","Snow Globe",
+                "Lantern Festival","Planet Observatory","Music Corner","Glass Greenhouse"
+        };
+        return names[scene&31];
+    }
+
+    static String architectureName(int architecture) {
+        return ARCH_NAMES[architecture&31];
     }
 
     private static boolean isDarkWorld(int world) {

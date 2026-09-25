@@ -4434,7 +4434,7 @@ public class SettingsActivity extends Activity {
                 new TextView(this);
 
         sub.setText(
-                "552 keyboard themes • 512 brand-new architecture themes + 40 current favorites\n32 visual worlds × 16 keyboard architectures for the first major rollout. Themes stay separate from your selected font."
+                "552 keyboard themes • 512 rebuilt signature themes + 40 current favorites\nEvery new card mixes a different scene, board architecture and keycap geometry — not a recolor batch. Fonts stay separate."
         );
 
         sub.setTextColor(MUTED);
