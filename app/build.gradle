@@ -5,6 +5,20 @@ plugins {
 def keystoreProperties = new java.util.Properties()
 def keystorePropertiesFile = rootProject.file('keystore.properties')
 
+def admobValue = { String name, String fallback ->
+    def envValue = System.getenv(name)
+    if (envValue != null && !envValue.trim().isEmpty()) return envValue.trim()
+    def propValue = project.findProperty(name)
+    if (propValue != null && !propValue.toString().trim().isEmpty()) return propValue.toString().trim()
+    return fallback
+}
+
+def sampleAdmobAppId = 'ca-app-pub-3940256099942544~3347511713'
+def admobAppId = admobValue('ADMOB_APP_ID', sampleAdmobAppId)
+def admobRewardedId = admobValue('ADMOB_REWARDED_ID', 'ca-app-pub-3940256099942544/5224354917')
+def admobInterstitialId = admobValue('ADMOB_INTERSTITIAL_ID', 'ca-app-pub-3940256099942544/1033173712')
+def admobTestMode = admobAppId == sampleAdmobAppId
+
 if (keystorePropertiesFile.exists()) {
     keystorePropertiesFile.withInputStream {
         keystoreProperties.load(it)
@@ -19,9 +33,17 @@ android {
         applicationId 'com.keykii.neo'
         minSdk 23
         targetSdk 35
-        versionCode 163
-        versionName '2.57.1'
+        versionCode 164
+        versionName '2.57.2'
         testInstrumentationRunner 'com.keykii.neo.NeoRendererAudit'
+        manifestPlaceholders = [ADMOB_APP_ID: admobAppId]
+        buildConfigField 'String', 'ADMOB_REWARDED_ID', '"'+admobRewardedId+'"'
+        buildConfigField 'String', 'ADMOB_INTERSTITIAL_ID', '"'+admobInterstitialId+'"'
+        buildConfigField 'boolean', 'ADMOB_TEST_MODE', admobTestMode.toString()
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 
     signingConfigs {
@@ -62,6 +84,8 @@ android {
 dependencies {
     implementation 'com.google.mlkit:translate:17.0.3'
     implementation 'com.google.mlkit:language-id:17.0.6'
+    implementation 'com.google.android.gms:play-services-ads:25.5.0'
+    implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
 }
 
 // AndroidX is enabled in gradle.properties for ML Kit.

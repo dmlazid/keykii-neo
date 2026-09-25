@@ -423,6 +423,8 @@ public class KeyKiiService extends InputMethodService {
     @Override
     public View onCreateInputView() {
 
+        KeyKiiAccess.enforceExpiredSelections(this);
+
         SharedPreferences keykiiPrefs=
             getSharedPreferences(
                 "keykii_prefs",
@@ -543,6 +545,8 @@ public class KeyKiiService extends InputMethodService {
 
 
     void loadKeyKiiSettings() {
+
+        KeyKiiAccess.enforceExpiredSelections(this);
 
         SharedPreferences p=
             getSharedPreferences(

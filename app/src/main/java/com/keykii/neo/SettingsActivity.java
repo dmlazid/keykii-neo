@@ -46,6 +46,7 @@ public class SettingsActivity extends Activity {
     private static final int PASTEL_PEACH = Color.rgb(255, 238, 220);
 
     private SharedPreferences prefs;
+    private KeyKiiAds ads;
     private String screen = "home";
 
     private ScrollView themeScrollView;
@@ -100,6 +101,9 @@ public class SettingsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences("keykii_prefs", MODE_PRIVATE);
+        KeyKiiAccess.enforceExpiredSelections(this);
+        ads=new KeyKiiAds(this,prefs);
+        ads.start();
         themeBrowseMode="all";
         fontBrowseMode="all";
         prefs.edit()
@@ -2509,6 +2513,7 @@ public class SettingsActivity extends Activity {
 
         addThemeStoreHero(page);
         addThemePricingCard(page);
+        addAdAccessCard(page);
 
         addThemeFilterBar(page);
 
@@ -2869,6 +2874,7 @@ public class SettingsActivity extends Activity {
                 );
         hp.setMargins(0,dp(6),0,dp(12));
         page.addView(hero,hp);
+        addAdAccessCard(page);
 
         addFontFilterBar(page);
 
@@ -3278,7 +3284,11 @@ public class SettingsActivity extends Activity {
         applyColorFontText(sample,entry.name,entry.style,TEXT);
 
         TextView sub=new TextView(this);
-        sub.setText(entry.pro?"Color alphabet • PRO":"Color alphabet • FREE / AD");
+        sub.setText(
+                hasAdAccess()
+                        ? "Color alphabet • 24h access active"
+                        : (entry.pro?"Color alphabet • PRO / AD":"Color alphabet • FREE / AD")
+        );
         sub.setTextColor(MUTED);
         sub.setTextSize(9);
         sub.setGravity(Gravity.CENTER);
@@ -3287,7 +3297,7 @@ public class SettingsActivity extends Activity {
         row.addView(words,new LinearLayout.LayoutParams(0,dp(50),1f));
 
         TextView badge=new TextView(this);
-        badge.setText(selected?"✓":(entry.pro?"PRO":"AD"));
+        badge.setText(selected?"✓":(hasAdAccess()?"24H":(entry.pro?"PRO":"AD")));
         badge.setTextSize(selected?18:10);
         badge.setGravity(Gravity.CENTER);
         badge.setTextColor(selected?Color.rgb(114,79,133):(entry.pro?Color.rgb(184,95,115):Color.rgb(80,145,96)));
@@ -3420,7 +3430,9 @@ public class SettingsActivity extends Activity {
         badge.setText(
                 selected
                         ? "✓"
-                        : (pro ? "PRO" : "FREE")
+                        : (fontNeedsAdAccess(style,pro)
+                            ? (hasAdAccess() ? "24H" : (pro ? "PRO" : "AD"))
+                            : "FREE")
         );
         badge.setTextSize(selected ? 18 : 10);
         badge.setGravity(Gravity.CENTER);
@@ -3668,9 +3680,11 @@ public class SettingsActivity extends Activity {
 
         TextView sub=new TextView(this);
         sub.setText(
-                entry.pro
-                        ? "Pro font • tap for live preview"
-                        : "Free with rewarded ad • tap for preview"
+                hasAdAccess()
+                        ? "24h access active • tap for live preview"
+                        : (entry.pro
+                            ? "Pro font • watch ad for 24h access"
+                            : "Free with rewarded ad • 24h access")
         );
         sub.setTextColor(MUTED);
         sub.setTextSize(9);
@@ -3683,7 +3697,7 @@ public class SettingsActivity extends Activity {
         row.addView(words,new LinearLayout.LayoutParams(0,dp(50),1f));
 
         TextView badge=new TextView(this);
-        badge.setText(selected ? "✓" : (entry.pro ? "PRO" : "AD"));
+        badge.setText(selected ? "✓" : (hasAdAccess() ? "24H" : (entry.pro ? "PRO" : "AD")));
         badge.setTextSize(selected ? 18 : 10);
         badge.setGravity(Gravity.CENTER);
         badge.setTextColor(
@@ -3747,46 +3761,49 @@ public class SettingsActivity extends Activity {
                 new LinearLayout.LayoutParams(-1,dp(210))
         );
 
-        if(pro) {
+        final boolean adGated=fontNeedsAdAccess(style,pro);
+
+        if(adGated) {
             TextView note=new TextView(this);
             note.setText(
-                    style>=RemoteFontCatalog.FIRST_STYLE
-                            ? "PRO preview • direct apply is enabled in this development build"
-                            : "PRO preview • unlocked for testing in KeyKii 2.51.0"
+                    hasAdAccess()
+                            ? "✓ 24-hour access active • "+KeyKiiAccess.remainingLabel(this)
+                            : "Watch one rewarded ad to use PRO/ad fonts and PRO themes for 24 hours"
             );
-            note.setTextColor(Color.rgb(169,92,181));
-            note.setTextSize(11);
-            note.setGravity(Gravity.CENTER);
-            sheet.addView(note,new LinearLayout.LayoutParams(-1,dp(34)));
-        }
-
-        if(style>=RemoteFontCatalog.FIRST_STYLE && !pro) {
-            TextView note=new TextView(this);
-            note.setText("Rewarded-ad font • direct apply is enabled until an ad provider is connected");
-            note.setTextColor(Color.rgb(80,145,96));
+            note.setTextColor(hasAdAccess()?Color.rgb(62,139,82):Color.rgb(169,92,181));
             note.setTextSize(10);
             note.setGravity(Gravity.CENTER);
-            sheet.addView(note,new LinearLayout.LayoutParams(-1,dp(34)));
+            sheet.addView(note,new LinearLayout.LayoutParams(-1,dp(38)));
         }
 
         LinearLayout actions=new LinearLayout(this);
         actions.setGravity(Gravity.CENTER);
 
         TextView cancel=textButton("Cancel");
-        TextView apply=textButton("Apply font");
+        TextView apply=textButton(adGated&&!hasAdAccess() ? "Watch ad • 24h" : "Apply font");
         cancel.setTextSize(16);
         apply.setTextSize(16);
 
         cancel.setOnClickListener(v -> dialog.dismiss());
 
         apply.setOnClickListener(v -> {
-            prefs.edit()
-                    .putInt("keyboard_font_style",style)
-                    .apply();
+            Runnable applyFont=() -> {
+                prefs.edit()
+                        .putInt("keyboard_font_style",style)
+                        .apply();
 
-            toast(name+" applied to KeyKii");
-            dialog.dismiss();
-            renderFontCategoryContent();
+                toast(name+" applied to KeyKii");
+                dialog.dismiss();
+                renderFontCategoryContent();
+            };
+
+            if(adGated&&!hasAdAccess()){
+                request24HourAdAccess(applyFont);
+                return;
+            }
+
+            applyFont.run();
+            if(ads!=null)ads.recordNaturalBreak();
         });
 
         LinearLayout.LayoutParams bp=
@@ -4449,14 +4466,14 @@ public class SettingsActivity extends Activity {
         card.addView(title);
 
         TextView prices=new TextView(this);
-        prices.setText("PRO themes ₱19–₱29  •  5-theme pack ₱79\nCategory pack ₱99  •  Lifetime PRO ₱249");
+        prices.setText("PRO themes ₱19–₱29  •  5-theme pack ₱79\nCategory pack ₱99  •  Lifetime PRO ₱249\nOr watch 1 rewarded ad for 24h access");
         prices.setTextColor(Color.rgb(126,78,151));
         prices.setTextSize(12);
         prices.setPadding(0,dp(4),0,0);
         card.addView(prices);
 
         TextView note=new TextView(this);
-        note.setText("Preview any paid theme before purchase. Checkout will be connected to Google Play before public release.");
+        note.setText("Preview first. Rewarded access covers PRO themes and ad-gated fonts for 24 hours. Purchases will use Google Play when billing is connected.");
         note.setTextColor(MUTED);
         note.setTextSize(10);
         note.setPadding(0,dp(4),0,0);
@@ -4465,6 +4482,82 @@ public class SettingsActivity extends Activity {
         LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,ViewGroup.LayoutParams.WRAP_CONTENT);
         p.setMargins(0,dp(2),0,dp(5));
         page.addView(card,p);
+    }
+
+
+    private boolean hasAdAccess(){
+        return KeyKiiAccess.canUsePremium(this);
+    }
+
+    private boolean fontNeedsAdAccess(int style,boolean pro){
+        return pro||KeyKiiAccess.fontNeedsAccess(style);
+    }
+
+    private void request24HourAdAccess(Runnable afterUnlock){
+        if(hasAdAccess()){
+            if(afterUnlock!=null)afterUnlock.run();
+            return;
+        }
+        if(ads==null){
+            toast("Ads are not ready yet. Try again in a moment.");
+            return;
+        }
+        toast("Loading rewarded ad…");
+        ads.showRewardedFor24Hours(
+                () -> {
+                    toast("Unlocked PRO themes + fonts for 24 hours ✨");
+                    if(afterUnlock!=null)afterUnlock.run();
+                },
+                () -> toast("Ad was not completed or is unavailable. No access was changed.")
+        );
+    }
+
+    private void addAdAccessCard(LinearLayout page){
+        LinearLayout card=new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(16),dp(13),dp(16),dp(13));
+
+        boolean active=hasAdAccess();
+        GradientDrawable bg=round(
+                active ? Color.rgb(235,249,239) : Color.rgb(251,242,255),
+                20
+        );
+        bg.setStroke(dp(1),active ? Color.rgb(164,211,175) : Color.rgb(224,199,238));
+        card.setBackground(bg);
+
+        TextView title=new TextView(this);
+        title.setText(active ? "✓ 24-hour access active" : "▶ Watch ad • Unlock for 24 hours");
+        title.setTextColor(active ? Color.rgb(54,126,75) : Color.rgb(137,72,169));
+        title.setTextSize(14);
+        title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        card.addView(title);
+
+        TextView sub=new TextView(this);
+        sub.setText(
+                active
+                        ? KeyKiiAccess.remainingLabel(this)+" • PRO themes + ad-gated fonts"
+                        : "Complete one rewarded ad to use PRO themes and ad-gated fonts free for 24 hours."
+        );
+        sub.setTextColor(MUTED);
+        sub.setTextSize(10);
+        sub.setPadding(0,dp(4),0,0);
+        card.addView(sub);
+
+        if(!active){
+            TextView button=textButton(ads!=null&&ads.isTestMode() ? "Watch TEST ad • 24h" : "Watch ad • 24h");
+            button.setTextSize(13);
+            button.setOnClickListener(v -> request24HourAdAccess(() -> {
+                if("theme".equals(screen))showTheme();
+                else if("fonts".equals(screen))showFonts();
+            }));
+            LinearLayout.LayoutParams bp=new LinearLayout.LayoutParams(-1,dp(46));
+            bp.setMargins(0,dp(8),0,0);
+            card.addView(button,bp);
+        }
+
+        LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,ViewGroup.LayoutParams.WRAP_CONTENT);
+        cp.setMargins(0,dp(4),0,dp(8));
+        page.addView(card,cp);
     }
 
 
@@ -4616,7 +4709,7 @@ public class SettingsActivity extends Activity {
 
         badge.setText(
                 stylePackPro(pack)
-                        ? stylePackPriceLabel(pack)+" • PRO"
+                        ? (hasAdAccess() ? "✓ 24H ACCESS" : stylePackPriceLabel(pack)+" • PRO")
                         : "FREE"
         );
 
@@ -4987,7 +5080,9 @@ public class SettingsActivity extends Activity {
 
         badge.setText(
                 stylePackPro(pack)
-                        ? "KEYKII PRO • "+stylePackPriceLabel(pack)+" ONE-TIME"
+                        ? (hasAdAccess()
+                            ? "✓ 24H ACCESS ACTIVE"
+                            : "KEYKII PRO • "+stylePackPriceLabel(pack)+" • OR WATCH AD")
                         : "FREE THEME"
         );
 
@@ -5025,7 +5120,9 @@ public class SettingsActivity extends Activity {
         sub.setText(
                 stylePackSubtitle(pack)+
                 (stylePackPro(pack)
-                        ? "\n"+stylePackPriceLabel(pack)+" launch price • Preview before buying"
+                        ? (hasAdAccess()
+                            ? "\n24-hour access active • Apply now"
+                            : "\nWatch one rewarded ad to unlock all PRO themes + ad-gated fonts for 24h")
                         : "\nFree theme • Uses your current font")
         );
 
@@ -5050,7 +5147,7 @@ public class SettingsActivity extends Activity {
         TextView apply=
                 textButton(
                         stylePackPro(pack)
-                                ? "Preview keyboard"
+                                ? (hasAdAccess() ? "Apply" : "Watch ad • 24h")
                                 : "Apply"
                 );
 
@@ -5062,8 +5159,18 @@ public class SettingsActivity extends Activity {
         );
 
         apply.setOnClickListener(v -> {
+            if(stylePackPro(pack)&&!hasAdAccess()){
+                request24HourAdAccess(() -> {
+                    applyKeyboardStylePack(pack);
+                    dialog.dismiss();
+                    renderThemeCategoryContent();
+                });
+                return;
+            }
+
             applyKeyboardStylePack(pack);
             dialog.dismiss();
+            if(ads!=null)ads.recordNaturalBreak();
         });
 
         LinearLayout.LayoutParams p=
@@ -7476,6 +7583,18 @@ public class SettingsActivity extends Activity {
         addInfoCard(page,
                 "Network",
                 "Normal typing, emoji, kaomoji, calculator and text case work without internet. Translator uses Google ML Kit on-device translation for supported languages; Cebuano uses an online fallback when you tap Translate. Grammar Fix sends only the text in its box to the LanguageTool grammar service when you tap Check grammar.");
+
+        addSection(page,"Ads & rewards");
+        addInfoCard(
+                page,
+                "Ad-supported access",
+                "A completed rewarded ad can unlock PRO themes and ad-gated fonts for 24 hours. Occasional full-screen ads are limited to natural breaks inside the KeyKii app and are never shown inside the keyboard while you type."
+        );
+        if(ads!=null&&ads.privacyOptionsRequired()) {
+            addActionButton(page,"Ad privacy choices",v ->
+                    ads.showPrivacyOptions(() -> toast("Ad privacy choices updated"))
+            );
+        }
 
         setContentView(wrap(page));
     }
