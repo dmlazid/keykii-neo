@@ -42,23 +42,64 @@ final class NeoThemeCatalog {
         {25,12,6,29,8,30}, {30,6,21,16,15,4}, {5,19,3,27,0,18}, {8,13,17,26,4,20},
         {4,8,15,21,27,14}, {0,7,27,31,19,28}, {2,20,17,9,8,13}, {24,9,31,11,2,17}
     };
+    // Compositions 6-10 use a second hand-authored scene set so the later
+    // FREE/PRO pages do not recycle the same artwork from compositions 0-5.
+    private static final int[][] ALT_ART={
+        {15,21,7,4,16},{15,0,21,3,9},{8,2,4,15,1},{14,2,28,31,30},
+        {3,10,18,7,11},{15,2,20,9,4},{1,27,6,23,13},{29,6,18,30,14},
+        {0,28,18,1,16},{9,26,23,1,29},{11,16,14,0,26},{17,19,14,11,4},
+        {23,20,24,9,31},{1,19,26,22,28},{12,29,15,19,0},{25,11,9,14,16},
+        {29,31,18,26,20},{9,26,5,10,4},{29,14,31,22,24},{27,26,1,23,2},
+        {0,5,11,7,1},{19,24,29,4,12},{24,7,9,14,1},{6,0,13,16,14},
+        {12,3,22,9,0},{21,7,30,9,22},{9,25,6,17,27},{18,6,11,19,13},
+        {30,22,10,27,18},{8,7,15,13,22},{23,26,15,28,18},{12,3,26,0,23},
+        {4,6,0,11,28},{22,14,19,3,4},{26,11,3,29,8},{20,3,21,10,30},
+        {1,20,3,18,21},{8,7,15,14,11},{6,24,2,21,17},{0,31,5,15,24},
+        {19,22,24,14,1},{25,14,3,18,7},{28,15,30,14,16},{16,14,3,6,0},
+        {2,17,10,11,5},{4,14,17,9,12},{27,25,30,28,0},{23,10,25,28,22}
+    };
+
+    // Original visual directions inspired by the user's mood-board references:
+    // 0 scene, 1 cosmic, 2 felt/patch, 3 doodle/scrapbook, 4 painterly,
+    // 5 cozy flatlay, 6 botanical, 7 cafe, 8 bubble/gem/ocean, 9 sticker/candy.
+    private static final int[] MOTIF={
+        2,6,8,2,1,9,0,3,1,6,6,6,9,8,0,5,
+        0,0,9,9,8,4,6,0,6,5,8,3,2,9,0,6
+    };
+
+    // A structural family belongs to exactly one tier. This prevents the same
+    // architecture from appearing as both FREE and PRO with only a small skin change.
+    private static boolean proFamily(int a){
+        switch(a){
+            case 1: case 3: case 5: case 7: case 9: case 10:
+            case 13: case 14: case 15: case 16: case 18: case 19:
+            case 21: case 23: case 24: case 25: case 26: case 27:
+            case 34: case 35: case 37: case 38: case 39: case 43:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     // 0 enamel, 1 continuous image mosaic, 2 frosted glass, 3 image caps,
     // 4 illustrated/sticker edges. Kept visible in subtitles for honest catalog labeling.
     private static final int[] MATERIAL={0,4,0,2,2,0,4,2,0,4,4,0,4,3,2,4,3,1,2,1,0,4,4,1,0,2,2,3,0,4,0,2,4,0,3,4,0,2,4,4,0,1,4,2,3,4,1,0};
     static final class Entry {
-        final int pack,index,world,architecture,scene,art,composition,material,start,end,accent,corner,transparency,keyMode;
+        final int pack,index,world,architecture,scene,art,composition,material,motif,start,end,accent,corner,transparency,keyMode;
         final boolean borders,dark,pro; final String name,subtitle,tags;
         Entry(int i){
             index=i;pack=FIRST_PACK+i;architecture=i%48;composition=i/48;
-            int[] artBrief=ART[architecture];art=artBrief[composition%artBrief.length];world=scene=art;
+            int[] artBrief=ART[architecture];
+            art=composition<6?artBrief[composition]:ALT_ART[architecture][composition-6];
+            world=scene=art;motif=MOTIF[art];
             material=composition<6?MATERIAL[architecture]:new int[]{1,4,2,3,0}[composition-6];
             start=COLORS[art][0];end=COLORS[art][1];accent=COLORS[art][2];
-            tags=TAGS[art];dark=tags.contains("dark");pro=i%10>=3;
+            tags=TAGS[art];dark=tags.contains("dark");pro=proFamily(architecture);
             corner=12;transparency=92;borders=true;keyMode=NeoThemeRenderer.SHAPES[architecture];
             String displayName=SCENE_NAMES[art]+" · "+ARCH_NAMES[architecture];
             if(composition>=6)displayName+=" · "+EDITIONS[composition];
             name=displayName;
-            subtitle=EDITIONS[composition]+" arrangement · "+new String[]{"enamel","panoramic caps","frosted glass","picture caps","illustrated edges"}[material];
+            subtitle=EDITIONS[composition]+" arrangement · "+new String[]{"enamel","panoramic caps","frosted glass","picture caps","illustrated edges"}[material]+" · "+new String[]{"scene","cosmic","felt patch","scrapbook doodle","painterly","cozy flatlay","botanical","cafe","bubble gem","sticker candy"}[motif];
         }
     }
     private static final Entry[] ENTRIES=new Entry[COUNT];
