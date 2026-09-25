@@ -15426,6 +15426,20 @@ public class KeyKiiService extends InputMethodService {
 
         panel.setForeground(null);
 
+        if(NeoThemeCatalog.isNeoPack(stylePack)) {
+            android.graphics.drawable.LayerDrawable layers=
+                new android.graphics.drawable.LayerDrawable(
+                    new Drawable[]{
+                        bg,
+                        new NeoThemeDrawable(this,stylePack)
+                    }
+                );
+
+            panel.setBackground(layers);
+            panel.setForeground(null);
+            return;
+        }
+
         if(IllustratedThemeAssets.isNewPack(stylePack)) {
             int bgRes=
                 IllustratedThemeAssets.background(stylePack);
@@ -17480,6 +17494,15 @@ public class KeyKiiService extends InputMethodService {
                 "keykii_style_pack",
                 -1
             );
+
+        if(NeoThemeCatalog.isNeoPack(activeIllustratedPack)) {
+            return NeoThemeKeyDrawable.state(
+                    this,
+                    activeIllustratedPack,
+                    special,
+                    space
+            );
+        }
 
         if(IllustratedThemeAssets.isNewPack(activeIllustratedPack)) {
             int res=
