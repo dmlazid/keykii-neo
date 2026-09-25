@@ -66,6 +66,10 @@ public class SettingsActivity extends Activity {
     private String fontBrowseMode = "all";
     private String themeBrowseMode = "all";
     private int neoThemeShownCount = NeoThemeCatalog.PAGE_SIZE;
+    private String themeSearchQuery = "";
+    private String fontSearchQuery = "";
+    private int themeSearchShownCount = 24;
+    private int fontSearchShownCount = 24;
 
     private LinearLayout themeCategoryContent;
     private android.widget.HorizontalScrollView themeFilterScroll;
@@ -2548,6 +2552,8 @@ public class SettingsActivity extends Activity {
     private void showTheme() {
         screen = "theme";
         themeBrowseMode="all";
+        themeSearchQuery="";
+        themeSearchShownCount=24;
         neoThemeShownCount=NeoThemeCatalog.PAGE_SIZE;
         hideSoftKeyboardNow();
         initThemeDraftFromPrefs();
@@ -2581,6 +2587,7 @@ public class SettingsActivity extends Activity {
         addThemeStoreHero(page);
         addThemePricingCard(page);
         addAdAccessCard(page);
+        addThemeSearchBar(page);
 
         addThemeFilterBar(page);
 
@@ -2891,6 +2898,8 @@ public class SettingsActivity extends Activity {
     private void showFonts(){
         screen="fonts";
         fontBrowseMode="all";
+        fontSearchQuery="";
+        fontSearchShownCount=24;
         remoteFontShownCount=24;
         colorFontShownCount=30;
         hideSoftKeyboardNow();
@@ -2942,6 +2951,7 @@ public class SettingsActivity extends Activity {
         hp.setMargins(0,dp(6),0,dp(12));
         page.addView(hero,hp);
         addAdAccessCard(page);
+        addFontSearchBar(page);
 
         addFontFilterBar(page);
 
@@ -2971,6 +2981,11 @@ public class SettingsActivity extends Activity {
 
         LinearLayout page=fontCategoryContent;
         page.removeAllViews();
+
+        if(fontSearchQuery!=null && !fontSearchQuery.trim().isEmpty()){
+            renderFontSearchResults(page);
+            return;
+        }
 
         if("selected".equals(fontBrowseMode)) {
             addSection(page,"Selected");
@@ -3158,6 +3173,98 @@ public class SettingsActivity extends Activity {
         return "System";
     }
 
+    private void addFontSearchBar(LinearLayout page){
+        EditText search=new EditText(this);
+        search.setSingleLine(true);
+        search.setHint("Search 1,383 fonts • rounded, script, mono…");
+        search.setTextColor(TEXT);
+        search.setHintTextColor(Color.rgb(166,154,171));
+        search.setTextSize(14);
+        search.setPadding(dp(16),0,dp(16),0);
+        GradientDrawable bg=round(Color.WHITE,20);
+        bg.setStroke(dp(1),Color.rgb(226,216,232));
+        search.setBackground(bg);
+        search.addTextChangedListener(new android.text.TextWatcher(){
+            @Override public void beforeTextChanged(CharSequence s,int start,int count,int after){}
+            @Override public void onTextChanged(CharSequence s,int start,int before,int count){
+                fontSearchQuery=s==null?"":s.toString().trim();
+                fontSearchShownCount=24;
+                renderFontCategoryContent();
+            }
+            @Override public void afterTextChanged(android.text.Editable e){}
+        });
+        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(48));
+        p.setMargins(0,dp(5),0,dp(5));
+        page.addView(search,p);
+    }
+
+    private java.util.ArrayList<Integer> fontSearchResults(){
+        String q=(fontSearchQuery==null?"":fontSearchQuery)
+                .trim().toLowerCase(java.util.Locale.ROOT);
+        java.util.ArrayList<Integer> found=new java.util.ArrayList<>();
+        java.util.HashSet<String> seenNames=new java.util.HashSet<>();
+
+        int[] local={0,1,2,3,4,5,6};
+        for(int style:local){
+            String name=fontNameForAnyStyle(style);
+            if(name.toLowerCase(java.util.Locale.ROOT).contains(q)){
+                found.add(style);
+                seenNames.add(name.toLowerCase(java.util.Locale.ROOT));
+            }
+        }
+        for(int style=100;style<=151;style++){
+            String name=fontNameForAnyStyle(style);
+            if(name.toLowerCase(java.util.Locale.ROOT).contains(q)){
+                found.add(style);
+                seenNames.add(name.toLowerCase(java.util.Locale.ROOT));
+            }
+        }
+        for(int i=0;i<ColorFontCatalog.COUNT;i++){
+            ColorFontCatalog.Entry e=ColorFontCatalog.find(ColorFontCatalog.FIRST_STYLE+i);
+            if(e==null)continue;
+            String searchable=("color "+e.name).toLowerCase(java.util.Locale.ROOT);
+            if(searchable.contains(q)){
+                found.add(e.style);
+                seenNames.add(e.name.toLowerCase(java.util.Locale.ROOT));
+            }
+        }
+        for(RemoteFontCatalog.Entry e:RemoteFontCatalog.ITEMS){
+            String key=e.name.toLowerCase(java.util.Locale.ROOT);
+            if(key.contains(q)&&!seenNames.contains(key)){
+                found.add(e.style);
+                seenNames.add(key);
+            }
+        }
+        return found;
+    }
+
+    private void renderFontSearchResults(LinearLayout page){
+        java.util.ArrayList<Integer> all=fontSearchResults();
+        addSection(page,"Search results • "+all.size());
+
+        if(all.isEmpty()){
+            addInfoCard(
+                    page,
+                    "No fonts found",
+                    "Try another word such as rounded, serif, script, display, mono, bubble or handwriting."
+            );
+            return;
+        }
+
+        int shown=Math.min(fontSearchShownCount,all.size());
+        for(int i=0;i<shown;i++)addFontCollectionCard(page,all.get(i));
+
+        if(shown<all.size()){
+            TextView more=textButton("Show 24 more  •  "+shown+" / "+all.size());
+            more.setOnClickListener(v -> {
+                fontSearchShownCount=Math.min(all.size(),fontSearchShownCount+24);
+                renderFontCategoryContent();
+            });
+            page.addView(more,new LinearLayout.LayoutParams(-1,dp(50)));
+        }
+    }
+
+
     private void addFontFilterBar(LinearLayout page){
         fontFilterChips.clear();
 
@@ -3211,6 +3318,7 @@ public class SettingsActivity extends Activity {
                 return;
             }
 
+            fontSearchQuery="";
             fontBrowseMode=mode;
             remoteFontShownCount=24;
             colorFontShownCount=30;
@@ -4076,6 +4184,104 @@ public class SettingsActivity extends Activity {
     }
 
 
+    private void addThemeSearchBar(LinearLayout page){
+        EditText search=new EditText(this);
+        search.setSingleLine(true);
+        search.setHint("Search themes • galaxy, cat, coffee, floral…");
+        search.setTextColor(TEXT);
+        search.setHintTextColor(Color.rgb(166,154,171));
+        search.setTextSize(14);
+        search.setPadding(dp(16),0,dp(16),0);
+        GradientDrawable bg=round(Color.WHITE,20);
+        bg.setStroke(dp(1),Color.rgb(226,216,232));
+        search.setBackground(bg);
+        search.addTextChangedListener(new android.text.TextWatcher(){
+            @Override public void beforeTextChanged(CharSequence s,int start,int count,int after){}
+            @Override public void onTextChanged(CharSequence s,int start,int before,int count){
+                themeSearchQuery=s==null?"":s.toString().trim();
+                themeSearchShownCount=24;
+                if(themePreviewSheet!=null)themePreviewSheet.setVisibility(View.GONE);
+                renderThemeCategoryContent();
+            }
+            @Override public void afterTextChanged(android.text.Editable e){}
+        });
+        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(48));
+        p.setMargins(0,dp(5),0,dp(5));
+        page.addView(search,p);
+    }
+
+    private boolean themeMatchesSearch(int pack,String query){
+        if(query==null||query.isEmpty())return true;
+        StringBuilder text=new StringBuilder();
+        text.append(stylePackName(pack)).append(' ')
+                .append(stylePackSubtitle(pack));
+        NeoThemeCatalog.Entry e=NeoThemeCatalog.get(pack);
+        if(e!=null){
+            text.append(' ').append(e.tags)
+                    .append(' ').append(NeoThemeCatalog.ARCH_NAMES[e.architecture])
+                    .append(' ').append(NeoThemeCatalog.SCENE_NAMES[e.scene]);
+        }
+        return text.toString().toLowerCase(java.util.Locale.ROOT)
+                .contains(query.toLowerCase(java.util.Locale.ROOT));
+    }
+
+    private int[] themeSearchResults(){
+        String q=themeSearchQuery==null?"":themeSearchQuery.trim();
+        java.util.ArrayList<Integer> found=new java.util.ArrayList<>();
+        for(int pack=100;pack<=139;pack++)
+            if(themeMatchesSearch(pack,q))found.add(pack);
+        for(int pack=NeoThemeCatalog.FIRST_PACK;
+            pack<NeoThemeCatalog.FIRST_PACK+NeoThemeCatalog.COUNT;
+            pack++)
+            if(themeMatchesSearch(pack,q))found.add(pack);
+        int[] out=new int[found.size()];
+        for(int i=0;i<out.length;i++)out[i]=found.get(i);
+        return out;
+    }
+
+    private void renderThemeSearchResults(int generation){
+        int[] all=themeSearchResults();
+        addThemeSection(
+                themeCategoryContent,
+                "⌕ SEARCH RESULTS • "+all.length
+        );
+        if(all.length==0){
+            addInfoCard(
+                    themeCategoryContent,
+                    "No themes found",
+                    "Try another word like galaxy, cat, coffee, flower, pink, dark, ocean or minimal."
+            );
+            return;
+        }
+
+        int shown=Math.min(themeSearchShownCount,all.length);
+        int[] visible=java.util.Arrays.copyOf(all,shown);
+        LinearLayout grid=new LinearLayout(this);
+        grid.setOrientation(LinearLayout.VERTICAL);
+        themeCategoryContent.addView(grid);
+
+        TextView more=textButton("Show more search results");
+        more.setTextSize(13);
+        more.setVisibility(shown<all.length?View.VISIBLE:View.GONE);
+        more.setText("Show more results  •  "+shown+" / "+all.length);
+        more.setOnClickListener(v -> {
+            themeSearchShownCount=Math.min(all.length,themeSearchShownCount+24);
+            renderThemeCategoryContent();
+        });
+        themeCategoryContent.addView(more,new LinearLayout.LayoutParams(-1,dp(52)));
+
+        addStylePackGridIncremental(
+                grid,
+                visible,
+                generation,
+                () -> {
+                    if(generation!=themeRenderGeneration)return;
+                    refreshThemeTileSelection();
+                }
+        );
+    }
+
+
     private void addThemeFilterBar(LinearLayout page) {
         themeFilterChips.clear();
 
@@ -4138,6 +4344,7 @@ public class SettingsActivity extends Activity {
                 return;
             }
 
+            themeSearchQuery="";
             themeBrowseMode=mode;
             neoThemeShownCount=NeoThemeCatalog.PAGE_SIZE;
 
@@ -4239,6 +4446,11 @@ public class SettingsActivity extends Activity {
         themeCategoryContent.removeAllViews();
         themeSelectableTiles.clear();
         themeCategoryContent.setAlpha(1f);
+
+        if(themeSearchQuery!=null && !themeSearchQuery.trim().isEmpty()){
+            renderThemeSearchResults(generation);
+            return;
+        }
 
         final int totalNew=
                 NeoThemeCatalog.count(
