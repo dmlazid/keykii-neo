@@ -6,6 +6,7 @@ on:
     paths:
       - 'app/src/**'
       - 'scripts/**'
+      - 'theme-assets/**'
       - 'app/build.gradle'
       - 'build.gradle'
       - 'settings.gradle'
@@ -53,10 +54,10 @@ jobs:
       - name: Install Android SDK
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
 
-      - name: Generate illustrated theme assets
+      - name: Rasterize committed illustrated theme assets
         run: |
-          python3 -m pip install --disable-pip-version-check pillow
-          python3 scripts/generate_theme_assets_247.py
+          python3 -m pip install --disable-pip-version-check pillow cairosvg
+          python3 scripts/rasterize_theme_assets_248.py
 
       - name: Build APK
         run: |
