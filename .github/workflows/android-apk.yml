@@ -136,20 +136,11 @@ jobs:
           cp app/build/outputs/bundle/release/app-release.aab "${AAB_NAME}"
 
           rm -f "${AUDIT_NAME}"
-          if [ -d renderer-audit ] || [ -f renderer-audit.log ]; then
-            KEYKII_RELEASE_VERSION="${VERSION}" python3 - <<'PY'
-import os, zipfile
-version=os.environ["KEYKII_RELEASE_VERSION"]
-name=f"Theme-Renderer-V2-Audit-{version}.zip"
-with zipfile.ZipFile(name,"w",zipfile.ZIP_DEFLATED) as z:
-    if os.path.isfile("renderer-audit.log"):
-        z.write("renderer-audit.log")
-    if os.path.isdir("renderer-audit"):
-        for root,_,files in os.walk("renderer-audit"):
-            for file in files:
-                path=os.path.join(root,file)
-                z.write(path)
-PY
+          AUDIT_INPUTS=()
+          [ -d renderer-audit ] && AUDIT_INPUTS+=(renderer-audit)
+          [ -f renderer-audit.log ] && AUDIT_INPUTS+=(renderer-audit.log)
+          if [ ${#AUDIT_INPUTS[@]} -gt 0 ]; then
+            zip -qr "${AUDIT_NAME}" "${AUDIT_INPUTS[@]}"
           else
             touch "${AUDIT_NAME}"
           fi
