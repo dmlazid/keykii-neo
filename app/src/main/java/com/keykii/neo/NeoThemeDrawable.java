@@ -237,7 +237,7 @@ final class NeoThemeDrawable extends Drawable {
         switch(s&31){
             case 0: bow(c,w*.83f,h*.17f,dp(18),soft,e.accent); break;
             case 1: moon(c,w*.84f,h*.16f,dp(18),soft); break;
-            case 2: cloud(c,w*.82f,h*.15f,dp(18)); break;
+            case 2: fill(soft,82); cloud(c,w*.82f,h*.15f,dp(18)); break;
             case 3: miniConsole(c,w*.82f,h*.16f,soft,deep); break;
             case 4: flower(c,w*.84f,h*.17f,dp(11),soft,deep); break;
             case 5: cat(c,w*.84f,h*.17f,dp(17),soft,deep); break;
