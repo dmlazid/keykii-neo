@@ -129,6 +129,31 @@ public class SettingsActivity extends Activity {
         }
     }
 
+    private void hideSoftKeyboardNow() {
+        try {
+            View current=getCurrentFocus();
+            if(current!=null) current.clearFocus();
+
+            View decor=getWindow().getDecorView();
+            InputMethodManager imm=
+                    (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+
+            if(imm!=null && decor!=null) {
+                imm.hideSoftInputFromWindow(
+                        decor.getWindowToken(),
+                        0
+                );
+            }
+
+            getWindow().setSoftInputMode(
+                    android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN |
+                    android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+            );
+        } catch(Exception ignored) {
+        }
+    }
+
+
     @Override
     protected void onActivityResult(
             int requestCode,
@@ -234,6 +259,7 @@ public class SettingsActivity extends Activity {
 
     private void showHome() {
         screen = "home";
+        hideSoftKeyboardNow();
 
         LinearLayout page=page(
                 "Settings",
@@ -1000,6 +1026,7 @@ public class SettingsActivity extends Activity {
 
     private void showIntro() {
         screen="intro";
+        hideSoftKeyboardNow();
 
         LinearLayout page=new LinearLayout(this);
         page.setOrientation(LinearLayout.VERTICAL);
@@ -1159,7 +1186,10 @@ public class SettingsActivity extends Activity {
 
     private void showAppLanguagePicker(boolean onboarding){
         screen=onboarding?"intro_language":"app_language";
+        hideSoftKeyboardNow();
         LinearLayout page=page("App language","Choose the language used across KeyKii",!onboarding);
+        page.setFocusableInTouchMode(true);
+        page.requestFocus();
         String current=appLanguageCode();
 
         for(int i=0;i<appLanguageCodes.length;i++){
@@ -1167,6 +1197,7 @@ public class SettingsActivity extends Activity {
             final boolean selected=code.equals(current);
             addRow(page,selected?"✓":"🌐",appLanguageNames[i],
                     selected?"Selected":"Tap to use this language",v -> {
+                        hideSoftKeyboardNow();
                         prefs.edit().putString("app_language",code).apply();
                         settingsScrollPositions.clear();
                         showAppLanguagePicker(onboarding);
@@ -1331,6 +1362,7 @@ public class SettingsActivity extends Activity {
 
     private void showMine(){
         screen="mine";
+        hideSoftKeyboardNow();
         LinearLayout page=page("Mine","Your keyboard, collection and quick test",false);
         page.setPadding(dp(18),dp(18),dp(18),dp(120));
 
@@ -2425,6 +2457,8 @@ public class SettingsActivity extends Activity {
 
     private void showTheme() {
         screen = "theme";
+        hideSoftKeyboardNow();
+        themeBrowseMode=prefs.getString("theme_browse_mode","all");
         initThemeDraftFromPrefs();
         themeSelectableTiles.clear();
 
@@ -2927,6 +2961,8 @@ public class SettingsActivity extends Activity {
 
     private void showFonts(){
         screen="fonts";
+        hideSoftKeyboardNow();
+        fontBrowseMode=prefs.getString("font_browse_mode","all");
         LinearLayout page=page("Fonts","Choose a font style for your KeyKii keyboard",false);
         page.setPadding(dp(18),dp(18),dp(18),dp(120));
 
@@ -3067,7 +3103,7 @@ public class SettingsActivity extends Activity {
         GradientDrawable bg=round(selected?Color.rgb(247,224,251):Color.WHITE,20);
         bg.setStroke(dp(selected?2:1),selected?Color.rgb(193,132,215):Color.rgb(232,226,235));
         chip.setBackground(bg);
-        chip.setOnClickListener(v->{fontBrowseMode=mode;remoteFontShownCount=48;colorFontShownCount=60;settingsScrollPositions.put("fonts",0);showFonts();});
+        chip.setOnClickListener(v->{fontBrowseMode=mode;prefs.edit().putString("font_browse_mode",mode).apply();remoteFontShownCount=48;colorFontShownCount=60;settingsScrollPositions.put("fonts",0);showFonts();});
         LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,dp(42));
         p.setMargins(dp(3),0,dp(3),0);
         chip.setPadding(dp(18),0,dp(18),0);
@@ -3808,6 +3844,7 @@ public class SettingsActivity extends Activity {
 
         chip.setOnClickListener(v -> {
             themeBrowseMode=mode;
+            prefs.edit().putString("theme_browse_mode",mode).apply();
             settingsScrollPositions.put("theme",0);
             if(themePreviewSheet!=null)
                 themePreviewSheet.setVisibility(View.GONE);
