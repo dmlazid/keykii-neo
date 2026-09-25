@@ -21,7 +21,7 @@
 - If Google requires a privacy-options entry point, KeyKii shows one under Privacy > Ads & rewards.
 
 ## Google Mobile Ads
-- Google Mobile Ads SDK: 25.5.0
+- Google Mobile Ads SDK: 24.9.0 (latest supported v24 line, preserving KeyKii's minSdk 23 compatibility)
 - Test fallback App ID: Google's official sample ID.
 - Test rewarded/interstitial IDs are used unless production IDs are supplied.
 - CI accepts repository variables:
@@ -35,3 +35,7 @@
 - versionCode: **164**
 
 All 2.57.1 pricing UI, 2.57.0 theme anti-repeat behavior, and earlier keyboard performance/features remain preserved.
+
+
+### Build compatibility correction
+Google Mobile Ads 25.5.0 raised its minimum Android API to 24. KeyKii still supports API 23, so this build uses supported Google Mobile Ads **24.9.0** instead of dropping Android 6 compatibility.
