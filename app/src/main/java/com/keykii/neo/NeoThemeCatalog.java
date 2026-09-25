@@ -90,7 +90,6 @@ final class NeoThemeCatalog {
     private static final int[] HERO_ARCH={18,2,33,4,46,1,34,45,29,27,22,0,15,42,5,35,47,19,9,31,14,24,41,23,16,28,44,20,3,13,12,7};
     private static final int[] HERO_ART ={32,8,32,38,39,33,7,35,34,41,19,5,3,35,43,11,24,44,46,24,26,23,16,45,2,42,27,6,27,33,40,47};
     private static final int[] HERO_MOTIF={1,1,1,1,4,2,3,7,9,5,9,9,2,7,7,6,6,6,6,6,8,8,0,8,4,9,5,0,1,3,4,0};
-    private static final boolean[] HERO_PRO={false,true,true,false,true,false,true,false,true,false,false,true,false,true,false,true,false,true,false,true,false,true,false,true,false,true,true,false,true,false,true,true};
 
     // A structural family belongs to exactly one tier. This prevents the same
     // architecture from appearing as both FREE and PRO with only a small skin change.
@@ -117,7 +116,7 @@ final class NeoThemeCatalog {
             String displayName;
             if(i<HERO_NAMES.length){
                 architecture=HERO_ARCH[i];composition=0;art=HERO_ART[i];motif=HERO_MOTIF[i];
-                material=MATERIAL[architecture];pro=HERO_PRO[i];displayName=HERO_NAMES[i];
+                material=MATERIAL[architecture];pro=proFamily(architecture);displayName=HERO_NAMES[i];
             }else{
                 int slot=i-HERO_NAMES.length;
                 composition=slot/48;
