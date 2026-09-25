@@ -1386,7 +1386,7 @@ public class SettingsActivity extends Activity {
     private void showMine(){
         screen="mine";
         hideSoftKeyboardNow();
-        LinearLayout page=page("Mine","Your keyboard, collection and quick test",false);
+        LinearLayout page=page("Mine","Your keyboard, saved themes and quick test",false);
         page.setPadding(dp(18),dp(18),dp(18),dp(120));
 
         LinearLayout tester=new LinearLayout(this);
@@ -1418,10 +1418,45 @@ public class SettingsActivity extends Activity {
         tester.addView(input,ip);
         page.addView(tester);
 
+        addSection(page,"Access");
+        addAdAccessCard(page);
+
         addSection(page,"Your collection");
-        addRow(page,"🎨","Themes",themeName(),v -> showTheme());
-        addRow(page,"Aa","Selected",keyboardFontName(),v -> showFonts());
-        addActionButton(page,"Discover themes",v -> showTheme());
+        addRow(page,"🎨","Current theme",themeName(),v -> showTheme());
+        addRow(page,"Aa","Current font",keyboardFontName(),v -> showFonts());
+        addRow(
+                page,
+                "♥",
+                "Saved themes",
+                KeyKiiThemeCollection.favoriteCount(this)+" favorites",
+                v -> showTheme()
+        );
+
+        int[] favorites=KeyKiiThemeCollection.favorites(this,12);
+        addThemeSection(page,"♥ FAVORITE THEMES");
+        if(favorites.length==0){
+            addInfoCard(
+                    page,
+                    "No favorites yet",
+                    "Open any theme preview and tap ♡ Save. Your saved themes will appear here."
+            );
+        }else{
+            addStylePackGrid(page,favorites);
+        }
+
+        int[] recents=KeyKiiThemeCollection.recents(this,8);
+        addThemeSection(page,"↻ RECENTLY USED");
+        if(recents.length==0){
+            addInfoCard(
+                    page,
+                    "No recent themes yet",
+                    "Themes you apply will appear here automatically."
+            );
+        }else{
+            addStylePackGrid(page,recents);
+        }
+
+        addActionButton(page,"Discover more themes",v -> showTheme());
         setContentView(shopRoot(wrap(page),"mine"));
     }
 
@@ -4688,6 +4723,7 @@ public class SettingsActivity extends Activity {
                 new TextView(this);
 
         name.setText(
+                (KeyKiiThemeCollection.isFavorite(this,pack) ? "♥ " : "")+
                 stylePackName(pack)
         );
 
@@ -5144,6 +5180,13 @@ public class SettingsActivity extends Activity {
         TextView cancel=
                 textButton("Cancel");
 
+        TextView favorite=
+                textButton(
+                        KeyKiiThemeCollection.isFavorite(this,pack)
+                                ? "♥ Saved"
+                                : "♡ Save"
+                );
+
         TextView apply=
                 textButton(
                         stylePackPro(pack)
@@ -5151,12 +5194,19 @@ public class SettingsActivity extends Activity {
                                 : "Apply"
                 );
 
-        cancel.setTextSize(16);
-        apply.setTextSize(16);
+        cancel.setTextSize(14);
+        favorite.setTextSize(14);
+        apply.setTextSize(14);
 
         cancel.setOnClickListener(
                 v -> dialog.dismiss()
         );
+
+        favorite.setOnClickListener(v -> {
+            boolean saved=KeyKiiThemeCollection.toggleFavorite(this,pack);
+            favorite.setText(saved ? "♥ Saved" : "♡ Save");
+            toast(saved ? "Saved to Mine" : "Removed from favorites");
+        });
 
         apply.setOnClickListener(v -> {
             if(stylePackPro(pack)&&!hasAdAccess()){
@@ -5188,6 +5238,7 @@ public class SettingsActivity extends Activity {
         );
 
         buttons.addView(cancel,p);
+        buttons.addView(favorite,p);
         buttons.addView(apply,p);
         sheet.addView(buttons);
 
@@ -5287,6 +5338,8 @@ public class SettingsActivity extends Activity {
                         pack
                 )
                 .apply();
+
+        KeyKiiThemeCollection.rememberApplied(this,pack);
 
         toast(
                 stylePackName(pack)+
