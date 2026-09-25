@@ -55,8 +55,9 @@ final class NeoThemeCatalog {
             start=COLORS[art][0];end=COLORS[art][1];accent=COLORS[art][2];
             tags=TAGS[art];dark=tags.contains("dark");pro=i%10>=3;
             corner=12;transparency=92;borders=true;keyMode=NeoThemeRenderer.SHAPES[architecture];
-            name=SCENE_NAMES[art]+" · "+ARCH_NAMES[architecture];
-            if(composition>=6)name+=" · "+EDITIONS[composition];
+            String displayName=SCENE_NAMES[art]+" · "+ARCH_NAMES[architecture];
+            if(composition>=6)displayName+=" · "+EDITIONS[composition];
+            name=displayName;
             subtitle=EDITIONS[composition]+" arrangement · "+new String[]{"enamel","panoramic caps","frosted glass","picture caps","illustrated edges"}[material];
         }
     }
