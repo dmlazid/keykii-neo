@@ -40,6 +40,18 @@ public final class NeoRendererAudit extends Instrumentation {
                         }
                         try(FileOutputStream out=new FileOutputStream(new File(dir,"families-"+sheet+".png"))){bm.compress(Bitmap.CompressFormat.PNG,100,out);}bm.recycle();
                     }
+                    // Duplicate guard: every structural family is exclusively FREE or PRO,
+                    // and its 11 compositions must not recycle the same artwork.
+                    for(int family=0;family<48;family++){
+                        Boolean tier=null;java.util.HashSet<Integer> artSeen=new java.util.HashSet<>();
+                        for(int composition=0;composition<11;composition++){
+                            int pack=1000+composition*48+family;
+                            if(pack>=1512)continue;
+                            NeoThemeCatalog.Entry entry=NeoThemeCatalog.get(pack);
+                            if(tier==null)tier=entry.pro;else check(tier==entry.pro,"FREE/PRO family duplicate "+family);
+                            check(artSeen.add(entry.art),"Repeated scene in family "+family+" composition "+composition);
+                        }
+                    }
                     for(int pack=1000;pack<1512;pack++){
                         LinearLayout body=new LinearLayout(c);body.setOrientation(LinearLayout.VERTICAL);
                         String[][] actions={{"q","w","e","r","t","y","u","i","o","p"},{"a","s","d","f","g","h","j","k","l"},{"SHIFT","z","x","c","v","b","n","m","BACK"},{"123",",","LANG","SPACE",".","ENTER"}};
@@ -68,7 +80,7 @@ public final class NeoRendererAudit extends Instrumentation {
                 }catch(Throwable t){error[0]=t;}
             });
             if(error[0]!=null)throw new AssertionError(error[0]);
-            try(FileWriter out=new FileWriter(new File(dir,"result.txt"))){out.write("PASS: artwork decoded; 48 family previews captured; 512 live layouts preserve all views, click/long-press handlers, height and non-overlapping hit bounds.\n");}
+            try(FileWriter out=new FileWriter(new File(dir,"result.txt"))){out.write("PASS: artwork decoded; 48 family previews captured; FREE/PRO families are structurally exclusive; family scenes do not repeat; 512 live layouts preserve all views, click/long-press handlers, height and non-overlapping hit bounds.\n");}
             results.putString("stream","\nTHEME_V2_AUDIT_PASS\n");finish(-1,results);
         }catch(Throwable t){results.putString("stream","\nTHEME_V2_AUDIT_FAIL: "+t+"\n");finish(1,results);}
     }
