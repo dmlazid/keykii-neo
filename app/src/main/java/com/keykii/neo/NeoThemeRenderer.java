@@ -19,7 +19,9 @@ final class NeoThemeRenderer {
         c.save();shape.reset();shape.addRoundRect(rect,w*.04f,w*.04f,Path.Direction.CW);c.clipPath(shape);
         p.setAlpha(255);NeoArt.draw(c,e.art,rect,p);
         // Keep scene legible rather than fading every artwork into a pastel wash.
-        p.setColor(e.dark?0x24060b13:0x12fff9f1);c.drawRect(rect,p);c.restore();
+        p.setColor(e.dark?0x24060b13:0x12fff9f1);c.drawRect(rect,p);
+        drawBackdropMotif(c,w,h);
+        c.restore();
     }
     void structure(Canvas c,float w,float h,NeoGeometry.Box[] boxes){
         if(e==null)return;
@@ -91,9 +93,22 @@ final class NeoThemeRenderer {
         if(mode==3||mode==21||clearKey){
             rect.inset(unit*.095f,unit*.10f);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(Math.max(.5f,unit*.018f));p.setColor(e.dark?0x80d3edf4:0xbfffffff);c.drawRoundRect(rect,unit*.10f,unit*.10f,p);p.setStyle(Paint.Style.FILL);
         }
-        if(mode==7){ // Plush seam follows the perimeter; blank central label area.
-            p.setColor(e.dark?0x88ffffff:0x805f4340);float yy=h*.82f;
-            for(int k=1;k<7;k++)c.drawLine(w*k/8f,yy,w*k/8f+unit*.035f,yy+unit*.025f,p);
+        if(mode==7 || e.motif==2){ // Plush/felt seam follows the perimeter.
+            p.setColor(e.dark?0x99ffffff:0x90604743);p.setStrokeWidth(Math.max(1f,unit*.018f));
+            float yy=h*.82f;for(int k=1;k<7;k++)c.drawLine(w*k/8f,yy,w*k/8f+unit*.035f,yy+unit*.025f,p);
+        }
+        if(e.motif==4){ // painterly brush streaks, intentionally imperfect
+            p.setColor(e.dark?0x55ffe6a8:0x55ffffff);p.setStrokeWidth(Math.max(1f,unit*.045f));
+            c.drawArc(new RectF(w*.12f,h*.18f,w*.88f,h*.82f),205,120,false,p);
+            c.drawArc(new RectF(w*.25f,h*.08f,w*.72f,h*.66f),22,118,false,p);
+        }
+        if(e.motif==8){ // gem/bubble highlight
+            p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(Math.max(1f,unit*.026f));p.setColor(0x99ffffff);
+            c.drawOval(new RectF(w*.18f,h*.13f,w*.48f,h*.36f),p);p.setStyle(Paint.Style.FILL);
+        }
+        if(e.motif==9){ // sticker/candy corner dot gives the key a cut-out feel
+            p.setColor(0xccffffff);c.drawCircle(w*.82f,h*.18f,unit*.075f,p);
+            p.setColor(e.accent);c.drawCircle(w*.82f,h*.18f,unit*.040f,p);
         }
         if(mode==10){ // Frosting drips occupy the top edge, never the letter.
             p.setColor(0xeef8e5dc);for(int k=0;k<4;k++)c.drawOval(new RectF(w*(.08f+k*.22f),h*.07f,w*(.24f+k*.22f),h*(k%2==0?.22f:.16f)),p);
@@ -103,6 +118,48 @@ final class NeoThemeRenderer {
         }
         if(space){ornament(c,w*.08f,h*.47f,unit*.16f,e.art%5);ornament(c,w*.92f,h*.47f,unit*.16f,(e.art+1)%5);}
     }
+    private void drawBackdropMotif(Canvas c,float w,float h){
+        p.setShader(null);p.setStyle(Paint.Style.FILL);
+        float u=Math.min(w,h);
+        switch(e.motif){
+            case 1: // cosmic planets + stars
+                p.setColor(0x88ffffff);
+                for(int i=0;i<7;i++){float x=w*(.08f+.14f*i),y=h*(i%2==0?.10f:.86f),r=u*(.018f+(i%3)*.007f);c.drawCircle(x,y,r,p);}
+                p.setColor(NeoThemeCatalog.mix(e.accent,Color.WHITE,25));
+                c.drawCircle(w*.88f,h*.12f,u*.075f,p);
+                p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(Math.max(1f,u*.010f));c.drawOval(new RectF(w*.80f,h*.08f,w*.96f,h*.16f),p);p.setStyle(Paint.Style.FILL);
+                break;
+            case 2: // felt patch / embroidered flowers
+                p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(Math.max(1f,u*.009f));p.setColor(0xaaffffff);
+                for(int i=0;i<9;i++){float x=w*(.04f+.115f*i),y=h*(i%2==0?.08f:.91f);c.drawCircle(x,y,u*.022f,p);c.drawLine(x-u*.018f,y,x+u*.018f,y,p);}
+                p.setStyle(Paint.Style.FILL);break;
+            case 3: // scrapbook doodles
+                p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(Math.max(1f,u*.010f));p.setColor(0xaaffffff);
+                c.drawCircle(w*.07f,h*.12f,u*.030f,p);c.drawLine(w*.10f,h*.08f,w*.15f,h*.04f,p);
+                c.drawArc(new RectF(w*.82f,h*.82f,w*.96f,h*.96f),190,150,false,p);p.setStyle(Paint.Style.FILL);break;
+            case 4: // painterly swirls inspired by brush texture, not any copied artwork
+                p.setStyle(Paint.Style.STROKE);p.setStrokeCap(Paint.Cap.ROUND);
+                for(int i=0;i<5;i++){p.setStrokeWidth(u*(.010f+i*.003f));p.setColor(i%2==0?0x88fff0b0:0x667ac9ff);c.drawArc(new RectF(w*(.05f+i*.06f),h*(.02f+i*.03f),w*(.90f-i*.03f),h*(.96f-i*.04f)),195+i*18,165,false,p);}
+                p.setStrokeCap(Paint.Cap.BUTT);p.setStyle(Paint.Style.FILL);break;
+            case 5: // cozy flatlay objects
+                p.setColor(0x66ffffff);c.drawRoundRect(new RectF(w*.02f,h*.05f,w*.15f,h*.22f),u*.025f,u*.025f,p);
+                c.drawCircle(w*.92f,h*.14f,u*.055f,p);c.drawRoundRect(new RectF(w*.83f,h*.80f,w*.98f,h*.94f),u*.025f,u*.025f,p);break;
+            case 6: // botanical leaves
+                p.setColor(e.dark?0x887bc89a:0x88729b64);
+                for(int i=0;i<6;i++){float x=w*(.04f+i*.18f),y=h*(i%2==0?.08f:.91f);c.save();c.rotate(i%2==0?-28:28,x,y);c.drawOval(new RectF(x-u*.018f,y-u*.050f,x+u*.018f,y+u*.050f),p);c.restore();}
+                break;
+            case 7: // cafe rings / beans
+                p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(Math.max(1f,u*.012f));p.setColor(0x9976533d);c.drawCircle(w*.09f,h*.12f,u*.055f,p);c.drawCircle(w*.91f,h*.88f,u*.045f,p);p.setStyle(Paint.Style.FILL);break;
+            case 8: // pearl/bubble field
+                p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(Math.max(1f,u*.008f));p.setColor(0x99ffffff);
+                for(int i=0;i<9;i++){float x=w*(.04f+.115f*i),y=h*(i%2==0?.09f:.90f);c.drawCircle(x,y,u*(.018f+(i%3)*.006f),p);}p.setStyle(Paint.Style.FILL);break;
+            case 9: // sticker/candy confetti
+                for(int i=0;i<10;i++){float x=w*(.03f+.10f*i),y=h*(i%2==0?.08f:.92f);p.setColor(i%3==0?0xffffc1d7:i%3==1?0xffffdfa2:0xffbfe8dc);c.drawCircle(x,y,u*.021f,p);}
+                break;
+            default: break;
+        }
+    }
+
     private void ornament(Canvas c,float x,float y,float r,int style){
         p.setShader(null);p.setStyle(Paint.Style.FILL);p.setColor(e.accent);
         if(style==0){for(int k=0;k<5;k++){double a=k*Math.PI*2/5;c.drawCircle(x+(float)Math.cos(a)*r*.6f,y+(float)Math.sin(a)*r*.6f,r*.53f,p);}p.setColor(0xffffd788);c.drawCircle(x,y,r*.3f,p);}
