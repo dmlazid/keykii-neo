@@ -3,6 +3,7 @@ package com.keykii.neo;
 import android.graphics.Color;
 
 /** Theme recipes pair a real geometry family with a coherent artwork/material brief.
+ * Build 160 keeps FREE/PRO structural families exclusive and removes repeated family scenes.
  * 512 compositions are NOT represented as 512 independently illustrated artworks.
  * 32 original illustrated scenes and 48 structural families are shared explicitly.
  */
