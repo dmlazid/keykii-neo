@@ -29,14 +29,14 @@ public final class NeoRendererAudit extends Instrumentation {
                     // Six sheets show all 48 real renderer families. Source is the same
                     // NeoThemePreview class used in the shop, with real Android fonts.
                     for(int sheet=0;sheet<6;sheet++){
-                        Bitmap bm=Bitmap.createBitmap(1440,1080,Bitmap.Config.ARGB_8888);Canvas canvas=new Canvas(bm);canvas.drawColor(0xfff5f1f5);
+                        Bitmap bm=Bitmap.createBitmap(1440,1700,Bitmap.Config.ARGB_8888);Canvas canvas=new Canvas(bm);canvas.drawColor(0xfff5f1f5);
                         for(int n=0;n<8;n++){
                             int pack=1000+sheet*8+n,col=n%2,row=n/2;
                             NeoThemePreview preview=new NeoThemePreview(c,pack,Typeface.DEFAULT,false);
-                            preview.measure(View.MeasureSpec.makeMeasureSpec(700,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(225,View.MeasureSpec.EXACTLY));
-                            preview.layout(0,0,700,225);
-                            canvas.save();canvas.translate(col*720+10,row*270+28);preview.draw(canvas);canvas.restore();
-                            canvas.drawText(NeoThemeCatalog.get(pack).name,col*720+12,row*270+20,text);
+                            preview.measure(View.MeasureSpec.makeMeasureSpec(700,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(390,View.MeasureSpec.EXACTLY));
+                            preview.layout(0,0,700,390);
+                            canvas.save();canvas.translate(col*720+10,row*425+28);preview.draw(canvas);canvas.restore();
+                            canvas.drawText(NeoThemeCatalog.get(pack).name,col*720+12,row*425+20,text);
                         }
                         try(FileOutputStream out=new FileOutputStream(new File(dir,"families-"+sheet+".png"))){bm.compress(Bitmap.CompressFormat.PNG,100,out);}bm.recycle();
                     }

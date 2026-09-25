@@ -113,7 +113,7 @@ final class NeoThemeRenderer {
     }
     private void makeShape(RectF r,int mode,boolean space){
         shape.reset();float w=r.width(),h=r.height(),u=Math.min(w,h),cx=r.centerX(),cy=r.centerY();
-        if(mode==2){shape.addOval(r,Path.Direction.CW);return;}
+        if(mode==2){shape.addCircle(cx,cy,u*.5f,Path.Direction.CW);return;}
         if(mode==3||mode==15||mode==11){float d=u*(mode==15?.23f:mode==11?.13f:.12f);shape.moveTo(r.left+d,r.top);shape.lineTo(r.right-d,r.top);shape.lineTo(r.right,r.top+d);shape.lineTo(r.right,r.bottom-d);shape.lineTo(r.right-d,r.bottom);shape.lineTo(r.left+d,r.bottom);shape.lineTo(r.left,r.bottom-d);shape.lineTo(r.left,r.top+d);shape.close();return;}
         if(mode==12){shape.moveTo(r.left,r.bottom);shape.lineTo(r.left,r.top+h*.30f);shape.cubicTo(r.left,r.top+h*.08f,cx,r.top,cx,r.top);shape.cubicTo(cx,r.top,r.right,r.top+h*.08f,r.right,r.top+h*.30f);shape.lineTo(r.right,r.bottom);shape.close();return;}
         if(mode==4){float d=u*.12f;shape.moveTo(r.left+d,r.top);shape.lineTo(r.right-d,r.top);shape.quadTo(r.right,r.top,r.right,r.top+d);shape.lineTo(r.right,cy-d);shape.quadTo(r.right-d,cy,r.right,cy+d);shape.lineTo(r.right,r.bottom-d);shape.quadTo(r.right,r.bottom,r.right-d,r.bottom);shape.lineTo(r.left+d,r.bottom);shape.quadTo(r.left,r.bottom,r.left,r.bottom-d);shape.lineTo(r.left,cy+d);shape.quadTo(r.left+d,cy,r.left,cy-d);shape.lineTo(r.left,r.top+d);shape.quadTo(r.left,r.top,r.left+d,r.top);shape.close();return;}

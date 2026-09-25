@@ -16,6 +16,7 @@ final class NeoThemePreview extends View {
     private final Typeface typeface;
     private final int fontStyle;
     private final String language;
+    private final float boardAspect;
     NeoThemePreview(Context c,int pack,Typeface font,boolean numberRow){
         super(c);entry=NeoThemeCatalog.get(pack);renderer=new NeoThemeRenderer(pack);typeface=font;
         fontStyle=c.getSharedPreferences("keykii_prefs",Context.MODE_PRIVATE).getInt("keyboard_font_style",0);
@@ -37,11 +38,25 @@ final class NeoThemePreview extends View {
                 rows[r][k]=new NeoGeometry.Key(a,wt,a.length()>1&&!a.equals("SPACE"));
             }
         }
+        android.content.SharedPreferences prefs=c.getSharedPreferences("keykii_prefs",Context.MODE_PRIVATE);
+        boolean wide=prefs.getBoolean("wide_default",false);
+        int hand=wide?0:prefs.getInt("one_handed_default",0);
+        if(hand<0||hand>2)hand=0;
+        float density=c.getResources().getDisplayMetrics().density;
+        float screenWidth=c.getResources().getDisplayMetrics().widthPixels/density;
+        float panelWidth=screenWidth*(wide?.985f:hand!=0?.82f:.91f)-2*(wide?8:hand!=0?6:7);
+        int keyHeight=Math.min(prefs.getInt("key_height",46),hand!=0?39:wide?42:40);
+        float naturalHeight=4*(keyHeight+5)+(numberRow?Math.max(34,keyHeight-4)+5:0);
+        boardAspect=panelWidth/naturalHeight;
         boxes=NeoGeometry.layout(rows,entry.architecture,entry.composition);NeoArt.watch(this);
         setContentDescription(entry.name+" keyboard preview");
     }
     @Override protected void onDraw(Canvas c){
-        super.onDraw(c);float w=getWidth(),h=getHeight();renderer.background(c,w,h);renderer.structure(c,w,h,boxes);
+        super.onDraw(c);
+        float w=getWidth(),h=w/boardAspect;
+        if(h>getHeight()){h=getHeight();w=h*boardAspect;}
+        c.save();c.translate((getWidth()-w)*.5f,(getHeight()-h)*.5f);
+        renderer.background(c,w,h);renderer.structure(c,w,h,boxes);
         text.setTypeface(typeface);text.setTextAlign(Paint.Align.CENTER);
         for(NeoGeometry.Box b:boxes){
             NeoGeometry.Key k=rows[b.row][b.col];float l=b.left*w,t=b.top*h,kw=(b.right-b.left)*w,kh=(b.bottom-b.top)*h;
@@ -57,6 +72,7 @@ final class NeoThemePreview extends View {
             }
             c.restore();
         }
+        c.restore();
     }
     @Override protected void onAttachedToWindow(){super.onAttachedToWindow();NeoArt.watch(this);}
 }

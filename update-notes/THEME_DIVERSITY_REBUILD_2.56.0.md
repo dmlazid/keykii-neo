@@ -11,6 +11,7 @@ This revision replaces that implementation. Version name stays **2.56.0**; versi
 - The adapted board uses the same total height as the original rows. Toolbar, prediction strip, bottom inset, keyboard resize settings and one-hand container are not replaced.
 - `NeoThemeRenderer` supplies material, key silhouette, background and spacebar artwork for both the live keyboard and `NeoThemePreview`. Glass edges, picture caps, frosting, plush outlines, ticket cutouts, petals, irregular stickers, arches, mechanical bevels and round modifiers are drawn in key-relative coordinates.
 - `NeoKeyboardLanguage` contains the preexisting row definitions, extracted without changing their letter order. Preview and IME share those definitions and respect the number-row setting.
+- New previews fit the current keyboard aspect ratio without stretching key shapes.
 - New previews use one Canvas view per card; the original 40 themes keep their existing preview and live renderer.
 
 ## Catalog counts — what the numbers mean
