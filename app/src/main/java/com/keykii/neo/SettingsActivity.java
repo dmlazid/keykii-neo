@@ -61,7 +61,8 @@ public class SettingsActivity extends Activity {
             new java.util.HashMap<>();
 
     private int remoteFontShownCount = 48;
-    private String fontBrowseMode = "categories";
+    private int colorFontShownCount = 60;
+    private String fontBrowseMode = "all";
     private final java.util.concurrent.ExecutorService fontDownloadExecutor =
             java.util.concurrent.Executors.newSingleThreadExecutor();
 
@@ -91,6 +92,14 @@ public class SettingsActivity extends Activity {
                         "open_screen"
                 );
 
+        if(
+                openScreen==null &&
+                !prefs.getBoolean("app_intro_seen",false)
+        ) {
+            showIntro();
+            return;
+        }
+
         if ("shortcuts".equals(openScreen)) {
             showShortcuts();
 
@@ -115,7 +124,7 @@ public class SettingsActivity extends Activity {
             showLanguages();
 
         } else {
-            showHome();
+            showTheme();
         }
     }
 
@@ -193,6 +202,17 @@ public class SettingsActivity extends Activity {
 
     @Override
     public void onBackPressed() {
+        if("intro".equals(screen) || "intro_language".equals(screen)) {
+            return;
+        }
+        if("app_language".equals(screen)) {
+            showHome();
+            return;
+        }
+        if("fonts".equals(screen) || "mine".equals(screen)) {
+            showTheme();
+            return;
+        }
         if ("photo_theme".equals(screen)) {
             showTheme();
             return;
@@ -214,126 +234,151 @@ public class SettingsActivity extends Activity {
     private void showHome() {
         screen = "home";
 
-        LinearLayout page =
-                page(
-                        "KeyKii",
-                        "Cute, smart and made for you  ✨",
-                        false
-                );
+        LinearLayout page=page(
+                "Settings",
+                "Manage KeyKii, your keyboard and the app",
+                false
+        );
+        page.setPadding(dp(18),dp(18),dp(18),dp(120));
 
-        addHomeHero(page);
+        addSettingsGroupTitle(page,"Tutorial");
+        LinearLayout tutorial=settingsGroup();
+        addSettingsActionRow(tutorial,"?","How to change keyboard",v -> showHelp());
+        addSettingsDivider(tutorial);
+        addSettingsActionRow(tutorial,"✨","How to get Custom Keyboard",v -> showTheme());
+        page.addView(tutorial,settingsGroupParams());
 
-        addSection(page, "Customize your keyboard");
-        addHomeCustomizeCards(page);
-        addHomeProBanner(page);
+        addSettingsGroupTitle(page,"Keyboard");
+        LinearLayout keyboard=settingsGroup();
+        addSettingsActionRow(keyboard,"⌨","Change Keyboard",v -> {
+            InputMethodManager imm=(InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+            if(imm!=null) imm.showInputMethodPicker();
+        });
+        addSettingsDivider(keyboard);
+        addSettingsActionRow(keyboard,"文A","Keyboard Languages",v -> showLanguages());
+        addSettingsDivider(keyboard);
+        addSettingsActionRow(keyboard,"⚙","Preferences",v -> showPreferences());
+        addSettingsDivider(keyboard);
+        addSettingsActionRow(keyboard,"☰","Toolbar",v -> showToolbar());
+        addSettingsDivider(keyboard);
+        addSettingsActionRow(keyboard,"✨","Smart typing",v -> showSmartTyping());
+        addSettingsDivider(keyboard);
+        addSettingsActionRow(keyboard,"〰","Glide typing",v -> showGlideTyping());
+        addSettingsDivider(keyboard);
+        addSettingsActionRow(keyboard,"🎙","Voice typing",v -> showVoice());
+        page.addView(keyboard,settingsGroupParams());
 
-        addSection(page, "Set up keyboard");
-        addHomeSetupButtons(page);
+        addSettingsGroupTitle(page,"App");
+        LinearLayout app=settingsGroup();
+        addSettingsActionRow(app,"🌐","Language",v -> showAppLanguagePicker(false));
+        addSettingsDivider(app);
+        addSettingsActionRow(app,"🎨","Theme Shop",v -> showTheme());
+        addSettingsDivider(app);
+        addSettingsActionRow(app,"Aa","Font Shop",v -> showFonts());
+        addSettingsDivider(app);
+        addSettingsActionRow(app,"▣","Clipboard",v -> showClipboard());
+        addSettingsDivider(app);
+        addSettingsActionRow(app,"⚡","Text shortcuts",v -> showShortcuts());
+        addSettingsDivider(app);
+        addSettingsActionRow(app,"Aa","Dictionary",v -> showDictionary());
+        addSettingsDivider(app);
+        addSettingsActionRow(app,"☺","Emoji & kaomoji",v -> showEmoji());
+        addSettingsDivider(app);
+        addSettingsActionRow(app,"🔒","Privacy",v -> showPrivacy());
+        addSettingsDivider(app);
+        addSettingsActionRow(app,"ⓘ","About KeyKii",v -> showAbout());
+        addSettingsDivider(app);
+        addSettingsActionRow(app,"?","Help & feedback",v -> showHelp());
+        addSettingsDivider(app);
+        addSettingsValueRow(app,"!","App version",appVersion());
+        page.addView(app,settingsGroupParams());
 
-        addSection(page, "Keyboard");
-        addRow(
-                page,
-                "⌨",
-                "Languages",
-                "Add and switch KeyKii keyboard layouts",
-                v -> showLanguages()
-        );
-        addRow(
-                page,
-                "⚙",
-                "Preferences",
-                "Size, spacing, sound, vibration and width",
-                v -> showPreferences()
-        );
-        addRow(
-                page,
-                "☰",
-                "Toolbar",
-                "Choose which tools appear above the keys",
-                v -> showToolbar()
-        );
-
-        addSection(page, "Typing & tools");
-        addRow(
-                page,
-                "✨",
-                "Smart typing",
-                "Suggestions, capitalization and quick punctuation",
-                v -> showSmartTyping()
-        );
-        addRow(
-                page,
-                "〰",
-                "Glide typing",
-                prefs.getBoolean("glide_typing", false)
-                        ? "On • Swipe across letters to type"
-                        : "Off • Swipe across letters to type",
-                v -> showGlideTyping()
-        );
-        addRow(
-                page,
-                "🎙",
-                "Voice typing",
-                "Speak and insert text with KeyKii",
-                v -> showVoice()
-        );
-
-        addSection(page, "Your content");
-        addRow(
-                page,
-                "▣",
-                "Clipboard",
-                "Manage your KeyKii clipboard history",
-                v -> showClipboard()
-        );
-        addRow(
-                page,
-                "⚡",
-                "Text shortcuts",
-                "Save reusable text for faster typing",
-                v -> showShortcuts()
-        );
-        addRow(
-                page,
-                "Aa",
-                "Dictionary",
-                "Manage words used by KeyKii suggestions",
-                v -> showDictionary()
-        );
-        addRow(
-                page,
-                "☺",
-                "Emoji & kaomoji",
-                "Recents and emoji behavior",
-                v -> showEmoji()
-        );
-
-        addSection(page, "More");
-        addRow(
-                page,
-                "🔒",
-                "Privacy",
-                "What KeyKii stores on this device",
-                v -> showPrivacy()
-        );
-        addRow(
-                page,
-                "ⓘ",
-                "About KeyKii",
-                "Version "+appVersion(),
-                v -> showAbout()
-        );
-        addRow(
-                page,
-                "?",
-                "Help & feedback",
-                "Troubleshooting and app help",
-                v -> showHelp()
-        );
-
-        setContentView(wrap(page));
+        setContentView(shopRoot(wrap(page),"settings"));
     }
 
+    private void addSettingsGroupTitle(LinearLayout page,String title) {
+        TextView label=new TextView(this);
+        label.setText(ui(title));
+        label.setTextColor(Color.rgb(153,91,194));
+        label.setTextSize(14);
+        label.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        label.setPadding(dp(18),dp(22),dp(8),dp(3));
+        page.addView(label);
+    }
+
+    private LinearLayout settingsGroup() {
+        LinearLayout group=new LinearLayout(this);
+        group.setOrientation(LinearLayout.VERTICAL);
+        group.setPadding(dp(12),dp(7),dp(12),dp(7));
+        GradientDrawable bg=round(Color.WHITE,24);
+        bg.setStroke(dp(2),Color.rgb(154,83,198));
+        group.setBackground(bg);
+        return group;
+    }
+
+    private LinearLayout.LayoutParams settingsGroupParams() {
+        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,ViewGroup.LayoutParams.WRAP_CONTENT);
+        p.setMargins(dp(2),dp(2),dp(2),dp(8));
+        return p;
+    }
+
+    private void addSettingsDivider(LinearLayout parent) {
+        View line=new View(this);
+        line.setBackgroundColor(Color.rgb(235,231,237));
+        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(1));
+        p.setMargins(dp(56),0,dp(18),0);
+        parent.addView(line,p);
+    }
+
+    private void addSettingsActionRow(LinearLayout parent,String icon,String title,View.OnClickListener listener) {
+        LinearLayout row=new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(10),dp(9),dp(8),dp(9));
+        row.setOnClickListener(listener);
+
+        TextView iconView=new TextView(this);
+        iconView.setText(icon);
+        iconView.setTextColor(Color.rgb(176,96,229));
+        iconView.setTextSize(20);
+        iconView.setGravity(Gravity.CENTER);
+        row.addView(iconView,new LinearLayout.LayoutParams(dp(48),dp(48)));
+
+        TextView titleView=new TextView(this);
+        titleView.setText(ui(title));
+        titleView.setTextColor(Color.rgb(27,25,29));
+        titleView.setTextSize(16);
+        titleView.setGravity(Gravity.CENTER_VERTICAL);
+        row.addView(titleView,new LinearLayout.LayoutParams(0,dp(48),1f));
+
+        TextView arrow=new TextView(this);
+        arrow.setText("›");
+        arrow.setTextColor(Color.BLACK);
+        arrow.setTextSize(31);
+        arrow.setGravity(Gravity.CENTER);
+        row.addView(arrow,new LinearLayout.LayoutParams(dp(38),dp(48)));
+        parent.addView(row,new LinearLayout.LayoutParams(-1,dp(66)));
+    }
+
+    private void addSettingsValueRow(LinearLayout parent,String icon,String title,String value) {
+        LinearLayout row=new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(10),dp(9),dp(8),dp(9));
+
+        TextView iconView=new TextView(this);
+        iconView.setText(icon);
+        iconView.setTextColor(Color.rgb(176,96,229));
+        iconView.setTextSize(20);
+        iconView.setGravity(Gravity.CENTER);
+        row.addView(iconView,new LinearLayout.LayoutParams(dp(48),dp(48)));
+
+        TextView titleView=new TextView(this);
+        titleView.setText(ui(title)+": "+value);
+        titleView.setTextColor(Color.rgb(27,25,29));
+        titleView.setTextSize(16);
+        titleView.setGravity(Gravity.CENTER_VERTICAL);
+        row.addView(titleView,new LinearLayout.LayoutParams(0,dp(48),1f));
+        parent.addView(row,new LinearLayout.LayoutParams(-1,dp(66)));
+    }
 
     private void addHomeHero(
             LinearLayout page
@@ -950,6 +995,324 @@ public class SettingsActivity extends Activity {
         return button;
     }
 
+
+
+    private void showIntro() {
+        screen="intro";
+        LinearLayout page=new LinearLayout(this);
+        page.setOrientation(LinearLayout.VERTICAL);
+        page.setGravity(Gravity.CENTER_HORIZONTAL);
+        page.setPadding(dp(26),dp(46),dp(26),dp(34));
+        page.setBackgroundColor(Color.WHITE);
+
+        ImageView logo=new ImageView(this);
+        logo.setImageResource(R.drawable.keykii_official_color_icon);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        page.addView(logo,new LinearLayout.LayoutParams(dp(170),dp(170)));
+
+        TextView title=new TextView(this);
+        title.setText("KeyKii");
+        title.setTextColor(TEXT);
+        title.setTextSize(34);
+        title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
+        page.addView(title);
+
+        TextView sub=new TextView(this);
+        sub.setText(ui("Make your keyboard yours"));
+        sub.setTextColor(MUTED);
+        sub.setTextSize(16);
+        sub.setGravity(Gravity.CENTER);
+        sub.setPadding(0,dp(5),0,dp(26));
+        page.addView(sub);
+
+        TextView language=new TextView(this);
+        language.setText("🌐  "+ui("App language")+"  •  "+appLanguageName());
+        language.setTextColor(TEXT);
+        language.setTextSize(15);
+        language.setGravity(Gravity.CENTER);
+        language.setBackground(round(Color.rgb(247,239,252),22));
+        language.setOnClickListener(v -> showAppLanguagePicker(true));
+        page.addView(language,new LinearLayout.LayoutParams(-1,dp(58)));
+
+        TextView continueButton=new TextView(this);
+        continueButton.setText(ui("Continue"));
+        continueButton.setTextColor(Color.WHITE);
+        continueButton.setTextSize(17);
+        continueButton.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        continueButton.setGravity(Gravity.CENTER);
+        GradientDrawable continueBg=new GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                new int[]{Color.rgb(188,104,235),Color.rgb(241,98,176)}
+        );
+        continueBg.setCornerRadius(dp(27));
+        continueButton.setBackground(continueBg);
+        continueButton.setOnClickListener(v -> {
+            prefs.edit().putBoolean("app_intro_seen",true).apply();
+            showTheme();
+        });
+        LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,dp(58));
+        cp.setMargins(0,dp(18),0,0);
+        page.addView(continueButton,cp);
+
+        TextView note=new TextView(this);
+        note.setText(ui("You can change the app language later in Settings."));
+        note.setTextColor(MUTED);
+        note.setTextSize(11);
+        note.setGravity(Gravity.CENTER);
+        note.setPadding(0,dp(14),0,0);
+        page.addView(note);
+        setContentView(wrap(page));
+    }
+
+    private final String[] appLanguageCodes={"en","fil","ceb","es"};
+    private final String[] appLanguageNames={"English","Filipino","Cebuano","Español"};
+
+    private String appLanguageCode(){return prefs.getString("app_language","en");}
+
+    private String appLanguageName(){
+        String code=appLanguageCode();
+        for(int i=0;i<appLanguageCodes.length;i++)
+            if(appLanguageCodes[i].equals(code))return appLanguageNames[i];
+        return "English";
+    }
+
+    private void showAppLanguagePicker(boolean onboarding){
+        screen=onboarding?"intro_language":"app_language";
+        LinearLayout page=page("App language","Choose the language used across KeyKii",!onboarding);
+        String current=appLanguageCode();
+
+        for(int i=0;i<appLanguageCodes.length;i++){
+            final String code=appLanguageCodes[i];
+            final boolean selected=code.equals(current);
+            addRow(page,selected?"✓":"🌐",appLanguageNames[i],
+                    selected?"Selected":"Tap to use this language",v -> {
+                        prefs.edit().putString("app_language",code).apply();
+                        settingsScrollPositions.clear();
+                        showAppLanguagePicker(onboarding);
+                    });
+        }
+
+        addActionButton(page,onboarding?"Continue":"Done",v -> {
+            if(onboarding){
+                prefs.edit().putBoolean("app_intro_seen",true).apply();
+                showTheme();
+            }else showHome();
+        });
+        setContentView(wrap(page));
+    }
+
+    private String ui(String english){
+        if(english==null)return "";
+        String code=appLanguageCode();
+        if("fil".equals(code))return uiFil(english);
+        if("ceb".equals(code))return uiCeb(english);
+        if("es".equals(code))return uiEs(english);
+        return english;
+    }
+
+    private String uiFil(String x){
+        switch(x){
+            case "Settings":return "Mga Setting";
+            case "Manage KeyKii, your keyboard and the app":return "Pamahalaan ang KeyKii, keyboard at app";
+            case "Tutorial":return "Gabay";
+            case "How to change keyboard":return "Paano magpalit ng keyboard";
+            case "How to get Custom Keyboard":return "Paano kumuha ng Custom Keyboard";
+            case "Change Keyboard":return "Palitan ang Keyboard";
+            case "Keyboard Languages":return "Mga Wika ng Keyboard";
+            case "Preferences":return "Mga Kagustuhan";
+            case "Smart typing":return "Smart na pag-type";
+            case "Language":return "Wika";
+            case "Dictionary":return "Diksyunaryo";
+            case "Emoji & kaomoji":return "Emoji at kaomoji";
+            case "About KeyKii":return "Tungkol sa KeyKii";
+            case "Help & feedback":return "Tulong at feedback";
+            case "App version":return "Bersyon ng app";
+            case "Themes":return "Mga Tema";
+            case "Fonts":return "Mga Font";
+            case "Mine":return "Akin";
+            case "All":return "Lahat";
+            case "Selected":return "Napili";
+            case "Free":return "Libre";
+            case "App language":return "Wika ng app";
+            case "Choose the language used across KeyKii":return "Piliin ang wikang gagamitin sa buong KeyKii";
+            case "Continue":return "Magpatuloy";
+            case "Done":return "Tapos";
+            case "Make your keyboard yours":return "Gawing iyo ang keyboard mo";
+            case "You can change the app language later in Settings.":return "Maaari mong palitan ang wika sa Mga Setting.";
+            case "Test your new keyboard here!":return "Subukan ang bago mong keyboard dito!";
+            case "Your collection":return "Iyong koleksyon";
+            case "Discover themes":return "Tuklasin ang mga tema";
+            case "Choose an alphabet style for your keyboard and combine it with any KeyKii theme.":return "Pumili ng estilo ng letra at ihalo ito sa kahit anong KeyKii theme.";
+            default:return x;
+        }
+    }
+
+    private String uiCeb(String x){
+        switch(x){
+            case "Settings":return "Mga Setting";
+            case "Manage KeyKii, your keyboard and the app":return "Dumalaa ang KeyKii, keyboard ug app";
+            case "Tutorial":return "Giya";
+            case "How to change keyboard":return "Unsaon pag-ilis sa keyboard";
+            case "How to get Custom Keyboard":return "Unsaon pagkuha sa Custom Keyboard";
+            case "Change Keyboard":return "Ilisi ang Keyboard";
+            case "Keyboard Languages":return "Mga Pinulongan sa Keyboard";
+            case "Preferences":return "Mga Kagustuhan";
+            case "Language":return "Pinulongan";
+            case "Dictionary":return "Diksyonaryo";
+            case "Emoji & kaomoji":return "Emoji ug kaomoji";
+            case "About KeyKii":return "Mahitungod sa KeyKii";
+            case "Help & feedback":return "Tabang ug feedback";
+            case "App version":return "Bersyon sa app";
+            case "Themes":return "Mga Tema";
+            case "Fonts":return "Mga Font";
+            case "Mine":return "Akoa";
+            case "All":return "Tanan";
+            case "Selected":return "Napili";
+            case "Free":return "Libre";
+            case "App language":return "Pinulongan sa app";
+            case "Choose the language used across KeyKii":return "Pilia ang pinulongan nga gamiton sa KeyKii";
+            case "Continue":return "Padayon";
+            case "Done":return "Human";
+            case "Make your keyboard yours":return "Himoang imo ang imong keyboard";
+            case "You can change the app language later in Settings.":return "Mahimo nimo usbon ang pinulongan sa Settings.";
+            case "Test your new keyboard here!":return "Sulayi dinhi ang imong bag-ong keyboard!";
+            case "Your collection":return "Imong koleksyon";
+            case "Discover themes":return "Tan-awa ang mga tema";
+            case "Choose an alphabet style for your keyboard and combine it with any KeyKii theme.":return "Pilia ang estilo sa letra ug ipares sa bisan unsang KeyKii theme.";
+            default:return x;
+        }
+    }
+
+    private String uiEs(String x){
+        switch(x){
+            case "Settings":return "Ajustes";
+            case "Manage KeyKii, your keyboard and the app":return "Gestiona KeyKii, tu teclado y la app";
+            case "How to change keyboard":return "Cómo cambiar el teclado";
+            case "How to get Custom Keyboard":return "Cómo obtener un teclado personalizado";
+            case "Change Keyboard":return "Cambiar teclado";
+            case "Keyboard Languages":return "Idiomas del teclado";
+            case "Preferences":return "Preferencias";
+            case "Smart typing":return "Escritura inteligente";
+            case "Voice typing":return "Escritura por voz";
+            case "Language":return "Idioma";
+            case "Theme Shop":return "Tienda de temas";
+            case "Font Shop":return "Tienda de fuentes";
+            case "Clipboard":return "Portapapeles";
+            case "Dictionary":return "Diccionario";
+            case "Privacy":return "Privacidad";
+            case "About KeyKii":return "Acerca de KeyKii";
+            case "Help & feedback":return "Ayuda y comentarios";
+            case "App version":return "Versión de la app";
+            case "Themes":return "Temas";
+            case "Fonts":return "Fuentes";
+            case "Mine":return "Mío";
+            case "All":return "Todo";
+            case "Selected":return "Seleccionado";
+            case "Free":return "Gratis";
+            case "Trending":return "Tendencias";
+            case "Color Fonts":return "Fuentes de color";
+            case "App language":return "Idioma de la app";
+            case "Choose the language used across KeyKii":return "Elige el idioma de toda la app KeyKii";
+            case "Continue":return "Continuar";
+            case "Done":return "Listo";
+            case "Make your keyboard yours":return "Haz tuyo tu teclado";
+            case "You can change the app language later in Settings.":return "Puedes cambiar el idioma más tarde en Ajustes.";
+            case "Test your new keyboard here!":return "¡Prueba aquí tu nuevo teclado!";
+            case "Your collection":return "Tu colección";
+            case "Discover themes":return "Descubrir temas";
+            case "Choose an alphabet style for your keyboard and combine it with any KeyKii theme.":return "Elige un estilo de letras y combínalo con cualquier tema de KeyKii.";
+            default:return x;
+        }
+    }
+
+    private void showMine(){
+        screen="mine";
+        LinearLayout page=page("Mine","Your keyboard, collection and quick test",false);
+        page.setPadding(dp(18),dp(18),dp(18),dp(120));
+
+        LinearLayout tester=new LinearLayout(this);
+        tester.setOrientation(LinearLayout.VERTICAL);
+        tester.setPadding(dp(18),dp(18),dp(18),dp(18));
+        GradientDrawable testerBg=round(Color.WHITE,24);
+        testerBg.setStroke(dp(2),Color.rgb(191,139,225));
+        tester.setBackground(testerBg);
+
+        TextView testerTitle=new TextView(this);
+        testerTitle.setText(ui("Test your new keyboard here!"));
+        testerTitle.setTextColor(TEXT);
+        testerTitle.setTextSize(18);
+        testerTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        testerTitle.setGravity(Gravity.CENTER);
+        tester.addView(testerTitle);
+
+        EditText input=new EditText(this);
+        input.setHint("Enter something");
+        input.setTextColor(TEXT);
+        input.setHintTextColor(Color.rgb(185,180,188));
+        input.setTextSize(17);
+        input.setPadding(dp(14),dp(6),dp(14),dp(6));
+        GradientDrawable inputBg=round(Color.WHITE,20);
+        inputBg.setStroke(dp(2),Color.rgb(220,216,222));
+        input.setBackground(inputBg);
+        LinearLayout.LayoutParams ip=new LinearLayout.LayoutParams(-1,dp(66));
+        ip.setMargins(0,dp(14),0,0);
+        tester.addView(input,ip);
+        page.addView(tester);
+
+        addSection(page,"Your collection");
+        addRow(page,"🎨","Themes",themeName(),v -> showTheme());
+        addRow(page,"Aa","Selected",keyboardFontName(),v -> showFonts());
+        addActionButton(page,"Discover themes",v -> showTheme());
+        setContentView(shopRoot(wrap(page),"mine"));
+    }
+
+    private View shopRoot(ScrollView scroll,String active){
+        FrameLayout root=new FrameLayout(this);
+        root.setBackgroundColor(BG);
+        root.addView(scroll,new FrameLayout.LayoutParams(-1,-1));
+        LinearLayout nav=buildShopBottomNav(active);
+        FrameLayout.LayoutParams p=new FrameLayout.LayoutParams(-1,dp(82),Gravity.BOTTOM);
+        p.setMargins(dp(10),0,dp(10),dp(10));
+        root.addView(nav,p);
+        return root;
+    }
+
+    private LinearLayout buildShopBottomNav(String active){
+        LinearLayout nav=new LinearLayout(this);
+        nav.setGravity(Gravity.CENTER);
+        nav.setPadding(dp(5),dp(6),dp(5),dp(6));
+        GradientDrawable bg=round(Color.WHITE,32);
+        bg.setStroke(dp(1),Color.rgb(235,230,237));
+        nav.setBackground(bg);
+        nav.setElevation(dp(10));
+        nav.addView(shopNavItem("🎨","Themes","themes",active,v -> showTheme()),new LinearLayout.LayoutParams(0,-1,1f));
+        nav.addView(shopNavItem("A","Fonts","fonts",active,v -> showFonts()),new LinearLayout.LayoutParams(0,-1,1f));
+        nav.addView(shopNavItem("▣","Mine","mine",active,v -> showMine()),new LinearLayout.LayoutParams(0,-1,1f));
+        nav.addView(shopNavItem("⚙","Settings","settings",active,v -> showHome()),new LinearLayout.LayoutParams(0,-1,1f));
+        return nav;
+    }
+
+    private LinearLayout shopNavItem(String icon,String label,String id,String active,View.OnClickListener listener){
+        boolean selected=id.equals(active);
+        LinearLayout item=new LinearLayout(this);
+        item.setOrientation(LinearLayout.VERTICAL);
+        item.setGravity(Gravity.CENTER);
+        item.setOnClickListener(listener);
+        TextView iconView=new TextView(this);
+        iconView.setText(icon);
+        iconView.setTextSize(20);
+        iconView.setGravity(Gravity.CENTER);
+        iconView.setTextColor(selected?Color.rgb(178,91,231):Color.rgb(110,108,112));
+        TextView textView=new TextView(this);
+        textView.setText(ui(label));
+        textView.setTextSize(11);
+        textView.setGravity(Gravity.CENTER);
+        textView.setTextColor(selected?Color.rgb(178,91,231):Color.rgb(62,60,64));
+        item.addView(iconView,new LinearLayout.LayoutParams(-1,dp(36)));
+        item.addView(textView,new LinearLayout.LayoutParams(-1,dp(26)));
+        return item;
+    }
 
     private final String[] keyboardLanguageCodes = {
             "en-US","en-GB","fil","ceb","es",
@@ -1976,7 +2339,7 @@ public class SettingsActivity extends Activity {
         LinearLayout page = page(
                 "Themes",
                 "Tap a design to preview it before applying",
-                true
+                false
         );
 
         // Leave room for the fixed preview sheet, like Gboard.
@@ -1984,7 +2347,7 @@ public class SettingsActivity extends Activity {
                 dp(18),
                 dp(18),
                 dp(18),
-                dp(285)
+                dp(370)
         );
 
         addThemeStoreHero(page);
@@ -2128,13 +2491,15 @@ public class SettingsActivity extends Activity {
                 dp(10),
                 dp(10),
                 dp(10),
-                dp(18)
+                dp(102)
         );
 
-        root.addView(
-                themePreviewSheet,
-                sheetParams
-        );
+        root.addView(themePreviewSheet,sheetParams);
+
+        LinearLayout shopNav=buildShopBottomNav("themes");
+        FrameLayout.LayoutParams shopNavParams=new FrameLayout.LayoutParams(-1,dp(82),Gravity.BOTTOM);
+        shopNavParams.setMargins(dp(10),0,dp(10),dp(10));
+        root.addView(shopNav,shopNavParams);
 
         setContentView(root);
 
@@ -2208,6 +2573,10 @@ public class SettingsActivity extends Activity {
             case 151: return "Unifraktur Cook";
 
             default:
+                if(ColorFontCatalog.isColorStyle(value)) {
+                    ColorFontCatalog.Entry e=ColorFontCatalog.find(value);
+                    if(e!=null) return e.name;
+                }
                 if(value>=RemoteFontCatalog.FIRST_STYLE) {
                     RemoteFontCatalog.Entry e=RemoteFontCatalog.find(value);
                     if(e!=null) return e.name;
@@ -2219,6 +2588,10 @@ public class SettingsActivity extends Activity {
 
     private Typeface settingsKeyboardTypeface(int style) {
         try {
+            if(ColorFontCatalog.isColorStyle(style)) {
+                ColorFontCatalog.Entry e=ColorFontCatalog.find(style);
+                if(e!=null) return settingsKeyboardTypeface(e.baseStyle);
+            }
             if(style>=RemoteFontCatalog.FIRST_STYLE) {
                 java.io.File remote=remoteFontFile(style);
                 if(remote.exists())
@@ -2353,6 +2726,10 @@ public class SettingsActivity extends Activity {
 
 
     private int fontDisplayTextSize(int style) {
+        if(ColorFontCatalog.isColorStyle(style)) {
+            ColorFontCatalog.Entry e=ColorFontCatalog.find(style);
+            if(e!=null) return fontDisplayTextSize(e.baseStyle);
+        }
         switch(style) {
             case 106:
                 return 13;
@@ -2370,408 +2747,252 @@ public class SettingsActivity extends Activity {
     }
 
 
-    private void showFonts() {
+    private void showFonts(){
         screen="fonts";
-
-        LinearLayout page=page(
-                "Fonts",
-                "Choose a font style for your KeyKii keyboard",
-                true
-        );
+        LinearLayout page=page("Fonts","Choose a font style for your KeyKii keyboard",false);
+        page.setPadding(dp(18),dp(18),dp(18),dp(120));
 
         LinearLayout hero=new LinearLayout(this);
         hero.setOrientation(LinearLayout.VERTICAL);
         hero.setPadding(dp(18),dp(16),dp(18),dp(15));
-
-        GradientDrawable heroBg=
-                new GradientDrawable(
-                        GradientDrawable.Orientation.TL_BR,
-                        new int[]{
-                                Color.rgb(255,244,235),
-                                Color.rgb(246,248,239),
-                                Color.rgb(250,242,250)
-                        }
-                );
+        GradientDrawable heroBg=new GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                new int[]{Color.rgb(255,244,235),Color.rgb(246,248,239),Color.rgb(250,242,250)}
+        );
         heroBg.setCornerRadius(dp(24));
         heroBg.setStroke(dp(1),Color.rgb(238,229,224));
         hero.setBackground(heroBg);
 
         TextView heroTitle=new TextView(this);
-        heroTitle.setText("1,083 keyboard font styles");
+        heroTitle.setText("1,383 keyboard font styles");
         heroTitle.setTextColor(TEXT);
         heroTitle.setTextSize(19);
         heroTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        hero.addView(heroTitle);
 
         TextView heroSub=new TextView(this);
-        heroSub.setText(
-                "Mix cute, handwritten, retro, bold, elegant and playful alphabet styles with any KeyKii theme. " +
-                "Choose a section below to browse."
-        );
+        heroSub.setText(ui("Choose an alphabet style for your keyboard and combine it with any KeyKii theme."));
         heroSub.setTextColor(MUTED);
         heroSub.setTextSize(11);
         heroSub.setPadding(0,dp(5),0,0);
-
-        hero.addView(heroTitle);
         hero.addView(heroSub);
 
-        LinearLayout.LayoutParams hp=
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                );
-        hp.setMargins(0,dp(6),0,dp(14));
+        LinearLayout.LayoutParams hp=new LinearLayout.LayoutParams(-1,ViewGroup.LayoutParams.WRAP_CONTENT);
+        hp.setMargins(0,dp(6),0,dp(12));
         page.addView(hero,hp);
+        addFontFilterBar(page);
 
-        addFontBrowseNavigation(page);
-
-        if("new".equals(fontBrowseMode)) {
-            addSection(page,"New featured fonts");
-            addFontStoreCard(page,124,"Black Ops One","Bold tactical display",false);
-            addFontStoreCard(page,125,"Bowlby One SC","Chunky poster caps",false);
-            addFontStoreCard(page,126,"Bubblegum Sans","Cute bubbly sans",false);
-            addFontStoreCard(page,127,"Cherry Bomb One","Playful chunky display",false);
-            addFontStoreCard(page,128,"Codystar","Dotted retro display",false);
-            addFontStoreCard(page,129,"Diplomata SC","Decorative engraved caps",false);
-            addFontStoreCard(page,130,"Emblema One","Vintage emblem display",false);
-            addFontStoreCard(page,131,"Ewert","Western decorative inline",false);
-            addFontStoreCard(page,132,"Faster One","Fast racing display",false);
-            addFontStoreCard(page,133,"Finger Paint","Painted hand lettering",false);
-            addFontStoreCard(page,134,"Geostar","Geometric outline",false);
-            addFontStoreCard(page,135,"Geostar Fill","Geometric filled display",false);
-            addFontStoreCard(page,136,"Gravitas One","Heavy classic serif",true);
-            addFontStoreCard(page,137,"Henny Penny","Whimsical handwritten",true);
-            addFontStoreCard(page,138,"Jolly Lodger","Playful spooky display",true);
-            addFontStoreCard(page,139,"Kablammo","Explosive variable display",true);
-            addFontStoreCard(page,140,"Kirang Haerang","Casual marker style",true);
-            addFontStoreCard(page,141,"Lacquer","Brush display lettering",true);
-            addFontStoreCard(page,142,"Limelight","Art deco display",true);
-            addFontStoreCard(page,143,"Metal Mania","Heavy metal display",true);
-            addFontStoreCard(page,144,"Mogra","Soft playful lettering",true);
-            addFontStoreCard(page,145,"Nosifer","Dripping horror display",true);
-            addFontStoreCard(page,146,"Rampart One","Outlined block display",true);
-            addFontStoreCard(page,147,"Ribeye","Friendly decorative serif",true);
-            addFontStoreCard(page,148,"Rubik Beastly","Wild decorative display",true);
-            addFontStoreCard(page,149,"Rubik Moonrocks","Rocky playful display",true);
-            addFontStoreCard(page,150,"Train One","Industrial line display",true);
-            addFontStoreCard(page,151,"Unifraktur Cook","Blackletter gothic",true);
-
-            addSection(page,"New additions from full library");
-            addRemoteFontSlice(page,0,36);
-
-        } else if("colorful".equals(fontBrowseMode)) {
-            addSection(page,"Colorful & expressive");
-            addFontStoreCard(page,101,"DynaPuff","Puffy hand-drawn",true);
-            addFontStoreCard(page,102,"Rubik Bubbles","Bubble outline",true);
-            addFontStoreCard(page,105,"Bungee","Arcade display",true);
-            addFontStoreCard(page,108,"Pacifico","Smooth brush script",true);
-            addFontStoreCard(page,112,"Fascinate Inline","Retro inline",true);
-            addFontStoreCard(page,113,"Monoton","Neon line",true);
-            addFontStoreCard(page,114,"Frijole","Chunky decorative",true);
-            addFontStoreCard(page,115,"Barrio","Playful irregular",true);
-            addFontStoreCard(page,116,"Knewave","Bold painted",true);
-            addFontStoreCard(page,119,"Baloo 2","Soft chunky",true);
-            addFontStoreCard(page,120,"Modak","Extra puffy",true);
-            addFontStoreCard(page,122,"Gluten","Bouncy playful",true);
-            addFontStoreCard(page,126,"Bubblegum Sans","Cute bubbly sans",false);
-            addFontStoreCard(page,127,"Cherry Bomb One","Playful chunky display",false);
-            addFontStoreCard(page,133,"Finger Paint","Painted hand lettering",false);
-            addFontStoreCard(page,137,"Henny Penny","Whimsical handwritten",true);
-            addFontStoreCard(page,139,"Kablammo","Explosive variable display",true);
-            addFontStoreCard(page,141,"Lacquer","Brush display lettering",true);
-            addFontStoreCard(page,142,"Limelight","Art deco display",true);
-            addFontStoreCard(page,144,"Mogra","Soft playful lettering",true);
-            addFontStoreCard(page,148,"Rubik Beastly","Wild decorative display",true);
-            addFontStoreCard(page,149,"Rubik Moonrocks","Rocky playful display",true);
-
-            addSection(page,"More expressive styles");
-            addRemoteFontNameMatches(page,
-                    new String[]{
-                            "bubble","comic","paint","brush","pop","party","magic",
-                            "happy","moon","star","cherry","candy","flower","cookie",
-                            "funk","jelly","rainbow","neon","doodle","dream"
-                    },
-                    36
-            );
-
-        } else if("selected".equals(fontBrowseMode)) {
-            addSection(page,"Selected font");
+        if("selected".equals(fontBrowseMode)){
+            addSection(page,"Selected");
             addCurrentlySelectedFontCard(page);
+        }else if("free".equals(fontBrowseMode)){
+            addSection(page,"Free");
+            int[] base={0,1,2,3,4,5,6,124,125,126,127,128,129,130,131,132,133,134,135};
+            String[] names={"System","Rounded","Serif","Mono","Condensed","Casual","Medium",
+                    "Black Ops One","Bowlby One SC","Bubblegum Sans","Cherry Bomb One","Codystar",
+                    "Diplomata SC","Emblema One","Ewert","Faster One","Finger Paint","Geostar","Geostar Fill"};
+            for(int i=0;i<base.length;i++)addFontStoreCard(page,base[i],names[i],"Free keyboard alphabet",false);
+            addSection(page,"Free / Watch Ad");
+            addRemoteFontAccessCollection(page,false);
+            addSection(page,"Color Fonts • Free / Watch Ad");
+            addColorFontCollection(page,false);
+        }else if("pro".equals(fontBrowseMode)){
+            addSection(page,"Pro");
+            int[] pro={100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,
+                    136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151};
+            for(int style:pro)addFontStoreCard(page,style,fontNameForStyle(style),"Premium keyboard alphabet",true);
+            addSection(page,"More Pro fonts");
+            addRemoteFontAccessCollection(page,true);
+            addSection(page,"Color Fonts • Pro");
+            addColorFontCollection(page,true);
+        }else if("trending".equals(fontBrowseMode)){
+            addSection(page,"Trending");
+            int[] trend={100,101,102,103,104,105,106,108,109,119,126,127,139,149};
+            for(int style:trend)addFontStoreCard(page,style,fontNameForStyle(style),"Popular keyboard alphabet",
+                    (style>=100&&style<=123)||style>=136);
+            addSection(page,"Trending color fonts");
+            for(int i=0;i<24;i++)addColorFontStoreCard(page,ColorFontCatalog.find(ColorFontCatalog.FIRST_STYLE+i));
+        }else if("color".equals(fontBrowseMode)){
+            addSection(page,"300 Color Fonts");
+            addInfoCard(page,"Color Fonts",
+                    "These styles color the letters and numbers on your KeyKii keyboard. They type normal text into apps and can be mixed with any theme.");
+            addColorFontCollection(page,null);
+        }else{
+            addSection(page,"Free collection");
+            addFontStoreCard(page,0,"System","Clean Android",false);
+            addFontStoreCard(page,1,"Rounded","Soft rounded",false);
+            addFontStoreCard(page,2,"Serif","Classic book",false);
+            addFontStoreCard(page,3,"Mono","Fixed width",false);
+            addFontStoreCard(page,4,"Condensed","Slim modern",false);
+            addFontStoreCard(page,5,"Casual","Relaxed handwriting",false);
+            addFontStoreCard(page,6,"Medium","Clean bold",false);
 
-            addInfoCard(
-                    page,
-                    "Your font + your theme",
-                    "Your selected font stays active when you change themes, so you can mix any keyboard alphabet style with any theme."
-            );
+            addSection(page,"Popular font styles");
+            for(int style=100;style<=123;style++)addFontStoreCard(page,style,fontNameForStyle(style),"Premium keyboard alphabet",true);
+            addSection(page,"New featured fonts");
+            for(int style=124;style<=151;style++)addFontStoreCard(page,style,fontNameForStyle(style),"Featured keyboard alphabet",style>=136);
 
-        } else if("trending".equals(fontBrowseMode)) {
-            addSection(page,"Trending now");
-            addFontStoreCard(page,100,"Fredoka","Round & friendly",true);
-            addFontStoreCard(page,101,"DynaPuff","Puffy hand-drawn",true);
-            addFontStoreCard(page,102,"Rubik Bubbles","Bubble outline",true);
-            addFontStoreCard(page,103,"Patrick Hand","Natural handwriting",true);
-            addFontStoreCard(page,104,"Lobster","Bold connected script",true);
-            addFontStoreCard(page,105,"Bungee","Arcade display",true);
-            addFontStoreCard(page,106,"Press Start 2P","Pixel game",true);
-            addFontStoreCard(page,108,"Pacifico","Smooth brush script",true);
-            addFontStoreCard(page,109,"Caveat","Loose handwritten",true);
-            addFontStoreCard(page,119,"Baloo 2","Soft chunky",true);
-            addFontStoreCard(page,126,"Bubblegum Sans","Cute bubbly sans",false);
-            addFontStoreCard(page,127,"Cherry Bomb One","Playful chunky display",false);
-            addFontStoreCard(page,139,"Kablammo","Explosive variable display",true);
-            addFontStoreCard(page,149,"Rubik Moonrocks","Rocky playful display",true);
+            addSection(page,"300 Color Fonts");
+            for(int i=0;i<20;i++)addColorFontStoreCard(page,ColorFontCatalog.find(ColorFontCatalog.FIRST_STYLE+i));
+            TextView colors=textButton("Browse all 300 Color Fonts");
+            colors.setTextSize(14);
+            colors.setOnClickListener(v->{fontBrowseMode="color";colorFontShownCount=60;settingsScrollPositions.put("fonts",0);showFonts();});
+            LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,dp(50));
+            cp.setMargins(0,dp(6),0,dp(10));
+            page.addView(colors,cp);
 
-            addSection(page,"Trending from full library");
-            addRemoteFontSlice(page,36,30);
-
-        } else {
-
-        addSection(page,"Free collection");
-        addFontStoreCard(page,0,"System","Clean Android",false);
-        addFontStoreCard(page,1,"Rounded","Soft rounded",false);
-        addFontStoreCard(page,2,"Serif","Classic book",false);
-        addFontStoreCard(page,3,"Mono","Fixed width",false);
-        addFontStoreCard(page,4,"Condensed","Slim modern",false);
-        addFontStoreCard(page,5,"Casual","Relaxed handwriting",false);
-        addFontStoreCard(page,6,"Medium","Clean bold",false);
-
-        addSection(page,"Popular font styles");
-        addFontStoreCard(page,100,"Fredoka","Round & friendly",true);
-        addFontStoreCard(page,101,"DynaPuff","Puffy hand-drawn",true);
-        addFontStoreCard(page,102,"Rubik Bubbles","Bubble outline",true);
-        addFontStoreCard(page,103,"Patrick Hand","Natural handwriting",true);
-        addFontStoreCard(page,104,"Lobster","Bold connected script",true);
-        addFontStoreCard(page,105,"Bungee","Arcade display",true);
-        addFontStoreCard(page,106,"Press Start 2P","Pixel game",true);
-        addFontStoreCard(page,107,"Cinzel Decorative","Elegant serif",true);
-        addFontStoreCard(page,108,"Pacifico","Smooth brush script",true);
-        addFontStoreCard(page,109,"Caveat","Loose handwritten",true);
-        addFontStoreCard(page,110,"Berkshire Swash","Fancy swash",true);
-        addFontStoreCard(page,111,"Kaushan Script","Energetic script",true);
-
-        addSection(page,"More to love");
-        addFontStoreCard(page,112,"Fascinate Inline","Retro inline",true);
-        addFontStoreCard(page,113,"Monoton","Neon line",true);
-        addFontStoreCard(page,114,"Frijole","Chunky decorative",true);
-        addFontStoreCard(page,115,"Barrio","Playful irregular",true);
-        addFontStoreCard(page,116,"Knewave","Bold painted",true);
-        addFontStoreCard(page,117,"Rye","Vintage western",true);
-        addFontStoreCard(page,118,"Creepster","Spooky display",true);
-        addFontStoreCard(page,119,"Baloo 2","Soft chunky",true);
-        addFontStoreCard(page,120,"Modak","Extra puffy",true);
-        addFontStoreCard(page,121,"Fredericka the Great","Sketchy artistic",true);
-        addFontStoreCard(page,122,"Gluten","Bouncy playful",true);
-        addFontStoreCard(page,123,"Londrina Sketch","Hand-drawn outline",true);
-
-        addSection(page,"New featured fonts");
-        addFontStoreCard(page,124,"Black Ops One","Bold tactical display",false);
-        addFontStoreCard(page,125,"Bowlby One SC","Chunky poster caps",false);
-        addFontStoreCard(page,126,"Bubblegum Sans","Cute bubbly sans",false);
-        addFontStoreCard(page,127,"Cherry Bomb One","Playful chunky display",false);
-        addFontStoreCard(page,128,"Codystar","Dotted retro display",false);
-        addFontStoreCard(page,129,"Diplomata SC","Decorative engraved caps",false);
-        addFontStoreCard(page,130,"Emblema One","Vintage emblem display",false);
-        addFontStoreCard(page,131,"Ewert","Western decorative inline",false);
-        addFontStoreCard(page,132,"Faster One","Fast racing display",false);
-        addFontStoreCard(page,133,"Finger Paint","Painted hand lettering",false);
-        addFontStoreCard(page,134,"Geostar","Geometric outline",false);
-        addFontStoreCard(page,135,"Geostar Fill","Geometric filled display",false);
-        addFontStoreCard(page,136,"Gravitas One","Heavy classic serif",true);
-        addFontStoreCard(page,137,"Henny Penny","Whimsical handwritten",true);
-        addFontStoreCard(page,138,"Jolly Lodger","Playful spooky display",true);
-        addFontStoreCard(page,139,"Kablammo","Explosive variable display",true);
-        addFontStoreCard(page,140,"Kirang Haerang","Casual marker style",true);
-        addFontStoreCard(page,141,"Lacquer","Brush display lettering",true);
-        addFontStoreCard(page,142,"Limelight","Art deco display",true);
-        addFontStoreCard(page,143,"Metal Mania","Heavy metal display",true);
-        addFontStoreCard(page,144,"Mogra","Soft playful lettering",true);
-        addFontStoreCard(page,145,"Nosifer","Dripping horror display",true);
-        addFontStoreCard(page,146,"Rampart One","Outlined block display",true);
-        addFontStoreCard(page,147,"Ribeye","Friendly decorative serif",true);
-        addFontStoreCard(page,148,"Rubik Beastly","Wild decorative display",true);
-        addFontStoreCard(page,149,"Rubik Moonrocks","Rocky playful display",true);
-        addFontStoreCard(page,150,"Train One","Industrial line display",true);
-        addFontStoreCard(page,151,"Unifraktur Cook","Blackletter gothic",true);
-
-        addSection(page,"1,024 more fonts");
-        addRemoteFontCollection(page);
-
+            addSection(page,"1,024 more fonts");
+            addRemoteFontCollection(page);
         }
 
-        addInfoCard(
-                page,
-                "Font behavior",
-                "The selected font changes only the letters and numbers shown on the KeyKii keyboard. " +
-                "Text you type into apps remains normal."
-        );
-
-        setContentView(wrap(page));
+        addInfoCard(page,"Font behavior",
+                "The selected font changes the alphabet design shown on the KeyKii keyboard. Text sent into apps remains normal.");
+        setContentView(shopRoot(wrap(page),"fonts"));
     }
 
+    private String fontNameForStyle(int style){
+        String[] n={"Fredoka","DynaPuff","Rubik Bubbles","Patrick Hand","Lobster","Bungee","Press Start 2P",
+                "Cinzel Decorative","Pacifico","Caveat","Berkshire Swash","Kaushan Script","Fascinate Inline","Monoton",
+                "Frijole","Barrio","Knewave","Rye","Creepster","Baloo 2","Modak","Fredericka the Great","Gluten",
+                "Londrina Sketch","Black Ops One","Bowlby One SC","Bubblegum Sans","Cherry Bomb One","Codystar",
+                "Diplomata SC","Emblema One","Ewert","Faster One","Finger Paint","Geostar","Geostar Fill","Gravitas One",
+                "Henny Penny","Jolly Lodger","Kablammo","Kirang Haerang","Lacquer","Limelight","Metal Mania","Mogra",
+                "Nosifer","Rampart One","Ribeye","Rubik Beastly","Rubik Moonrocks","Train One","Unifraktur Cook"};
+        if(style>=100&&style<=151)return n[style-100];
+        return "System";
+    }
 
-    private void addFontBrowseNavigation(LinearLayout page) {
+    private void addFontFilterBar(LinearLayout page){
+        android.widget.HorizontalScrollView scroll=new android.widget.HorizontalScrollView(this);
+        scroll.setHorizontalScrollBarEnabled(false);
         LinearLayout row=new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER);
-
-        row.addView(
-                fontBrowseTab("N","New","new",Color.rgb(226,194,255)),
-                new LinearLayout.LayoutParams(0,dp(88),1f)
-        );
-        row.addView(
-                fontBrowseTab("◉","Categories","categories",Color.rgb(190,226,255)),
-                new LinearLayout.LayoutParams(0,dp(88),1f)
-        );
-        row.addView(
-                fontBrowseTab("◐","Colorful","colorful",Color.rgb(238,194,255)),
-                new LinearLayout.LayoutParams(0,dp(88),1f)
-        );
-        row.addView(
-                fontBrowseTab("♥","Selected","selected",Color.rgb(255,206,220)),
-                new LinearLayout.LayoutParams(0,dp(88),1f)
-        );
-        row.addView(
-                fontBrowseTab("▮▮▮","Trending","trending",Color.rgb(190,246,224)),
-                new LinearLayout.LayoutParams(0,dp(88),1f)
-        );
-
-        LinearLayout.LayoutParams rp=
-                new LinearLayout.LayoutParams(-1,dp(94));
-        rp.setMargins(0,0,0,dp(10));
-        page.addView(row,rp);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(2),dp(2),dp(2),dp(6));
+        addFontFilterChip(row,"All","all");
+        addFontFilterChip(row,"Selected","selected");
+        addFontFilterChip(row,"Free","free");
+        addFontFilterChip(row,"Pro","pro");
+        addFontFilterChip(row,"Trending","trending");
+        addFontFilterChip(row,"Color Fonts","color");
+        scroll.addView(row);
+        page.addView(scroll,new LinearLayout.LayoutParams(-1,dp(58)));
     }
 
-    private LinearLayout fontBrowseTab(
-            String icon,
-            String label,
-            String mode,
-            int bubbleColor
-    ) {
-        boolean active=mode.equals(fontBrowseMode);
-
-        LinearLayout item=new LinearLayout(this);
-        item.setOrientation(LinearLayout.VERTICAL);
-        item.setGravity(Gravity.CENTER);
-        item.setPadding(dp(2),dp(3),dp(2),dp(2));
-        item.setOnClickListener(v -> {
-            fontBrowseMode=mode;
-            remoteFontShownCount=48;
-            settingsScrollPositions.put("fonts",0);
-            showFonts();
-        });
-
-        TextView bubble=new TextView(this);
-        bubble.setText(icon);
-        bubble.setTextColor(
-                active
-                        ? Color.rgb(73,54,84)
-                        : Color.rgb(91,78,99)
-        );
-        bubble.setTextSize(label.equals("Trending") ? 14 : 22);
-        bubble.setGravity(Gravity.CENTER);
-        bubble.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
-
-        GradientDrawable bg=round(
-                active ? bubbleColor : Color.argb(170,
-                        Color.red(bubbleColor),
-                        Color.green(bubbleColor),
-                        Color.blue(bubbleColor)),
-                17
-        );
-        if(active)
-            bg.setStroke(dp(2),Color.rgb(181,143,204));
-        bubble.setBackground(bg);
-
-        item.addView(
-                bubble,
-                new LinearLayout.LayoutParams(dp(48),dp(48))
-        );
-
-        TextView text=new TextView(this);
-        text.setText(label);
-        text.setTextColor(active ? TEXT : MUTED);
-        text.setTextSize(label.equals("Categories") ? 9 : 10);
-        text.setGravity(Gravity.CENTER);
-        text.setSingleLine(true);
-        if(active) text.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
-
-        item.addView(
-                text,
-                new LinearLayout.LayoutParams(-1,dp(28))
-        );
-
-        return item;
+    private void addFontFilterChip(LinearLayout row,String label,String mode){
+        boolean selected=mode.equals(fontBrowseMode);
+        TextView chip=new TextView(this);
+        chip.setText(ui(label));
+        chip.setTextSize(12);
+        chip.setGravity(Gravity.CENTER);
+        chip.setTextColor(selected?Color.rgb(120,66,149):Color.rgb(88,80,92));
+        if(selected)chip.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        GradientDrawable bg=round(selected?Color.rgb(247,224,251):Color.WHITE,20);
+        bg.setStroke(dp(selected?2:1),selected?Color.rgb(193,132,215):Color.rgb(232,226,235));
+        chip.setBackground(bg);
+        chip.setOnClickListener(v->{fontBrowseMode=mode;remoteFontShownCount=48;colorFontShownCount=60;settingsScrollPositions.put("fonts",0);showFonts();});
+        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,dp(42));
+        p.setMargins(dp(3),0,dp(3),0);
+        chip.setPadding(dp(18),0,dp(18),0);
+        row.addView(chip,p);
     }
 
-    private void addRemoteFontSlice(
-            LinearLayout page,
-            int start,
-            int count
-    ) {
-        int end=Math.min(
-                RemoteFontCatalog.ITEMS.length,
-                start+count
-        );
-
-        for(int i=Math.max(0,start);i<end;i++)
-            addRemoteFontStoreCard(page,RemoteFontCatalog.ITEMS[i]);
-    }
-
-    private void addRemoteFontNameMatches(
-            LinearLayout page,
-            String[] words,
-            int limit
-    ) {
-        int added=0;
-
-        for(RemoteFontCatalog.Entry entry:RemoteFontCatalog.ITEMS) {
-            String lower=entry.name.toLowerCase(java.util.Locale.ROOT);
-            boolean match=false;
-
-            for(String word:words) {
-                if(lower.contains(word)) {
-                    match=true;
-                    break;
-                }
-            }
-
-            if(match) {
-                addRemoteFontStoreCard(page,entry);
-                added++;
-
-                if(added>=limit)
-                    break;
-            }
+    private void addRemoteFontAccessCollection(LinearLayout page,boolean pro){
+        int shown=0,available=0;
+        for(RemoteFontCatalog.Entry entry:RemoteFontCatalog.ITEMS){
+            if(entry.pro!=pro)continue;
+            available++;
+            if(shown<remoteFontShownCount){addRemoteFontStoreCard(page,entry);shown++;}
         }
-
-        if(added==0)
-            addRemoteFontSlice(page,0,Math.min(limit,24));
+        if(shown<available){
+            TextView more=textButton("Show 48 more  •  "+shown+"/"+available);
+            more.setOnClickListener(v->{remoteFontShownCount+=48;showFonts();});
+            page.addView(more,new LinearLayout.LayoutParams(-1,dp(50)));
+        }
     }
 
-    private void addCurrentlySelectedFontCard(LinearLayout page) {
+    private void addColorFontCollection(LinearLayout page,Boolean proFilter){
+        int shown=0,available=0;
+        for(int i=0;i<ColorFontCatalog.COUNT;i++){
+            ColorFontCatalog.Entry entry=ColorFontCatalog.find(ColorFontCatalog.FIRST_STYLE+i);
+            if(proFilter!=null&&entry.pro!=proFilter.booleanValue())continue;
+            available++;
+            if(shown<colorFontShownCount){addColorFontStoreCard(page,entry);shown++;}
+        }
+        if(shown<available){
+            TextView more=textButton("Show 60 more  •  "+shown+"/"+available);
+            more.setOnClickListener(v->{colorFontShownCount+=60;showFonts();});
+            page.addView(more,new LinearLayout.LayoutParams(-1,dp(50)));
+        }
+    }
+
+    private void addColorFontStoreCard(LinearLayout page,ColorFontCatalog.Entry entry){
+        if(entry==null)return;
+        boolean selected=prefs.getInt("keyboard_font_style",0)==entry.style;
+        LinearLayout row=new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(16),dp(7),dp(10),dp(7));
+        GradientDrawable bg=round(selected?Color.rgb(247,239,252):Color.WHITE,13);
+        bg.setStroke(dp(selected?2:1),selected?Color.rgb(181,143,204):Color.rgb(238,232,227));
+        row.setBackground(bg);
+
+        LinearLayout words=new LinearLayout(this);
+        words.setOrientation(LinearLayout.VERTICAL);
+        words.setGravity(Gravity.CENTER);
+        TextView sample=new TextView(this);
+        sample.setTextSize(fontDisplayTextSize(entry.baseStyle));
+        sample.setGravity(Gravity.CENTER);
+        sample.setSingleLine(true);
+        sample.setTypeface(settingsKeyboardTypeface(entry.baseStyle));
+        applyColorFontText(sample,entry.name,entry.style,TEXT);
+
+        TextView sub=new TextView(this);
+        sub.setText(entry.pro?"Color alphabet • PRO":"Color alphabet • FREE / AD");
+        sub.setTextColor(MUTED);
+        sub.setTextSize(9);
+        sub.setGravity(Gravity.CENTER);
+        words.addView(sample,new LinearLayout.LayoutParams(-1,dp(32)));
+        words.addView(sub,new LinearLayout.LayoutParams(-1,dp(16)));
+        row.addView(words,new LinearLayout.LayoutParams(0,dp(50),1f));
+
+        TextView badge=new TextView(this);
+        badge.setText(selected?"✓":(entry.pro?"PRO":"AD"));
+        badge.setTextSize(selected?18:10);
+        badge.setGravity(Gravity.CENTER);
+        badge.setTextColor(selected?Color.rgb(114,79,133):(entry.pro?Color.rgb(184,95,115):Color.rgb(80,145,96)));
+        badge.setBackground(round(selected?Color.rgb(239,224,248):(entry.pro?Color.rgb(253,239,240):Color.rgb(233,247,235)),11));
+        row.addView(badge,new LinearLayout.LayoutParams(dp(52),dp(28)));
+        row.setOnClickListener(v->showFontPreview(entry.style,entry.name,entry.pro));
+
+        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(66));
+        p.setMargins(0,dp(3),0,dp(3));
+        page.addView(row,p);
+    }
+
+    private void applyColorFontText(TextView view,String text,int style,int fallback){
+        if(!ColorFontCatalog.isColorStyle(style)){view.setText(text);view.setTextColor(fallback);return;}
+        android.text.SpannableString span=new android.text.SpannableString(text);
+        for(int i=0;i<text.length();i++)
+            span.setSpan(new android.text.style.ForegroundColorSpan(
+                    ColorFontCatalog.colorFor(style,String.valueOf(text.charAt(i))+i,fallback)),
+                    i,i+1,android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        view.setText(span);
+    }
+
+    private void addRemoteFontSlice(LinearLayout page,int start,int count){
+        int end=Math.min(RemoteFontCatalog.ITEMS.length,start+count);
+        for(int i=Math.max(0,start);i<end;i++)addRemoteFontStoreCard(page,RemoteFontCatalog.ITEMS[i]);
+    }
+
+    private void addCurrentlySelectedFontCard(LinearLayout page){
         int style=prefs.getInt("keyboard_font_style",0);
-
-        if(style>=RemoteFontCatalog.FIRST_STYLE) {
+        if(ColorFontCatalog.isColorStyle(style)){addColorFontStoreCard(page,ColorFontCatalog.find(style));return;}
+        if(style>=RemoteFontCatalog.FIRST_STYLE){
             RemoteFontCatalog.Entry entry=RemoteFontCatalog.find(style);
-
-            if(entry!=null) {
-                addRemoteFontStoreCard(page,entry);
-                return;
-            }
+            if(entry!=null){addRemoteFontStoreCard(page,entry);return;}
         }
-
-        boolean pro=
-                (style>=100 && style<=123) ||
-                (style>=136 && style<=151);
-
-        addFontStoreCard(
-                page,
-                style,
-                keyboardFontName(),
-                "Currently selected keyboard alphabet",
-                pro
-        );
+        boolean pro=(style>=100&&style<=123)||(style>=136&&style<=151);
+        addFontStoreCard(page,style,keyboardFontName(),"Currently selected keyboard alphabet",pro);
     }
-
 
     private void addFontStoreCard(
             LinearLayout page,
@@ -3176,19 +3397,17 @@ public class SettingsActivity extends Activity {
         sheet.setBackground(round(Color.WHITE,26));
 
         TextView title=new TextView(this);
-        title.setText(name);
-        title.setTextColor(TEXT);
         title.setTextSize(fontDisplayTextSize(style)+2);
         title.setGravity(Gravity.CENTER);
         title.setTypeface(settingsKeyboardTypeface(style));
+        applyColorFontText(title,name,style,TEXT);
         sheet.addView(title,new LinearLayout.LayoutParams(-1,dp(48)));
 
         TextView sample=new TextView(this);
-        sample.setText("The quick brown fox  •  Aa Bb Cc 123");
-        sample.setTextColor(TEXT);
         sample.setTextSize(style==106 ? 13 : 20);
         sample.setGravity(Gravity.CENTER);
         sample.setTypeface(settingsKeyboardTypeface(style));
+        applyColorFontText(sample,"The quick brown fox  •  Aa Bb Cc 123",style,TEXT);
         sheet.addView(sample,new LinearLayout.LayoutParams(-1,dp(58)));
 
         sheet.addView(
@@ -3293,22 +3512,26 @@ public class SettingsActivity extends Activity {
         addFontPreviewRow(
                 keyboard,
                 new String[]{"q","w","e","r","t","y","u","i","o","p"},
-                typeface
+                typeface,
+                style
         );
         addFontPreviewRow(
                 keyboard,
                 new String[]{"a","s","d","f","g","h","j","k","l"},
-                typeface
+                typeface,
+                style
         );
         addFontPreviewRow(
                 keyboard,
                 new String[]{"⇧","z","x","c","v","b","n","m","⌫"},
-                typeface
+                typeface,
+                style
         );
         addFontPreviewRow(
                 keyboard,
                 new String[]{"?123",",","KeyKii",".","↵"},
-                typeface
+                typeface,
+                style
         );
 
         return keyboard;
@@ -3318,7 +3541,8 @@ public class SettingsActivity extends Activity {
     private void addFontPreviewRow(
             LinearLayout parent,
             String[] values,
-            Typeface typeface
+            Typeface typeface,
+            int style
     ) {
         LinearLayout row=new LinearLayout(this);
         row.setGravity(Gravity.CENTER);
@@ -3326,7 +3550,7 @@ public class SettingsActivity extends Activity {
         for(String value:values) {
             TextView key=new TextView(this);
             key.setText(value);
-            key.setTextColor(Color.WHITE);
+            key.setTextColor(ColorFontCatalog.colorFor(style,value,Color.WHITE));
             key.setTextSize(value.length()>2 ? 9 : 13);
             key.setGravity(Gravity.CENTER);
             key.setTypeface(typeface);
@@ -6591,13 +6815,13 @@ public class SettingsActivity extends Activity {
         names.setOrientation(LinearLayout.VERTICAL);
 
         TextView t = new TextView(this);
-        t.setText(title);
+        t.setText(ui(title));
         t.setTextColor(TEXT);
         t.setTextSize(27);
         t.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
 
         TextView s = new TextView(this);
-        s.setText(subtitle);
+        s.setText(ui(subtitle));
         s.setTextColor(MUTED);
         s.setTextSize(13);
 
@@ -6617,7 +6841,7 @@ public class SettingsActivity extends Activity {
 
     private void addSection(LinearLayout page, String text) {
         TextView t = new TextView(this);
-        t.setText(text);
+        t.setText(ui(text));
         t.setTextColor(TEXT);
         t.setTextSize(15);
         t.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
@@ -6664,12 +6888,12 @@ public class SettingsActivity extends Activity {
         words.setPadding(dp(10), 0, dp(8), 0);
 
         TextView a = new TextView(this);
-        a.setText(title);
+        a.setText(ui(title));
         a.setTextColor(TEXT);
         a.setTextSize(17);
 
         TextView b = new TextView(this);
-        b.setText(subtitle);
+        b.setText(ui(subtitle));
         b.setTextColor(MUTED);
         b.setTextSize(12);
 
@@ -8645,7 +8869,7 @@ public class SettingsActivity extends Activity {
         a.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
 
         TextView b = new TextView(this);
-        b.setText(message);
+        b.setText(ui(message));
         b.setTextColor(MUTED);
         b.setTextSize(13);
         b.setPadding(0, dp(5), 0, 0);

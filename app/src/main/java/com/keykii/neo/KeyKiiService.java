@@ -4041,6 +4041,25 @@ public class KeyKiiService extends InputMethodService {
         );
     }
 
+    int keyboardFontStyle() {
+        return getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+        ).getInt(
+                "keyboard_font_style",
+                0
+        );
+    }
+
+    int keyboardFontLabelColor(String token,int fallback) {
+        return ColorFontCatalog.colorFor(
+                keyboardFontStyle(),
+                token,
+                fallback
+        );
+    }
+
+
     void key(
         LinearLayout r,
         String label,
@@ -4065,7 +4084,12 @@ public class KeyKiiService extends InputMethodService {
             : label;
 
         main.setText(shown);
-        main.setTextColor(textColor());
+        main.setTextColor(
+                keyboardFontLabelColor(
+                        shown,
+                        textColor()
+                )
+        );
         main.setGravity(Gravity.CENTER);
         main.setIncludeFontPadding(false);
         main.setAllCaps(false);
@@ -4139,7 +4163,10 @@ public class KeyKiiService extends InputMethodService {
 
             small.setText(hint);
             small.setTextColor(
-                textColor()
+                keyboardFontLabelColor(
+                        hint,
+                        textColor()
+                )
             );
 
             small.setAlpha(.55f);
@@ -17058,6 +17085,38 @@ public class KeyKiiService extends InputMethodService {
         }
 
         android.graphics.Typeface result;
+
+        if(ColorFontCatalog.isColorStyle(style)) {
+            ColorFontCatalog.Entry color=ColorFontCatalog.find(style);
+            if(color!=null) {
+                int originalStyle=style;
+                style=color.baseStyle;
+
+                android.graphics.Typeface base;
+                switch(style) {
+                    case 100: base=assetKeyboardTypeface("fonts/fredoka.ttf"); break;
+                    case 101: base=assetKeyboardTypeface("fonts/dynapuff.ttf"); break;
+                    case 102: base=assetKeyboardTypeface("fonts/rubik_bubbles.ttf"); break;
+                    case 103: base=assetKeyboardTypeface("fonts/patrick_hand.ttf"); break;
+                    case 104: base=assetKeyboardTypeface("fonts/lobster.ttf"); break;
+                    case 105: base=assetKeyboardTypeface("fonts/bungee.ttf"); break;
+                    case 106: base=assetKeyboardTypeface("fonts/press_start_2p.ttf"); break;
+                    case 108: base=assetKeyboardTypeface("fonts/pacifico.ttf"); break;
+                    case 119: base=assetKeyboardTypeface("fonts/baloo2.ttf"); break;
+                    case 126: base=assetKeyboardTypeface("fonts/bubblegum_sans.ttf"); break;
+                    default:
+                        base=android.graphics.Typeface.create(
+                                "sans-serif",
+                                android.graphics.Typeface.NORMAL
+                        );
+                        break;
+                }
+
+                cachedKeyboardTypefaceStyle=originalStyle;
+                cachedKeyboardTypeface=base;
+                return base;
+            }
+        }
 
         if(style>=RemoteFontCatalog.FIRST_STYLE) {
             java.io.File remote=
