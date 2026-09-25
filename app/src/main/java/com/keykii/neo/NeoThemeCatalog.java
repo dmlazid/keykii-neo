@@ -2,7 +2,7 @@ package com.keykii.neo;
 
 import android.graphics.Color;
 
-final class NeoThemeCatalog {
+// Renderer V2 source marker: 48 structural board families; keep 2.54.4 lazy Theme Shop behavior.\nfinal class NeoThemeCatalog {
     static final int FIRST_PACK=1000;
     static final int COUNT=512;
     static final int PAGE_SIZE=24;
