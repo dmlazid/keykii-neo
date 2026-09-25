@@ -64,6 +64,10 @@ public class SettingsActivity extends Activity {
     private int colorFontShownCount = 60;
     private String fontBrowseMode = "all";
     private String themeBrowseMode = "all";
+    private LinearLayout themeCategoryContent;
+    private android.widget.HorizontalScrollView themeFilterScroll;
+    private final java.util.ArrayList<TextView> themeFilterChips =
+            new java.util.ArrayList<>();
     private final java.util.concurrent.ExecutorService fontDownloadExecutor =
             java.util.concurrent.Executors.newSingleThreadExecutor();
 
@@ -87,7 +91,7 @@ public class SettingsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences("keykii_prefs", MODE_PRIVATE);
-        themeBrowseMode=prefs.getString("theme_browse_mode","all");
+        themeBrowseMode="all";
         fontBrowseMode=prefs.getString("font_browse_mode","all");
 
         String openScreen=
@@ -2492,181 +2496,17 @@ public class SettingsActivity extends Activity {
 
         addThemeFilterBar(page);
 
-        if("free".equals(themeBrowseMode)) {
-            addThemeSection(page,"FREE THEMES");
-            addStylePackGrid(
-                    page,
-                    new int[]{100,102,106,108,113,117,120,122,126,128,133,137}
-            );
-
-        } else if("pro".equals(themeBrowseMode)) {
-            addThemeSection(page,"✦ PRO THEMES");
-            addStylePackGrid(
-                    page,
-                    new int[]{
-                            101,103,104,105,107,109,110,111,112,114,115,116,
-                            118,119,121,123,124,125,127,129,130,131,132,134,
-                            135,136,138,139
-                    }
-            );
-
-        } else if("cute".equals(themeBrowseMode)) {
-            addThemeSection(page,"🎀 CUTE & KAWAII");
-            addStylePackGrid(
-                    page,
-                    new int[]{
-                            100,102,103,104,106,108,109,110,113,114,
-                            117,120,122,123,127,131,133,134,136,137
-                    }
-            );
-
-        } else if("aesthetic".equals(themeBrowseMode)) {
-            addThemeSection(page,"✨ AESTHETIC");
-            addStylePackGrid(
-                    page,
-                    new int[]{
-                            100,103,104,110,115,116,117,120,124,130,
-                            131,133,135,139
-                    }
-            );
-
-        } else if("dreamy".equals(themeBrowseMode)) {
-            addThemeSection(page,"☁ DREAMY");
-            addStylePackGrid(
-                    page,
-                    new int[]{
-                            101,107,110,112,116,119,121,124,125,128,
-                            129,133,138
-                    }
-            );
-
-        } else if("dark".equals(themeBrowseMode)) {
-            addThemeSection(page,"🖤 DARK");
-            addStylePackGrid(
-                    page,
-                    new int[]{105,107,118,125,132,139}
-            );
-
-        } else if("nature".equals(themeBrowseMode)) {
-            addThemeSection(page,"🌿 NATURE");
-            addStylePackGrid(
-                    page,
-                    new int[]{102,108,111,115,116,122,126,129,130,133,135}
-            );
-
-        } else if("seasonal".equals(themeBrowseMode)) {
-            addThemeSection(page,"❄ SEASONAL");
-            addStylePackGrid(
-                    page,
-                    new int[]{100,106,111,119,120,128,131}
-            );
-
-        } else {
-            addThemeSection(page, "🎀 New asset packs • Kawaii & Sweet");
-            addStylePackGrid(
-                    page,
-                    new int[]{120,122,123,127,131,134,136,137}
-            );
-
-            addThemeSection(page, "☁ New asset packs • Dream & Nature");
-            addStylePackGrid(
-                    page,
-                    new int[]{121,124,125,126,129,130,133,135,138}
-            );
-
-            addThemeSection(page, "🌙 New asset packs • Cozy, Dark & Seasonal");
-            addStylePackGrid(
-                    page,
-                    new int[]{128,132,139}
-            );
-
-            addThemeSection(page, "✨ Current aesthetic collection");
-            addStylePackGrid(
-                    page,
-                    new int[]{100,101,102,103}
-            );
-
-            addThemeSection(page, "🎀 Cute & Kawaii");
-            addStylePackGrid(
-                    page,
-                    new int[]{104,106,108,109,113,114}
-            );
-
-            addThemeSection(page, "☁ Dreamy & Nature");
-            addStylePackGrid(
-                    page,
-                    new int[]{107,111,112,115,116}
-            );
-
-            addThemeSection(page, "🖤 Dark & Stylish");
-            addStylePackGrid(
-                    page,
-                    new int[]{105,118}
-            );
-
-            addThemeSection(page, "♡ Soft & Seasonal");
-            addStylePackGrid(
-                    page,
-                    new int[]{110,117,119}
-            );
-
-            addThemeSection(page, "My themes");
-            addMyThemeTiles(page);
-        }
-
-        if("all".equals(themeBrowseMode)) {
-        addThemeSection(page, "Fine tune");
-
-        addChoiceRow(
-                page,
-                "Accent color",
-                accentColorName(),
-                new String[]{
-                        "Blue","Rose","Purple","Teal",
-                        "Green","Orange","Gold","Cyan",
-                        "Magenta","Red","Black","White"
-                },
-                new int[]{
-                        Color.rgb(93,118,171),
-                        Color.rgb(210,91,113),
-                        Color.rgb(142,96,190),
-                        Color.rgb(57,145,151),
-                        Color.rgb(85,145,91),
-                        Color.rgb(217,133,62),
-                        Color.rgb(214,166,46),
-                        Color.rgb(61,183,211),
-                        Color.rgb(194,32,128),
-                        Color.rgb(208,48,52),
-                        Color.rgb(35,35,38),
-                        Color.rgb(240,240,242)
-                },
-                "accent_color",
-                Color.rgb(93,118,171),
-                this::updateThemePreview
+        themeCategoryContent=new LinearLayout(this);
+        themeCategoryContent.setOrientation(LinearLayout.VERTICAL);
+        page.addView(
+                themeCategoryContent,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                )
         );
 
-        addChoiceRow(
-                page,
-                "Keyboard transparency",
-                themeTransparencyName(),
-                new String[]{"More transparent","Transparent","Balanced","Solid"},
-                new int[]{55,70,85,100},
-                "theme_transparency",
-                55,
-                this::updateThemePreview
-        );
-
-        addChoiceRow(
-                page,
-                "Key corner roundness",
-                keyCornerName(),
-                new String[]{"Small","Medium","Default","Very round"},
-                new int[]{6,11,15,22},
-                "key_corner_radius",
-                15,
-                this::updateThemePreview
-        );
-        }
+        renderThemeCategoryContent();
 
         FrameLayout root =
                 new FrameLayout(this);
@@ -3801,9 +3641,13 @@ public class SettingsActivity extends Activity {
 
 
     private void addThemeFilterBar(LinearLayout page) {
+        themeFilterChips.clear();
+
         android.widget.HorizontalScrollView scroll=
                 new android.widget.HorizontalScrollView(this);
+        themeFilterScroll=scroll;
         scroll.setHorizontalScrollBarEnabled(false);
+        scroll.setFillViewport(false);
 
         LinearLayout row=new LinearLayout(this);
         row.setGravity(Gravity.CENTER_VERTICAL);
@@ -3821,18 +3665,7 @@ public class SettingsActivity extends Activity {
 
         scroll.addView(row);
         page.addView(scroll,new LinearLayout.LayoutParams(-1,dp(58)));
-
-        final String wanted="theme_filter_"+themeBrowseMode;
-        scroll.post(() -> {
-            View selected=row.findViewWithTag(wanted);
-            if(selected!=null) {
-                int target=Math.max(
-                        0,
-                        selected.getLeft()-dp(18)
-                );
-                scroll.scrollTo(target,0);
-            }
-        });
+        scrollThemeFilterToActive(false);
     }
 
     private void addThemeFilterChip(
@@ -3840,19 +3673,78 @@ public class SettingsActivity extends Activity {
             String label,
             String mode
     ) {
-        boolean selected=mode.equals(themeBrowseMode);
-
         TextView chip=new TextView(this);
         chip.setText(ui(label));
-        chip.setTag("font_filter_"+mode);
+        chip.setTag(mode);
         chip.setTextSize(12);
         chip.setGravity(Gravity.CENTER);
+        chip.setPadding(dp(18),0,dp(18),0);
+
+        themeFilterChips.add(chip);
+        styleThemeFilterChip(chip,mode.equals(themeBrowseMode));
+
+        chip.setOnClickListener(v -> {
+            if(mode.equals(themeBrowseMode)) {
+                scrollThemeFilterToActive(true);
+                return;
+            }
+
+            themeBrowseMode=mode;
+
+            for(TextView item:themeFilterChips) {
+                Object tag=item.getTag();
+                styleThemeFilterChip(
+                        item,
+                        tag!=null && mode.equals(tag.toString())
+                );
+            }
+
+            scrollThemeFilterToActive(true);
+
+            if(themePreviewSheet!=null)
+                themePreviewSheet.setVisibility(View.GONE);
+
+            if(themeCategoryContent==null)
+                return;
+
+            themeCategoryContent.animate()
+                    .alpha(0f)
+                    .setDuration(80)
+                    .withEndAction(() -> {
+                        renderThemeCategoryContent();
+                        themeCategoryContent.setAlpha(0f);
+                        themeCategoryContent.animate()
+                                .alpha(1f)
+                                .setDuration(140)
+                                .start();
+                    })
+                    .start();
+        });
+
+        LinearLayout.LayoutParams p=
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        dp(42)
+                );
+        p.setMargins(dp(3),0,dp(3),0);
+        row.addView(chip,p);
+    }
+
+    private void styleThemeFilterChip(
+            TextView chip,
+            boolean selected
+    ) {
         chip.setTextColor(
                 selected
                         ? Color.rgb(122,66,151)
                         : Color.rgb(88,80,92)
         );
-        if(selected) chip.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        chip.setTypeface(
+                Typeface.DEFAULT,
+                selected
+                        ? Typeface.BOLD
+                        : Typeface.NORMAL
+        );
 
         GradientDrawable bg=round(
                 selected
@@ -3867,24 +3759,223 @@ public class SettingsActivity extends Activity {
                         : Color.rgb(232,226,235)
         );
         chip.setBackground(bg);
+    }
 
-        chip.setOnClickListener(v -> {
-            themeBrowseMode=mode;
-            prefs.edit().putString("theme_browse_mode",mode).apply();
-            settingsScrollPositions.put("theme",0);
-            if(themePreviewSheet!=null)
-                themePreviewSheet.setVisibility(View.GONE);
-            showTheme();
+    private void scrollThemeFilterToActive(boolean smooth) {
+        if(themeFilterScroll==null)
+            return;
+
+        themeFilterScroll.post(() -> {
+            TextView selected=null;
+
+            for(TextView chip:themeFilterChips) {
+                Object tag=chip.getTag();
+                if(
+                        tag!=null &&
+                        themeBrowseMode.equals(tag.toString())
+                ) {
+                    selected=chip;
+                    break;
+                }
+            }
+
+            if(selected==null)
+                return;
+
+            int target=Math.max(
+                    0,
+                    selected.getLeft()-dp(18)
+            );
+
+            if(smooth)
+                themeFilterScroll.smoothScrollTo(target,0);
+            else
+                themeFilterScroll.scrollTo(target,0);
         });
+    }
 
-        LinearLayout.LayoutParams p=
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        dp(42)
-                );
-        p.setMargins(dp(3),0,dp(3),0);
-        chip.setPadding(dp(18),0,dp(18),0);
-        row.addView(chip,p);
+    private void renderThemeCategoryContent() {
+        if(themeCategoryContent==null)
+            return;
+
+        themeCategoryContent.removeAllViews();
+        themeSelectableTiles.clear();
+
+        if("free".equals(themeBrowseMode)) {
+            addThemeSection(themeCategoryContent,"FREE THEMES");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{100,102,106,108,113,117,120,122,126,128,133,137}
+            );
+
+        } else if("pro".equals(themeBrowseMode)) {
+            addThemeSection(themeCategoryContent,"✦ PRO THEMES");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{
+                            101,103,104,105,107,109,110,111,112,114,115,116,
+                            118,119,121,123,124,125,127,129,130,131,132,134,
+                            135,136,138,139
+                    }
+            );
+
+        } else if("cute".equals(themeBrowseMode)) {
+            addThemeSection(themeCategoryContent,"🎀 CUTE & KAWAII");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{
+                            100,102,103,104,106,108,109,110,113,114,
+                            117,120,122,123,127,131,133,134,136,137
+                    }
+            );
+
+        } else if("aesthetic".equals(themeBrowseMode)) {
+            addThemeSection(themeCategoryContent,"✨ AESTHETIC");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{
+                            100,103,104,110,115,116,117,120,124,130,
+                            131,133,135,139
+                    }
+            );
+
+        } else if("dreamy".equals(themeBrowseMode)) {
+            addThemeSection(themeCategoryContent,"☁ DREAMY");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{
+                            101,107,110,112,116,119,121,124,125,128,
+                            129,133,138
+                    }
+            );
+
+        } else if("dark".equals(themeBrowseMode)) {
+            addThemeSection(themeCategoryContent,"🖤 DARK");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{105,107,118,125,132,139}
+            );
+
+        } else if("nature".equals(themeBrowseMode)) {
+            addThemeSection(themeCategoryContent,"🌿 NATURE");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{102,108,111,115,116,122,126,129,130,133,135}
+            );
+
+        } else if("seasonal".equals(themeBrowseMode)) {
+            addThemeSection(themeCategoryContent,"❄ SEASONAL");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{100,106,111,119,120,128,131}
+            );
+
+        } else {
+            addThemeSection(themeCategoryContent,"🎀 New asset packs • Kawaii & Sweet");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{120,122,123,127,131,134,136,137}
+            );
+
+            addThemeSection(themeCategoryContent,"☁ New asset packs • Dream & Nature");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{121,124,125,126,129,130,133,135,138}
+            );
+
+            addThemeSection(themeCategoryContent,"🌙 New asset packs • Cozy, Dark & Seasonal");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{128,132,139}
+            );
+
+            addThemeSection(themeCategoryContent,"✨ Current aesthetic collection");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{100,101,102,103}
+            );
+
+            addThemeSection(themeCategoryContent,"🎀 Cute & Kawaii");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{104,106,108,109,113,114}
+            );
+
+            addThemeSection(themeCategoryContent,"☁ Dreamy & Nature");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{107,111,112,115,116}
+            );
+
+            addThemeSection(themeCategoryContent,"🖤 Dark & Stylish");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{105,118}
+            );
+
+            addThemeSection(themeCategoryContent,"♡ Soft & Seasonal");
+            addStylePackGrid(
+                    themeCategoryContent,
+                    new int[]{110,117,119}
+            );
+
+            addThemeSection(themeCategoryContent,"My themes");
+            addMyThemeTiles(themeCategoryContent);
+
+            addThemeSection(themeCategoryContent,"Fine tune");
+
+            addChoiceRow(
+                    themeCategoryContent,
+                    "Accent color",
+                    accentColorName(),
+                    new String[]{
+                            "Blue","Rose","Purple","Teal",
+                            "Green","Orange","Gold","Cyan",
+                            "Magenta","Red","Black","White"
+                    },
+                    new int[]{
+                            Color.rgb(93,118,171),
+                            Color.rgb(210,91,113),
+                            Color.rgb(142,96,190),
+                            Color.rgb(57,145,151),
+                            Color.rgb(85,145,91),
+                            Color.rgb(217,133,62),
+                            Color.rgb(214,166,46),
+                            Color.rgb(61,183,211),
+                            Color.rgb(194,32,128),
+                            Color.rgb(208,48,52),
+                            Color.rgb(35,35,38),
+                            Color.rgb(240,240,242)
+                    },
+                    "accent_color",
+                    Color.rgb(93,118,171),
+                    this::updateThemePreview
+            );
+
+            addChoiceRow(
+                    themeCategoryContent,
+                    "Keyboard transparency",
+                    themeTransparencyName(),
+                    new String[]{"More transparent","Transparent","Balanced","Solid"},
+                    new int[]{55,70,85,100},
+                    "theme_transparency",
+                    55,
+                    this::updateThemePreview
+            );
+
+            addChoiceRow(
+                    themeCategoryContent,
+                    "Key corner roundness",
+                    keyCornerName(),
+                    new String[]{"Small","Medium","Default","Very round"},
+                    new int[]{6,11,15,22},
+                    "key_corner_radius",
+                    15,
+                    this::updateThemePreview
+            );
+        }
+
+        refreshThemeTileSelection();
     }
 
 
