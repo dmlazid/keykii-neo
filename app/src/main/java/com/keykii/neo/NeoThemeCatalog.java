@@ -3,15 +3,15 @@ package com.keykii.neo;
 import android.graphics.Color;
 
 /** Theme recipes pair a real geometry family with a coherent artwork/material brief.
- * Build 160 keeps FREE/PRO structural families exclusive and removes repeated family scenes.
- * 512 compositions are NOT represented as 512 independently illustrated artworks.
- * 32 original illustrated scenes and 48 structural families are shared explicitly.
+ * 2.57.0 replaces the repeated combination ordering with curated hero recipes,
+ * a third original artwork atlas, and diversity-first category paging.
+ * 512 compositions share 48 structural families and 48 original scene artworks.
  */
 final class NeoThemeCatalog {
     static final int FIRST_PACK=1000, COUNT=512, PAGE_SIZE=24;
     static final String[] FILTERS={"all","new","free","pro","cute","kawaii","aesthetic","anime-inspired","dreamy","dark","gaming","nature","floral","food","retro","y2k","minimal","luxury","space","ocean","city","seasonal"};
     static final String[] ARCH_NAMES={"Candy Floats","Scrapbook Stickers","Split Mechanical","Cloud Islands","Round Bubbles","Bento Blocks","Ticket Rows","Glass Shelves","Pixel Console","Notebook Tabs","Petal Keys","Arcade Blocks","Ribbon Rows","Asymmetric Cards","Jewel Facets","Plush Keycaps","Picture Frames","City Columns","Orbit Keys","Mosaic Tiles","Cyber Rails","Garden Trellis","Dessert Keys","Ocean Pebbles","Luxury Plaques","Liquid Chrome","Gothic Arches","Dream Bedroom","Retro Cassette","Kawaii Room","Space Console","Minimal Lines","Lantern Steps","Mechanical Deck","Polaroid Wall","Book Pages","Neon Circuit","Frosted Dock","Teddy Shelf","Flower Market","Game Desk","Night Skyline","Candy Counter","Aurora Glass","Moon Window","Sticker Parade","Wave Keys","Zen Stones"};
-    static final String[] SCENE_NAMES={"Bunny Atelier","Velvet Rose","Ink Tide","Teddy Bakery","Moonlit Muse","Fruit Ice","Neon Rain","Pressed Memories","Aurora Observatory","Jade Greenhouse","Sakura Path","Field Journal","Pixel Hideaway","Pearl Hologram","Amethyst Abbey","Amber Loft","Lantern Lake","Alpine Frost","Pumpkin Porch","Strawberry Cream","Pearl Aquarium","Sunset Sonata","Dahlia Market","Emerald Deco","Sand & Moss","Carbon Desk","Rose Quartz","Cloud Nursery","Ribbon Linen","Mint Arcade","Rainy Tram","Lotus Reader"};
+    static final String[] SCENE_NAMES={"Bunny Atelier","Velvet Rose","Ink Tide","Teddy Bakery","Moonlit Muse","Fruit Ice","Neon Rain","Pressed Memories","Aurora Observatory","Jade Greenhouse","Sakura Path","Field Journal","Pixel Hideaway","Pearl Hologram","Amethyst Abbey","Amber Loft","Lantern Lake","Alpine Frost","Pumpkin Porch","Strawberry Cream","Pearl Aquarium","Sunset Sonata","Dahlia Market","Emerald Deco","Sand & Moss","Carbon Desk","Rose Quartz","Cloud Nursery","Ribbon Linen","Mint Arcade","Rainy Tram","Lotus Reader","Galaxy Clouds","Felt Patch Garden","Kawaii Cats","Coffee Break","Pink Self Care","Sunset Tulips","Happy Cloud Sky","Painted Star Field","Pastel Brush Village","Cozy Study Desk","Retro Cute Tech","Chocolate Dream","Mosaic Ceramic","Ocean Shells","Botanical Notebook","City Neon Window"};
     static final String[] EDITIONS={"Studio","Zigzag","Terrace","Wide Dock","Mixed Caps","High Notes","Staircase","Island Split","Edge Blocks","Wave Rows","Alternating"};
     // Scene briefs constrain materials and categories. No HSV/palette permutation loop.
     private static final int[][] COLORS={
@@ -22,10 +22,16 @@ final class NeoThemeCatalog {
         {0xff2c2224,0xff50423c,0xffe8b278},{0xffb7cfde,0xfff2f9ff,0xff6d97b7},{0xff332619,0xff61422e,0xffeca852},{0xffecc1c4,0xfffff3ed,0xffbb657b},
         {0xff16465b,0xff246880,0xffb4efe5},{0xff302036,0xff644253,0xffffc08b},{0xffe4c6a1,0xfffff4dc,0xffa4773b},{0xff0b2927,0xff23483d,0xffdfc18a},
         {0xffd3ccb9,0xfff6f2e6,0xff849371},{0xff10171b,0xff29333b,0xffee9e4a},{0xffe1b8bf,0xffffeff1,0xffb86d8b},{0xffcedfda,0xfffaf9ef,0xffb1a0c4},
-        {0xffdfc8b7,0xfffff5e9,0xffae7680},{0xffaad3c0,0xffeef8e6,0xff4b8e7c},{0xff102631,0xff334453,0xfff2b576},{0xff193933,0xff345b4e,0xffd3bd86}
+        {0xffdfc8b7,0xfffff5e9,0xffae7680},{0xffaad3c0,0xffeef8e6,0xff4b8e7c},{0xff102631,0xff334453,0xfff2b576},{0xff193933,0xff345b4e,0xffd3bd86},
+        {0xff080b29,0xff2b175d,0xffff88b7},{0xfff3e3ca,0xfffff4e5,0xffb78591},{0xfff7c6d7,0xffffedf3,0xffc96f99},{0xffd8d0c6,0xfff7eadb,0xff7c4d35},
+        {0xfff6d9e2,0xfffff5f8,0xffd16f95},{0xffff9ab7,0xffffdfaa,0xff5d73c6},{0xff84bff0,0xfffff4df,0xffff9fc5},{0xff173a79,0xff284c72,0xfff2c857},
+        {0xfff5a7bf,0xffffd9cf,0xff668aa0},{0xff7a4d53,0xffd77a70,0xffffd58a},{0xffc8b9e6,0xffffe8ef,0xff465d91},{0xff6d3f2b,0xffa8754f,0xfff0d6b2},
+        {0xfff6eee0,0xffdceaf0,0xff6d99ad},{0xff9ce9f0,0xff075c83,0xffffd8b4},{0xfff3ead7,0xfffff7e9,0xff678259},{0xff071924,0xff12384a,0xff23d5e2}
     };
     private static final String[] TAGS={
-        "cute kawaii aesthetic", "dark floral luxury", "ocean nature aesthetic", "cute kawaii food", "anime-inspired dreamy dark", "food cute", "gaming city dark", "aesthetic retro nature floral", "space dreamy dark", "nature floral aesthetic", "floral nature dreamy", "minimal nature floral retro", "gaming retro cute dark", "y2k aesthetic luxury", "dark luxury", "city dreamy dark", "seasonal city dark", "seasonal nature dreamy", "seasonal cute dark", "food cute kawaii", "ocean nature dreamy dark", "anime-inspired city dreamy dark", "floral nature aesthetic", "luxury dark", "minimal nature", "gaming dark", "luxury dreamy aesthetic", "kawaii cute dreamy", "aesthetic floral cute", "retro gaming minimal", "city dark aesthetic", "cute kawaii nature dark"
+        "cute kawaii aesthetic", "dark floral luxury", "ocean nature aesthetic", "cute kawaii food", "anime-inspired dreamy dark", "food cute", "gaming city dark", "aesthetic retro nature floral", "space dreamy dark", "nature floral aesthetic", "floral nature dreamy", "minimal nature floral retro", "gaming retro cute dark", "y2k aesthetic luxury", "dark luxury", "city dreamy dark", "seasonal city dark", "seasonal nature dreamy", "seasonal cute dark", "food cute kawaii", "ocean nature dreamy dark", "anime-inspired city dreamy dark", "floral nature aesthetic", "luxury dark", "minimal nature", "gaming dark", "luxury dreamy aesthetic", "kawaii cute dreamy", "aesthetic floral cute", "retro gaming minimal", "city dark aesthetic", "cute kawaii nature dark",
+        "space dreamy aesthetic kawaii","cute kawaii aesthetic floral","cute kawaii aesthetic","food retro aesthetic cute","cute kawaii aesthetic y2k","floral dreamy nature aesthetic","dreamy cute kawaii aesthetic","space dreamy dark aesthetic",
+        "dreamy floral aesthetic nature","aesthetic cute dreamy","retro y2k gaming cute","food cute retro","minimal retro aesthetic","ocean nature dreamy aesthetic","nature floral minimal aesthetic","city gaming dark y2k"
     };
     // Art direction per structural family. These are deliberate choices, not unrelated
     // backgrounds assigned by modular arithmetic. Editions also alter real geometry.
@@ -65,8 +71,26 @@ final class NeoThemeCatalog {
     // 5 cozy flatlay, 6 botanical, 7 cafe, 8 bubble/gem/ocean, 9 sticker/candy.
     private static final int[] MOTIF={
         2,6,8,2,1,9,0,3,1,6,6,6,9,8,0,5,
-        0,0,9,9,8,4,6,0,6,5,8,3,2,9,0,6
+        0,0,9,9,8,4,6,0,6,5,8,3,2,9,0,6,
+        1,2,9,7,5,6,1,4,4,5,9,7,6,8,6,0
     };
+
+    // These are the actual 2.57 designs represented in the concept sheets.
+    // They are explicit recipes, not labels applied to a generic keyboard.
+    private static final String[] HERO_NAMES={
+        "Galaxy Clouds · Orbit Keys","Aurora Observatory · Split Mechanical","Cosmic Console · Mechanical Deck","Moon Window · Round Bubbles",
+        "Starry Field · Painterly Wave","Felt Patch Garden · Scrapbook","Polaroid Wall · Collage","Coffee Break · Sticker Parade",
+        "Kawaii Cats · Pattern Keys","Study Desk · Cozy Flatlay","Strawberry Cream · Dessert","Candy Floats · Bubble Keys",
+        "Teddy Bakery · Plush","Sweet Café · Cute Icons","Chocolate Dream · Bento","Field Journal · Book Pages",
+        "Zen Stones · Natural","Mosaic Tiles · Ceramic","Botanical Notebook · Tabs","Sand & Moss · Minimal",
+        "Rose Quartz · Jewel Facets","Emerald Deco · Luxury","Lantern Lake · Night Skyline","Ocean Shells · Wave",
+        "Ink Tide · Painterly","Cute Tech · Retro Console","Dream Bedroom · Moon Window","Neon Rain · Cyber Rails",
+        "Cloud Nursery · Cloud Islands","Sticker Parade · Doodle Cards","Pastel Village · Ribbon Rows","City Neon Window · Glass Shelves"
+    };
+    private static final int[] HERO_ARCH={18,2,33,4,46,1,34,45,29,27,22,0,15,42,5,35,47,19,9,31,14,24,41,23,16,28,44,20,3,13,12,7};
+    private static final int[] HERO_ART ={32,8,32,38,39,33,7,35,34,41,19,5,3,35,43,11,24,44,46,24,26,23,16,45,2,42,27,6,27,33,40,47};
+    private static final int[] HERO_MOTIF={1,1,1,1,4,2,3,7,9,5,9,9,2,7,7,6,6,6,6,6,8,8,0,8,4,9,5,0,1,3,4,0};
+    private static final boolean[] HERO_PRO={false,true,true,false,true,false,true,false,true,false,false,true,false,true,false,true,false,true,false,true,false,true,false,true,false,true,true,false,true,false,true,true};
 
     // A structural family belongs to exactly one tier. This prevents the same
     // architecture from appearing as both FREE and PRO with only a small skin change.
@@ -89,18 +113,29 @@ final class NeoThemeCatalog {
         final int pack,index,world,architecture,scene,art,composition,material,motif,start,end,accent,corner,transparency,keyMode;
         final boolean borders,dark,pro; final String name,subtitle,tags;
         Entry(int i){
-            index=i;pack=FIRST_PACK+i;architecture=i%48;composition=i/48;
-            int[] artBrief=ART[architecture];
-            art=composition<6?artBrief[composition]:ALT_ART[architecture][composition-6];
-            world=scene=art;motif=MOTIF[art];
-            material=composition<6?MATERIAL[architecture]:new int[]{1,4,2,3,0}[composition-6];
+            index=i;pack=FIRST_PACK+i;
+            String displayName;
+            if(i<HERO_NAMES.length){
+                architecture=HERO_ARCH[i];composition=0;art=HERO_ART[i];motif=HERO_MOTIF[i];
+                material=MATERIAL[architecture];pro=HERO_PRO[i];displayName=HERO_NAMES[i];
+            }else{
+                int slot=i-HERO_NAMES.length;
+                composition=slot/48;
+                int base=slot%48;
+                architecture=Math.floorMod(base*17+composition*13,48);
+                art=Math.floorMod(base*11+composition*7+architecture*3,48);
+                motif=MOTIF[art];
+                material=Math.floorMod(MATERIAL[architecture]+composition,5);
+                pro=proFamily(architecture);
+                displayName=SCENE_NAMES[art]+" · "+ARCH_NAMES[architecture];
+                if(composition>0)displayName+=" · "+EDITIONS[composition];
+            }
+            world=scene=art;
             start=COLORS[art][0];end=COLORS[art][1];accent=COLORS[art][2];
-            tags=TAGS[art];dark=tags.contains("dark");pro=proFamily(architecture);
+            tags=TAGS[art];dark=tags.contains("dark");
             corner=12;transparency=92;borders=true;keyMode=NeoThemeRenderer.SHAPES[architecture];
-            String displayName=SCENE_NAMES[art]+" · "+ARCH_NAMES[architecture];
-            if(composition>=6)displayName+=" · "+EDITIONS[composition];
             name=displayName;
-            subtitle=EDITIONS[composition]+" arrangement · "+new String[]{"enamel","panoramic caps","frosted glass","picture caps","illustrated edges"}[material]+" · "+new String[]{"scene","cosmic","felt patch","scrapbook doodle","painterly","cozy flatlay","botanical","cafe","bubble gem","sticker candy"}[motif];
+            subtitle=EDITIONS[Math.floorMod(composition,EDITIONS.length)]+" arrangement · "+new String[]{"enamel","panoramic caps","frosted glass","picture caps","illustrated edges"}[material]+" · "+new String[]{"scene","cosmic","felt patch","scrapbook doodle","painterly","cozy flatlay","botanical","cafe","bubble gem","sticker candy"}[motif];
         }
     }
     private static final Entry[] ENTRIES=new Entry[COUNT];
@@ -114,15 +149,35 @@ final class NeoThemeCatalog {
         if(filter.equals("free"))return !e.pro;if(filter.equals("pro"))return e.pro;
         return (" "+e.tags+" ").contains(" "+filter+" ");
     }
-    static int count(String f){int n=0;for(Entry e:ENTRIES)if(matches(e.pack,f))n++;return n;}
+    private static final java.util.HashMap<String,int[]> ORDER_CACHE=new java.util.HashMap<>();
+    static int count(String f){return order(f).length;}
     static int[] first(String f,int limit){return page(f,0,limit);}
+    private static synchronized int[] order(String f){
+        String key=f==null?"all":f;
+        int[] cached=ORDER_CACHE.get(key);if(cached!=null)return cached;
+        java.util.ArrayList<Integer>[] buckets=new java.util.ArrayList[48];
+        for(int a=0;a<48;a++)buckets[a]=new java.util.ArrayList<>();
+        for(Entry e:ENTRIES)if(matches(e.pack,key))buckets[e.architecture].add(e.pack);
+        java.util.ArrayList<Integer> out=new java.util.ArrayList<>();
+        int round=0;
+        while(true){
+            boolean added=false;
+            for(int step=0;step<48;step++){
+                int a=Math.floorMod(step*17+round*13,48);
+                if(round<buckets[a].size()){out.add(buckets[a].get(round));added=true;}
+            }
+            if(!added)break;round++;
+        }
+        int[] arr=new int[out.size()];for(int i=0;i<arr.length;i++)arr[i]=out.get(i);
+        ORDER_CACHE.put(key,arr);return arr;
+    }
     static int[] page(String f,int offset,int limit){
-        int[] tmp=new int[Math.max(0,Math.min(COUNT,limit))];int n=0,skip=0;
-        for(Entry e:ENTRIES)if(matches(e.pack,f)){if(skip++<offset)continue;if(n==tmp.length)break;tmp[n++]=e.pack;}
-        if(n==tmp.length)return tmp;int[] out=new int[n];System.arraycopy(tmp,0,out,0,n);return out;
+        int[] all=order(f);int start=Math.max(0,Math.min(offset,all.length));
+        int n=Math.max(0,Math.min(limit,all.length-start));int[] out=new int[n];
+        System.arraycopy(all,start,out,0,n);return out;
     }
     static int sceneForPack(int p){Entry e=get(p);return e==null?0:e.art;}
-    static String sceneName(int s){return SCENE_NAMES[Math.floorMod(s,32)];}
+    static String sceneName(int s){return SCENE_NAMES[Math.floorMod(s,48)];}
     static String architectureName(int a){return ARCH_NAMES[Math.floorMod(a,48)];}
     static String keyStyleName(int k){return "sculpted "+k;}
     static int mix(int a,int b,int bp){int p=Math.max(0,Math.min(100,bp)),q=100-p;return Color.rgb((Color.red(a)*q+Color.red(b)*p)/100,(Color.green(a)*q+Color.green(b)*p)/100,(Color.blue(a)*q+Color.blue(b)*p)/100);}
