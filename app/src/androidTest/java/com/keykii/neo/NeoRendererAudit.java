@@ -62,8 +62,12 @@ public final class NeoRendererAudit extends Instrumentation {
                     for(String filter:NeoThemeCatalog.FILTERS){
                         int[] page=NeoThemeCatalog.page(filter,0,24);
                         java.util.HashSet<Integer> arch=new java.util.HashSet<>();
-                        for(int pack:page)arch.add(NeoThemeCatalog.get(pack).architecture);
+                        java.util.HashSet<Integer> art=new java.util.HashSet<>();
+                        java.util.HashSet<Integer> allArt=new java.util.HashSet<>();
+                        for(int pack=1000;pack<1512;pack++)if(NeoThemeCatalog.matches(pack,filter))allArt.add(NeoThemeCatalog.get(pack).art);
+                        for(int pack:page){NeoThemeCatalog.Entry e=NeoThemeCatalog.get(pack);arch.add(e.architecture);art.add(e.art);}
                         check(arch.size()>=Math.min(page.length,8),"Repetitive first page for "+filter+" only "+arch.size()+" architectures");
+                        check(art.size()>=Math.min(Math.min(page.length,8),allArt.size()),"Same-scene cluster on first page for "+filter+" only "+art.size()+" artworks");
                     }
                     for(int pack=1000;pack<1512;pack++){
                         LinearLayout body=new LinearLayout(c);body.setOrientation(LinearLayout.VERTICAL);
