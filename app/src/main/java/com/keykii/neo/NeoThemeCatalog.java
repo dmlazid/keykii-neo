@@ -5,7 +5,7 @@ import android.graphics.Color;
 final class NeoThemeCatalog {
 
     static final int FIRST_PACK = 1000;
-    static final int COUNT = 1024;
+    static final int COUNT = 512;
     static final int PAGE_SIZE = 24;
 
     static final String[] FILTERS = {
