@@ -1,1071 +1,399 @@
 package com.keykii.neo;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.LinearGradient;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.PixelFormat;
-import android.graphics.Rect;
-import android.graphics.RectF;
-import android.graphics.Shader;
+import android.graphics.*;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 
 final class NeoThemeDrawable extends Drawable {
-
     private final NeoThemeCatalog.Entry e;
     private final float d;
     private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path path=new Path();
     private int alpha=255;
 
-    NeoThemeDrawable(Context context,int pack) {
+    NeoThemeDrawable(Context context,int pack){
         e=NeoThemeCatalog.get(pack);
         d=context.getResources().getDisplayMetrics().density;
     }
 
-    @Override public void draw(Canvas c) {
+    @Override public void draw(Canvas c){
         if(e==null) return;
-
-        Rect b=getBounds();
-        float w=b.width(),h=b.height();
-
-        if(w<=0 || h<=0) return;
-
-        c.save();
-        c.translate(b.left,b.top);
-
+        Rect b=getBounds(); float w=b.width(),h=b.height(); if(w<=0||h<=0) return;
+        c.save(); c.translate(b.left,b.top);
+        drawBase(c,w,h);
         drawArchitecture(c,w,h,e.architecture);
-        drawSignatureScene(c,w,h,NeoThemeCatalog.sceneForPack(e.pack));
-        drawWorld(c,w,h,e.world);
-
+        drawScene(c,w,h,e.scene);
         c.restore();
     }
 
-    private void drawArchitecture(Canvas c,float w,float h,int architecture) {
-        int base=architecture & 15;
-        int soft=NeoThemeCatalog.mix(e.accent,Color.WHITE,e.dark?24:70);
-        int deep=NeoThemeCatalog.mix(e.accent,Color.BLACK,e.dark?12:38);
-
-        p.setShader(null);
+    private void drawBase(Canvas c,float w,float h){
+        int s=withAlpha(e.start,e.dark?210:190), en=withAlpha(e.end,e.dark?220:205);
         p.setStyle(Paint.Style.FILL);
-
-        switch(base) {
-            case 0: capsuleGrid(c,w,h,soft,e.accent); break;
-            case 1: floatingTiles(c,w,h,soft,e.accent); break;
-            case 2: splitDeck(c,w,h,e.accent,deep); break;
-            case 3: ribbonRows(c,w,h,soft,e.accent); break;
-            case 4: haloField(c,w,h,soft,e.accent); break;
-            case 5: mosaic(c,w,h,soft,e.accent); break;
-            case 6: orbit(c,w,h,soft,e.accent); break;
-            case 7: bento(c,w,h,soft,e.accent); break;
-            case 8: prisms(c,w,h,soft,e.accent); break;
-            case 9: cloudDeck(c,w,h,soft,e.accent); break;
-            case 10: glassDock(c,w,h,soft,e.accent); break;
-            case 11: arcadeMatrix(c,w,h,soft,e.accent); break;
-            case 12: decoSteps(c,w,h,soft,e.accent); break;
-            case 13: waveBoard(c,w,h,soft,e.accent); break;
-            case 14: petalRows(c,w,h,soft,e.accent); break;
-            default: jewelGrid(c,w,h,soft,e.accent); break;
-        }
-
-        if(architecture>=16)
-            drawArchitectureOverlay(c,w,h,architecture-16,soft,e.accent);
-    }
-
-    private void drawArchitectureOverlay(Canvas c,float w,float h,int mode,int soft,int accent) {
-        p.setShader(null);
-
-        switch(mode) {
-            case 0:
-                dottedRails(c,w,h,soft,accent);
-                break;
-            case 1:
-                cornerFrames(c,w,h,soft,accent);
-                break;
-            case 2:
-                portalDots(c,w,h,soft,accent);
-                break;
-            case 3:
-                diagonalGlass(c,w,h,soft,accent);
-                break;
-            case 4:
-                metroLine(c,w,h,soft,accent);
-                break;
-            case 5:
-                lanternLine(c,w,h,soft,accent);
-                break;
-            case 6:
-                pebbleBand(c,w,h,soft,accent);
-                break;
-            case 7:
-                circuitRail(c,w,h,soft,accent);
-                break;
-            case 8:
-                gardenFrame(c,w,h,soft,accent);
-                break;
-            case 9:
-                velvetBands(c,w,h,soft,accent);
-                break;
-            case 10:
-                sunsetDisc(c,w,h,soft,accent);
-                break;
-            case 11:
-                auroraSweep(c,w,h,soft,accent);
-                break;
-            case 12:
-                quiltDiamonds(c,w,h,soft,accent);
-                break;
-            case 13:
-                skyline(c,w,h,soft,accent);
-                break;
-            case 14:
-                facets(c,w,h,soft,accent);
-                break;
-            default:
-                zenFrame(c,w,h,soft,accent);
-                break;
-        }
-    }
-
-    private void drawSignatureScene(Canvas c,float w,float h,int scene) {
-        int accent=e.accent;
-        int soft=NeoThemeCatalog.mix(accent,Color.WHITE,e.dark?28:76);
-        int deep=NeoThemeCatalog.mix(accent,Color.BLACK,e.dark?8:45);
-
-        p.setShader(null);
-        p.setStyle(Paint.Style.FILL);
-
-        switch(scene&31) {
-            case 0: drawBow(c,w,h,accent,soft); break;
-            case 1: drawMoonWindow(c,w,h,soft,accent); break;
-            case 2: drawCloudRoom(c,w,h,soft,accent); break;
-            case 3: drawPixelStation(c,w,h,soft,accent); break;
-            case 4: drawCherryPicnic(c,w,h,accent,soft); break;
-            case 5: drawCatCafe(c,w,h,deep,soft); break;
-            case 6: drawBunnyStudio(c,w,h,deep,soft); break;
-            case 7: drawTeddyBakery(c,w,h,deep,soft); break;
-            case 8: drawDeskLamp(c,w,h,soft,accent); break;
-            case 9: drawJellyAquarium(c,w,h,soft,accent); break;
-            case 10: drawMushrooms(c,w,h,deep,soft); break;
-            case 11: drawCrystalVanity(c,w,h,soft,accent); break;
-            case 12: drawCassette(c,w,h,deep,soft); break;
-            case 13: drawGameConsole(c,w,h,deep,accent); break;
-            case 14: drawShell(c,w,h,soft,accent); break;
-            case 15: drawBookNook(c,w,h,deep,soft); break;
-            case 16: drawButterfly(c,w,h,accent,soft); break;
-            case 17: drawPerfume(c,w,h,soft,accent); break;
-            case 18: drawBalcony(c,w,h,deep,soft); break;
-            case 19: drawRainWindow(c,w,h,deep,soft); break;
-            case 20: drawCandyCounter(c,w,h,accent,soft); break;
-            case 21: drawFlowerMarket(c,w,h,deep,soft); break;
-            case 22: drawNightSkyline(c,w,h,deep,accent); break;
-            case 23: drawAuroraRoom(c,w,h,soft,accent); break;
-            case 24: drawPolaroids(c,w,h,soft,accent); break;
-            case 25: drawMilkCarton(c,w,h,accent,soft); break;
-            case 26: drawPumpkinPorch(c,w,h,accent,soft); break;
-            case 27: drawSnowGlobe(c,w,h,soft,accent); break;
-            case 28: drawLanternFestival(c,w,h,soft,accent); break;
-            case 29: drawObservatory(c,w,h,deep,accent); break;
-            case 30: drawMusicCorner(c,w,h,deep,soft); break;
-            default: drawGreenhouse(c,w,h,deep,soft); break;
-        }
-    }
-
-    private void drawBow(Canvas c,float w,float h,int accent,int soft) {
-        float cx=w*.80f,cy=h*.18f,s=Math.min(w,h)*.10f;
-        p.setColor(a(soft,88));
-        c.drawOval(new RectF(cx-s*1.5f,cy-s*.65f,cx-s*.15f,cy+s*.65f),p);
-        c.drawOval(new RectF(cx+s*.15f,cy-s*.65f,cx+s*1.5f,cy+s*.65f),p);
-        p.setColor(a(accent,95)); c.drawCircle(cx,cy,s*.36f,p);
-        path.reset(); path.moveTo(cx-s*.15f,cy+s*.25f); path.lineTo(cx-s*.55f,cy+s*1.35f); path.lineTo(cx,cy+s*.85f); path.close(); c.drawPath(path,p);
-        path.reset(); path.moveTo(cx+s*.15f,cy+s*.25f); path.lineTo(cx+s*.55f,cy+s*1.35f); path.lineTo(cx,cy+s*.85f); path.close(); c.drawPath(path,p);
-    }
-
-    private void drawMoonWindow(Canvas c,float w,float h,int soft,int accent) {
-        RectF win=new RectF(w*.63f,h*.07f,w*.94f,h*.47f);
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(2)); p.setColor(a(soft,100));
-        c.drawRoundRect(win,dp(18),dp(18),p);
-        c.drawLine(win.centerX(),win.top,win.centerX(),win.bottom,p);
-        c.drawLine(win.left,win.centerY(),win.right,win.centerY(),p);
-        p.setStyle(Paint.Style.FILL); p.setColor(a(accent,90)); c.drawCircle(w*.82f,h*.18f,dp(14),p);
-        p.setColor(a(e.dark?e.start:Color.WHITE,210)); c.drawCircle(w*.87f,h*.15f,dp(13),p);
-    }
-
-    private void drawCloudRoom(Canvas c,float w,float h,int soft,int accent) {
-        p.setColor(a(soft,78));
-        float x=w*.77f,y=h*.17f,r=dp(13);
-        c.drawCircle(x,y,r,p); c.drawCircle(x+r*.8f,y-r*.2f,r*.8f,p); c.drawCircle(x-r*.75f,y+r*.05f,r*.72f,p);
-        c.drawRoundRect(new RectF(x-r*1.25f,y,x+r*1.45f,y+r*.8f),r*.35f,r*.35f,p);
-        p.setColor(a(accent,55)); c.drawRoundRect(new RectF(w*.62f,h*.42f,w*.95f,h*.50f),dp(8),dp(8),p);
-    }
-
-    private void drawPixelStation(Canvas c,float w,float h,int soft,int accent) {
-        p.setColor(a(accent,62)); c.drawRoundRect(new RectF(w*.68f,h*.08f,w*.95f,h*.33f),dp(5),dp(5),p);
-        p.setColor(a(soft,70)); c.drawRect(w*.72f,h*.12f,w*.91f,h*.27f,p);
-        p.setColor(a(accent,85)); c.drawRect(w*.79f,h*.33f,w*.84f,h*.40f,p); c.drawRect(w*.72f,h*.40f,w*.91f,h*.43f,p);
-        for(int i=0;i<7;i++) c.drawRect(w*(.08f+i*.05f),h*.12f,w*(.10f+i*.05f),h*.15f,p);
-    }
-
-    private void drawCherryPicnic(Canvas c,float w,float h,int accent,int soft) {
-        p.setColor(a(soft,72)); c.drawRoundRect(new RectF(w*.62f,h*.08f,w*.95f,h*.36f),dp(14),dp(14),p);
-        p.setColor(a(accent,82)); c.drawCircle(w*.78f,h*.17f,dp(7),p); c.drawCircle(w*.86f,h*.20f,dp(7),p);
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(2)); c.drawLine(w*.79f,h*.12f,w*.82f,h*.08f,p); c.drawLine(w*.86f,h*.14f,w*.82f,h*.08f,p); p.setStyle(Paint.Style.FILL);
-    }
-
-    private void drawCatCafe(Canvas c,float w,float h,int deep,int soft) {
-        float cx=w*.82f,cy=h*.18f,r=dp(17);
-        p.setColor(a(soft,78)); c.drawCircle(cx,cy,r,p);
-        path.reset(); path.moveTo(cx-r*.8f,cy-r*.6f); path.lineTo(cx-r*.45f,cy-r*1.25f); path.lineTo(cx-r*.1f,cy-r*.65f); path.close(); c.drawPath(path,p);
-        path.reset(); path.moveTo(cx+r*.8f,cy-r*.6f); path.lineTo(cx+r*.45f,cy-r*1.25f); path.lineTo(cx+r*.1f,cy-r*.65f); path.close(); c.drawPath(path,p);
-        p.setColor(a(deep,120)); c.drawCircle(cx-r*.35f,cy-dp(2),dp(1.6f),p); c.drawCircle(cx+r*.35f,cy-dp(2),dp(1.6f),p);
-    }
-
-    private void drawBunnyStudio(Canvas c,float w,float h,int deep,int soft) {
-        float cx=w*.82f,cy=h*.19f,r=dp(16);
-        p.setColor(a(soft,80)); c.drawCircle(cx,cy,r,p);
-        c.drawOval(new RectF(cx-r*.75f,cy-r*2.0f,cx-r*.15f,cy-r*.55f),p);
-        c.drawOval(new RectF(cx+r*.15f,cy-r*2.0f,cx+r*.75f,cy-r*.55f),p);
-        p.setColor(a(deep,115)); c.drawCircle(cx-r*.33f,cy,dp(1.4f),p); c.drawCircle(cx+r*.33f,cy,dp(1.4f),p);
-    }
-
-    private void drawTeddyBakery(Canvas c,float w,float h,int deep,int soft) {
-        float cx=w*.82f,cy=h*.20f,r=dp(16);
-        p.setColor(a(soft,80)); c.drawCircle(cx-r*.65f,cy-r*.65f,r*.45f,p); c.drawCircle(cx+r*.65f,cy-r*.65f,r*.45f,p); c.drawCircle(cx,cy,r,p);
-        p.setColor(a(deep,105)); c.drawCircle(cx-r*.32f,cy-dp(2),dp(1.4f),p); c.drawCircle(cx+r*.32f,cy-dp(2),dp(1.4f),p);
-        c.drawOval(new RectF(cx-dp(4),cy+dp(3),cx+dp(4),cy+dp(8)),p);
-    }
-
-    private void drawDeskLamp(Canvas c,float w,float h,int soft,int accent) {
-        p.setColor(a(soft,68)); c.drawRoundRect(new RectF(w*.64f,h*.40f,w*.96f,h*.46f),dp(6),dp(6),p);
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(3)); p.setColor(a(accent,85)); c.drawLine(w*.84f,h*.39f,w*.84f,h*.20f,p); c.drawLine(w*.84f,h*.20f,w*.91f,h*.14f,p); p.setStyle(Paint.Style.FILL);
-        path.reset(); path.moveTo(w*.88f,h*.12f); path.lineTo(w*.96f,h*.12f); path.lineTo(w*.94f,h*.20f); path.lineTo(w*.90f,h*.20f); path.close(); c.drawPath(path,p);
-    }
-
-    private void drawJellyAquarium(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<3;i++) {
-            float x=w*(.70f+i*.09f),y=h*(.14f+i*.05f),r=dp(9+i*2);
-            p.setColor(a(i%2==0?soft:accent,64)); c.drawOval(new RectF(x-r,y-r*.6f,x+r,y+r*.6f),p);
-            p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.4f));
-            for(int j=-1;j<=1;j++) c.drawLine(x+j*dp(4),y+r*.45f,x+j*dp(4)+dp(j*2),y+r*1.6f,p);
-            p.setStyle(Paint.Style.FILL);
-        }
-    }
-
-    private void drawMushrooms(Canvas c,float w,float h,int deep,int soft) {
-        for(int i=0;i<3;i++) {
-            float x=w*(.72f+i*.10f),y=h*(.19f+i*.04f),r=dp(9+i*2);
-            p.setColor(a(soft,74)); c.drawOval(new RectF(x-r,y-r*.5f,x+r,y+r*.5f),p);
-            p.setColor(a(deep,60)); c.drawRoundRect(new RectF(x-dp(3),y,x+dp(3),y+r*1.2f),dp(2),dp(2),p);
-        }
-    }
-
-    private void drawCrystalVanity(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(2)); p.setColor(a(accent,78)); c.drawOval(new RectF(w*.70f,h*.06f,w*.94f,h*.34f),p); p.setStyle(Paint.Style.FILL);
-        p.setColor(a(soft,56)); c.drawRoundRect(new RectF(w*.66f,h*.36f,w*.96f,h*.43f),dp(6),dp(6),p);
-        for(int i=0;i<3;i++){ float x=w*(.72f+i*.08f); path.reset(); path.moveTo(x,h*.31f); path.lineTo(x+dp(6),h*.38f); path.lineTo(x-dp(6),h*.38f); path.close(); p.setColor(a(accent,50)); c.drawPath(path,p);}
-    }
-
-    private void drawCassette(Canvas c,float w,float h,int deep,int soft) {
-        RectF r=new RectF(w*.67f,h*.08f,w*.96f,h*.31f); p.setColor(a(soft,64)); c.drawRoundRect(r,dp(8),dp(8),p);
-        p.setColor(a(deep,82)); c.drawCircle(w*.75f,h*.19f,dp(8),p); c.drawCircle(w*.88f,h*.19f,dp(8),p);
-        p.setColor(a(soft,95)); c.drawCircle(w*.75f,h*.19f,dp(3),p); c.drawCircle(w*.88f,h*.19f,dp(3),p);
-    }
-
-    private void drawGameConsole(Canvas c,float w,float h,int deep,int accent) {
-        RectF r=new RectF(w*.66f,h*.09f,w*.96f,h*.30f); p.setColor(a(deep,58)); c.drawRoundRect(r,dp(14),dp(14),p);
-        p.setColor(a(accent,92)); c.drawCircle(w*.88f,h*.19f,dp(4),p); c.drawCircle(w*.92f,h*.16f,dp(3),p);
-        c.drawRect(w*.71f,h*.17f,w*.78f,h*.20f,p); c.drawRect(w*.735f,h*.145f,w*.755f,h*.225f,p);
-    }
-
-    private void drawShell(Canvas c,float w,float h,int soft,int accent) {
-        p.setColor(a(soft,72)); c.drawOval(new RectF(w*.71f,h*.08f,w*.94f,h*.34f),p);
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.2f)); p.setColor(a(accent,72));
-        for(int i=0;i<5;i++) c.drawLine(w*.825f,h*.21f,w*(.73f+i*.047f),h*.31f,p);
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void drawBookNook(Canvas c,float w,float h,int deep,int soft) {
-        for(int i=0;i<5;i++){ float x=w*(.67f+i*.055f); p.setColor(a(i%2==0?soft:deep,60)); c.drawRect(x,h*.13f,x+w*.045f,h*.40f,p);}
-        p.setColor(a(deep,45)); c.drawRect(w*.64f,h*.41f,w*.96f,h*.44f,p);
-    }
-
-    private void drawButterfly(Canvas c,float w,float h,int accent,int soft) {
-        float x=w*.82f,y=h*.19f;
-        p.setColor(a(soft,74)); c.drawOval(new RectF(x-dp(20),y-dp(14),x-dp(3),y+dp(1)),p); c.drawOval(new RectF(x+dp(3),y-dp(14),x+dp(20),y+dp(1)),p);
-        p.setColor(a(accent,76)); c.drawOval(new RectF(x-dp(16),y,x-dp(2),y+dp(13)),p); c.drawOval(new RectF(x+dp(2),y,x+dp(16),y+dp(13)),p); c.drawRoundRect(new RectF(x-dp(2),y-dp(10),x+dp(2),y+dp(14)),dp(2),dp(2),p);
-    }
-
-    private void drawPerfume(Canvas c,float w,float h,int soft,int accent) {
-        p.setColor(a(soft,66)); c.drawRoundRect(new RectF(w*.74f,h*.14f,w*.91f,h*.38f),dp(8),dp(8),p);
-        p.setColor(a(accent,74)); c.drawRect(w*.785f,h*.09f,w*.865f,h*.14f,p); c.drawRect(w*.80f,h*.06f,w*.85f,h*.09f,p);
-        p.setColor(a(accent,45)); c.drawRoundRect(new RectF(w*.78f,h*.24f,w*.87f,h*.30f),dp(3),dp(3),p);
-    }
-
-    private void drawBalcony(Canvas c,float w,float h,int deep,int soft) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(2)); p.setColor(a(soft,72)); c.drawRect(w*.68f,h*.06f,w*.95f,h*.40f,p); c.drawLine(w*.815f,h*.06f,w*.815f,h*.40f,p); p.setStyle(Paint.Style.FILL);
-        p.setColor(a(deep,55)); c.drawRect(w*.64f,h*.40f,w*.98f,h*.44f,p);
-    }
-
-    private void drawRainWindow(Canvas c,float w,float h,int deep,int soft) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(2)); p.setColor(a(soft,66)); c.drawRoundRect(new RectF(w*.67f,h*.06f,w*.96f,h*.41f),dp(10),dp(10),p);
-        p.setStrokeWidth(dp(1)); for(int i=0;i<8;i++) c.drawLine(w*(.70f+i*.03f),h*(.10f+(i%3)*.03f),w*(.68f+i*.03f),h*(.18f+(i%3)*.03f),p); p.setStyle(Paint.Style.FILL);
-    }
-
-    private void drawCandyCounter(Canvas c,float w,float h,int accent,int soft) {
-        p.setColor(a(soft,68)); c.drawRoundRect(new RectF(w*.66f,h*.10f,w*.96f,h*.38f),dp(10),dp(10),p);
-        for(int i=0;i<6;i++){ p.setColor(a(i%2==0?accent:soft,82)); c.drawCircle(w*(.70f+i*.045f),h*(.18f+(i%2)*.08f),dp(5),p); }
-    }
-
-    private void drawFlowerMarket(Canvas c,float w,float h,int deep,int soft) {
-        p.setColor(a(deep,50)); c.drawRoundRect(new RectF(w*.67f,h*.28f,w*.95f,h*.42f),dp(4),dp(4),p);
-        for(int i=0;i<6;i++){ float x=w*(.70f+i*.045f),y=h*(.20f-(i%2)*.04f); p.setColor(a(soft,78)); c.drawCircle(x,y,dp(5),p); p.setColor(a(deep,55)); c.drawRect(x-dp(.5f),y+dp(5),x+dp(.5f),h*.30f,p);}
-    }
-
-    private void drawNightSkyline(Canvas c,float w,float h,int deep,int accent) {
-        for(int i=0;i<7;i++){ float l=w*(.64f+i*.05f),t=h*(.12f-((i*7)%5)*.01f); p.setColor(a(deep,54)); c.drawRect(l,t,l+w*.045f,h*.43f,p); p.setColor(a(accent,74)); c.drawRect(l+w*.01f,t+h*.05f,l+w*.02f,t+h*.07f,p);}
-    }
-
-    private void drawAuroraRoom(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(5)); p.setStrokeCap(Paint.Cap.ROUND);
-        for(int i=0;i<3;i++){ path.reset(); path.moveTo(w*.64f,h*(.12f+i*.07f)); path.cubicTo(w*.74f,h*(.05f+i*.06f),w*.88f,h*(.30f+i*.03f),w*.98f,h*(.12f+i*.06f)); p.setColor(a(i%2==0?soft:accent,50)); c.drawPath(path,p);}
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void drawPolaroids(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<3;i++){ float x=w*(.68f+i*.09f),y=h*(.10f+(i%2)*.07f); p.setColor(a(Color.WHITE,e.dark?90:170)); c.save(); c.rotate(-8+i*8,x,y); c.drawRect(x,y,x+w*.10f,y+h*.16f,p); p.setColor(a(i%2==0?soft:accent,72)); c.drawRect(x+w*.012f,y+h*.015f,x+w*.088f,y+h*.10f,p); c.restore();}
-    }
-
-    private void drawMilkCarton(Canvas c,float w,float h,int accent,int soft) {
-        RectF r=new RectF(w*.74f,h*.12f,w*.91f,h*.39f); p.setColor(a(soft,75)); c.drawRect(r,p);
-        path.reset(); path.moveTo(r.left,r.top); path.lineTo(r.centerX(),r.top-h*.05f); path.lineTo(r.right,r.top); path.close(); p.setColor(a(accent,70)); c.drawPath(path,p);
-        p.setColor(a(accent,62)); c.drawCircle(r.centerX(),r.centerY(),dp(6),p);
-    }
-
-    private void drawPumpkinPorch(Canvas c,float w,float h,int accent,int soft) {
-        float x=w*.82f,y=h*.23f; p.setColor(a(accent,76)); c.drawOval(new RectF(x-dp(20),y-dp(15),x+dp(20),y+dp(15)),p);
-        p.setColor(a(soft,74)); c.drawOval(new RectF(x-dp(7),y-dp(15),x+dp(7),y+dp(15)),p); p.setColor(a(accent,90)); c.drawRect(x-dp(2),y-dp(24),x+dp(2),y-dp(14),p);
-    }
-
-    private void drawSnowGlobe(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(2)); p.setColor(a(soft,82)); c.drawCircle(w*.82f,h*.20f,dp(21),p); p.setStyle(Paint.Style.FILL);
-        p.setColor(a(accent,58)); c.drawRoundRect(new RectF(w*.75f,h*.34f,w*.89f,h*.39f),dp(4),dp(4),p);
-        for(int i=0;i<8;i++){ p.setColor(a(Color.WHITE,e.dark?100:180)); c.drawCircle(w*(.77f+(i%4)*.03f),h*(.14f+(i/4)*.08f),dp(1.5f),p);}
-    }
-
-    private void drawLanternFestival(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1)); p.setColor(a(accent,62)); c.drawLine(w*.64f,h*.09f,w*.97f,h*.09f,p); p.setStyle(Paint.Style.FILL);
-        for(int i=0;i<4;i++){ float x=w*(.69f+i*.08f); p.setColor(a(i%2==0?soft:accent,72)); c.drawOval(new RectF(x-dp(7),h*.12f,x+dp(7),h*.24f),p);}
-    }
-
-    private void drawObservatory(Canvas c,float w,float h,int deep,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(2)); p.setColor(a(accent,72)); c.drawOval(new RectF(w*.68f,h*.08f,w*.95f,h*.30f),p); c.drawLine(w*.82f,h*.30f,w*.82f,h*.40f,p); c.drawLine(w*.74f,h*.40f,w*.90f,h*.40f,p); p.setStyle(Paint.Style.FILL);
-        p.setColor(a(deep,52)); c.drawCircle(w*.82f,h*.18f,dp(6),p);
-    }
-
-    private void drawMusicCorner(Canvas c,float w,float h,int deep,int soft) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(3)); p.setColor(a(soft,76)); c.drawArc(new RectF(w*.70f,h*.09f,w*.94f,h*.33f),200,140,false,p); p.setStyle(Paint.Style.FILL);
-        p.setColor(a(deep,65)); c.drawCircle(w*.72f,h*.26f,dp(7),p); c.drawCircle(w*.92f,h*.26f,dp(7),p);
-        p.setColor(a(soft,68)); c.drawCircle(w*.66f,h*.14f,dp(4),p); c.drawRect(w*.69f,h*.05f,w*.70f,h*.14f,p);
-    }
-
-    private void drawGreenhouse(Canvas c,float w,float h,int deep,int soft) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(2)); p.setColor(a(soft,72)); path.reset(); path.moveTo(w*.66f,h*.39f); path.lineTo(w*.66f,h*.17f); path.lineTo(w*.81f,h*.05f); path.lineTo(w*.96f,h*.17f); path.lineTo(w*.96f,h*.39f); path.close(); c.drawPath(path,p); p.setStyle(Paint.Style.FILL);
-        p.setColor(a(deep,48)); for(int i=0;i<4;i++) c.drawOval(new RectF(w*(.70f+i*.06f),h*.22f,w*(.74f+i*.06f),h*.31f),p);
-    }
-
-    private void drawWorld(Canvas c,float w,float h,int world) {
-        int soft=NeoThemeCatalog.mix(e.accent,Color.WHITE,e.dark?34:76);
-        int deep=NeoThemeCatalog.mix(e.accent,Color.BLACK,e.dark?10:42);
-
-        switch(world) {
-            case 0: petals(c,w,h,e.accent,soft); break;
-            case 1: moonStars(c,w,h,soft,e.accent); break;
-            case 2: bubbles(c,w,h,soft,e.accent); break;
-            case 3: leaves(c,w,h,deep,soft); break;
-            case 4: dunes(c,w,h,soft,e.accent); break;
-            case 5: snow(c,w,h,soft,e.accent); break;
-            case 6: candy(c,w,h,soft,e.accent); break;
-            case 7: circuitWorld(c,w,h,soft,e.accent); break;
-            case 8: cosmos(c,w,h,soft,e.accent); break;
-            case 9: coffee(c,w,h,soft,deep); break;
-            case 10: botanical(c,w,h,soft,deep); break;
-            case 11: crystal(c,w,h,soft,e.accent); break;
-            case 12: lava(c,w,h,soft,e.accent); break;
-            case 13: rain(c,w,h,soft,e.accent); break;
-            case 14: aurora(c,w,h,soft,e.accent); break;
-            case 15: sunset(c,w,h,soft,e.accent); break;
-            case 16: city(c,w,h,soft,e.accent); break;
-            case 17: pixel(c,w,h,soft,e.accent); break;
-            case 18: paper(c,w,h,soft,e.accent); break;
-            case 19: velvet(c,w,h,soft,e.accent); break;
-            case 20: marble(c,w,h,soft,e.accent); break;
-            case 21: glass(c,w,h,soft,e.accent); break;
-            case 22: neon(c,w,h,soft,e.accent); break;
-            case 23: ink(c,w,h,soft,e.accent); break;
-            case 24: meadow(c,w,h,soft,e.accent); break;
-            case 25: coral(c,w,h,soft,e.accent); break;
-            case 26: storm(c,w,h,soft,e.accent); break;
-            case 27: pumpkin(c,w,h,soft,e.accent); break;
-            case 28: winter(c,w,h,soft,e.accent); break;
-            case 29: festival(c,w,h,soft,e.accent); break;
-            case 30: galaxy(c,w,h,soft,e.accent); break;
-            default: orchard(c,w,h,soft,e.accent); break;
-        }
-    }
-
-    private void capsuleGrid(Canvas c,float w,float h,int soft,int accent) {
-        float rw=w*.135f,rh=h*.14f;
-        for(int y=0;y<4;y++) for(int x=0;x<6;x++) {
-            float l=w*.035f+x*w*.164f+(y%2)*w*.025f;
-            float t=h*.08f+y*h*.23f;
-            p.setColor(a((x+y)%2==0?soft:accent,30+(x+y)%3*7));
-            c.drawRoundRect(new RectF(l,t,l+rw,t+rh),rh*.46f,rh*.46f,p);
-        }
-    }
-
-    private void floatingTiles(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<12;i++) {
-            float x=w*((i*37%91)/100f),y=h*((i*61%83)/100f);
-            float rw=w*(.08f+(i%4)*.018f),rh=h*(.07f+(i%3)*.026f);
-            p.setColor(a(i%2==0?soft:accent,26+i%3*9));
-            c.save();
-            c.rotate((i%2==0?1:-1)*(4+i%6),x,y);
-            c.drawRoundRect(new RectF(x,y,x+rw,y+rh),dp(9),dp(9),p);
-            c.restore();
-        }
-    }
-
-    private void splitDeck(Canvas c,float w,float h,int accent,int deep) {
-        path.reset();
-        path.moveTo(0,0); path.lineTo(w*.55f,0); path.lineTo(w*.38f,h); path.lineTo(0,h); path.close();
-        p.setColor(a(accent,42)); c.drawPath(path,p);
-        path.reset();
-        path.moveTo(w*.68f,0); path.lineTo(w,h); path.lineTo(w*.48f,h); path.close();
-        p.setColor(a(deep,34)); c.drawPath(path,p);
-    }
-
-    private void ribbonRows(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeCap(Paint.Cap.ROUND); p.setStrokeWidth(dp(3.5f));
-        for(int r=0;r<4;r++) {
-            float y=h*(.14f+r*.23f);
-            path.reset(); path.moveTo(-w*.05f,y);
-            path.cubicTo(w*.22f,y-h*.07f,w*.34f,y+h*.07f,w*.52f,y);
-            path.cubicTo(w*.72f,y-h*.07f,w*.86f,y+h*.07f,w*1.05f,y);
-            p.setColor(a(r%2==0?soft:accent,48)); c.drawPath(path,p);
-        }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void haloField(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE);
-        for(int i=0;i<12;i++) {
-            float x=w*((i*29%91)/100f),y=h*((i*53%87)/100f);
-            float r=Math.min(w,h)*(.025f+(i%5)*.01f);
-            p.setStrokeWidth(dp(1+i%2)); p.setColor(a(i%2==0?soft:accent,58));
-            c.drawCircle(x,y,r,p);
-        }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void mosaic(Canvas c,float w,float h,int soft,int accent) {
-        int cols=8,rows=5; float cw=w/cols,ch=h/rows;
-        for(int y=0;y<rows;y++) for(int x=0;x<cols;x++) if((x*3+y*5+e.world)%4==0) {
-            p.setColor(a((x+y)%2==0?soft:accent,30));
-            c.drawRect(x*cw,y*ch,(x+1)*cw,(y+1)*ch,p);
-        }
-    }
-
-    private void orbit(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.2f));
-        float cx=w*.52f,cy=h*.48f;
-        for(int i=0;i<5;i++) {
-            p.setColor(a(i%2==0?soft:accent,54));
-            c.drawOval(new RectF(cx-w*(.13f+i*.075f),cy-h*(.07f+i*.05f),cx+w*(.13f+i*.075f),cy+h*(.07f+i*.05f)),p);
-        }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void bento(Canvas c,float w,float h,int soft,int accent) {
-        RectF[] rs={
-                new RectF(w*.03f,h*.07f,w*.36f,h*.42f),
-                new RectF(w*.38f,h*.07f,w*.97f,h*.24f),
-                new RectF(w*.38f,h*.26f,w*.68f,h*.58f),
-                new RectF(w*.70f,h*.26f,w*.97f,h*.58f),
-                new RectF(w*.03f,h*.44f,w*.36f,h*.93f),
-                new RectF(w*.38f,h*.60f,w*.97f,h*.93f)
-        };
-        for(int i=0;i<rs.length;i++) {
-            p.setColor(a(i%2==0?soft:accent,28+i%3*7));
-            c.drawRoundRect(rs[i],dp(11),dp(11),p);
-        }
-    }
-
-    private void prisms(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<10;i++) {
-            float x=w*((i*23%90)/100f),y=h*((i*47%84)/100f),s=Math.min(w,h)*(.045f+(i%3)*.018f);
-            path.reset(); path.moveTo(x,y-s); path.lineTo(x+s,y+s*.7f); path.lineTo(x-s,y+s*.7f); path.close();
-            p.setColor(a(i%2==0?soft:accent,40)); c.drawPath(path,p);
-        }
-    }
-
-    private void cloudDeck(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<6;i++) {
-            float x=w*(.07f+i*.17f),y=h*((i%2==0)?.16f:.76f),r=Math.min(w,h)*.04f;
-            p.setColor(a(i%2==0?soft:accent,38));
-            c.drawCircle(x,y,r,p); c.drawCircle(x+r*.8f,y-r*.2f,r*.8f,p);
-            c.drawRoundRect(new RectF(x-r*.6f,y,x+r*1.5f,y+r*.65f),r*.3f,r*.3f,p);
-        }
-    }
-
-    private void glassDock(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1));
-        p.setColor(a(Color.WHITE,e.dark?62:118));
-        for(int i=0;i<4;i++) {
-            float in=w*(.04f+i*.025f);
-            c.drawRoundRect(new RectF(in,h*.05f+i*h*.015f,w-in,h*.95f-i*h*.015f),dp(17+i*2),dp(17+i*2),p);
-        }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void arcadeMatrix(Canvas c,float w,float h,int soft,int accent) {
-        float s=Math.min(w,h)*.022f;
-        for(int y=0;y<7;y++) for(int x=0;x<13;x++) if(((x*3+y*5+e.world)%4)==0) {
-            p.setColor(a((x+y)%2==0?soft:accent,54));
-            float px=w*.025f+x*w*.075f,py=h*.06f+y*h*.135f;
-            c.drawRect(px,py,px+s,py+s,p);
-        }
-    }
-
-    private void decoSteps(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.6f));
-        for(int i=0;i<5;i++) {
-            float inset=w*(.04f+i*.04f);
-            path.reset(); path.moveTo(inset,h*(.13f+i*.04f));
-            path.lineTo(w*(.22f+i*.03f),h*(.13f+i*.04f));
-            path.lineTo(w*(.27f+i*.03f),h*(.20f+i*.04f));
-            path.lineTo(w-inset,h*(.20f+i*.04f));
-            p.setColor(a(i%2==0?soft:accent,46)); c.drawPath(path,p);
-        }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void waveBoard(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.7f));
-        for(int r=0;r<5;r++) {
-            float y=h*(.11f+r*.19f);
-            path.reset(); path.moveTo(-w*.05f,y);
-            for(int i=0;i<6;i++) {
-                float x=w*i*.20f;
-                path.quadTo(x+w*.05f,y-h*.035f,x+w*.10f,y);
-                path.quadTo(x+w*.15f,y+h*.035f,x+w*.20f,y);
-            }
-            p.setColor(a(r%2==0?soft:accent,43)); c.drawPath(path,p);
-        }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void petalRows(Canvas c,float w,float h,int soft,int accent) {
-        for(int y=0;y<4;y++) for(int x=0;x<7;x++) {
-            float cx=w*(.08f+x*.145f),cy=h*(.12f+y*.25f);
-            p.setColor(a((x+y)%2==0?soft:accent,36));
-            c.save(); c.rotate((x*17+y*11)%70-35,cx,cy);
-            c.drawOval(new RectF(cx-w*.012f,cy-h*.043f,cx+w*.012f,cy+h*.043f),p); c.restore();
-        }
-    }
-
-    private void jewelGrid(Canvas c,float w,float h,int soft,int accent) {
-        for(int y=0;y<4;y++) for(int x=0;x<7;x++) {
-            float cx=w*(.08f+x*.145f),cy=h*(.12f+y*.25f),sx=w*.03f,sy=h*.05f;
-            path.reset(); path.moveTo(cx,cy-sy); path.lineTo(cx+sx,cy); path.lineTo(cx,cy+sy); path.lineTo(cx-sx,cy); path.close();
-            p.setColor(a((x+y)%2==0?soft:accent,34)); c.drawPath(path,p);
-        }
-    }
-
-    private void dottedRails(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<16;i++) {
-            p.setColor(a(i%2==0?soft:accent,65));
-            c.drawCircle(w*(.04f+i*.061f),h*.08f,dp(1.3f+i%2),p);
-            c.drawCircle(w*(.96f-i*.061f),h*.92f,dp(1.3f+i%2),p);
-        }
-    }
-
-    private void cornerFrames(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(2)); p.setColor(a(accent,66));
-        float l=w*.04f,t=h*.08f,r=w*.96f,b=h*.92f,s=Math.min(w,h)*.12f;
-        c.drawLine(l,t,l+s,t,p); c.drawLine(l,t,l,t+s,p);
-        c.drawLine(r,t,r-s,t,p); c.drawLine(r,t,r,t+s,p);
-        c.drawLine(l,b,l+s,b,p); c.drawLine(l,b,l,b-s,p);
-        c.drawLine(r,b,r-s,b,p); c.drawLine(r,b,r,b-s,p);
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void portalDots(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.2f));
-        for(int i=0;i<8;i++) {
-            p.setColor(a(i%2==0?soft:accent,54));
-            c.drawCircle(w*(.07f+i*.125f),h*.5f,Math.min(w,h)*(.025f+(i%3)*.009f),p);
-        }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void diagonalGlass(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=-2;i<8;i++) {
-            path.reset();
-            float x=w*i*.18f;
-            path.moveTo(x,0); path.lineTo(x+w*.08f,0); path.lineTo(x+w*.35f,h); path.lineTo(x+w*.27f,h); path.close();
-            p.setColor(a(i%2==0?soft:accent,22)); c.drawPath(path,p);
-        }
-    }
-
-    private void metroLine(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(2));
-        float[][] pts={{.07f,.18f},{.27f,.18f},{.27f,.45f},{.55f,.45f},{.55f,.72f},{.90f,.72f}};
-        for(int i=0;i<pts.length-1;i++) {
-            p.setColor(a(i%2==0?soft:accent,68));
-            c.drawLine(w*pts[i][0],h*pts[i][1],w*pts[i+1][0],h*pts[i+1][1],p);
-        }
-        p.setStyle(Paint.Style.FILL);
-        for(float[] pt:pts) { p.setColor(a(accent,90)); c.drawCircle(w*pt[0],h*pt[1],dp(2.4f),p); }
-    }
-
-    private void lanternLine(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1)); p.setColor(a(accent,55)); c.drawLine(w*.04f,h*.12f,w*.96f,h*.12f,p);
-        p.setStyle(Paint.Style.FILL);
-        for(int i=0;i<8;i++) {
-            float x=w*(.08f+i*.12f);
-            p.setColor(a(i%2==0?soft:accent,48)); c.drawOval(new RectF(x-w*.023f,h*.14f,x+w*.023f,h*.22f),p);
-        }
-    }
-
-    private void pebbleBand(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<18;i++) {
-            float x=w*((i*31%93)/100f),y=h*((i*47%89)/100f),rw=w*(.018f+(i%4)*.008f),rh=h*(.012f+(i%3)*.009f);
-            p.setColor(a(i%2==0?soft:accent,34)); c.drawOval(new RectF(x-rw,y-rh,x+rw,y+rh),p);
-        }
-    }
-
-    private void circuitRail(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.2f));
-        for(int i=0;i<5;i++) {
-            float y=h*(.13f+i*.17f);
-            path.reset(); path.moveTo(w*.04f,y); path.lineTo(w*(.23f+i*.04f),y); path.lineTo(w*(.29f+i*.04f),y+h*.05f); path.lineTo(w*.95f,y+h*.05f);
-            p.setColor(a(i%2==0?soft:accent,54)); c.drawPath(path,p);
-        }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void gardenFrame(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.6f)); p.setColor(a(accent,54));
-        path.reset(); path.moveTo(w*.03f,h*.9f); path.cubicTo(w*.14f,h*.7f,w*.04f,h*.35f,w*.2f,h*.08f); c.drawPath(path,p);
-        path.reset(); path.moveTo(w*.97f,h*.1f); path.cubicTo(w*.86f,h*.3f,w*.96f,h*.65f,w*.8f,h*.92f); c.drawPath(path,p);
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void velvetBands(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<8;i++) {
-            float l=w*i*.125f;
-            p.setShader(new LinearGradient(l,0,l+w*.13f,0,a(i%2==0?soft:accent,30),Color.TRANSPARENT,Shader.TileMode.CLAMP));
-            c.drawRect(l,0,l+w*.13f,h,p);
-        }
+        p.setShader(new LinearGradient(0,0,w,h,s,en,Shader.TileMode.CLAMP));
+        c.drawRoundRect(new RectF(0,0,w,h),dp(24),dp(24),p);
         p.setShader(null);
     }
 
-    private void sunsetDisc(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=4;i>=1;i--) {
-            p.setColor(a(i%2==0?soft:accent,18+i*7));
-            c.drawCircle(w*.79f,h*.21f,Math.min(w,h)*(.035f+i*.03f),p);
+    private void drawArchitecture(Canvas c,float w,float h,int a){
+        int soft=NeoThemeCatalog.mix(e.accent,Color.WHITE,e.dark?25:78);
+        int deep=NeoThemeCatalog.mix(e.accent,Color.BLACK,e.dark?8:48);
+        switch(a%48){
+            case 0: floatingCandy(c,w,h,soft); break;
+            case 1: scrapbook(c,w,h,soft,deep); break;
+            case 2: splitMechanical(c,w,h,deep); break;
+            case 3: cloudIslands(c,w,h,soft); break;
+            case 4: bubbleField(c,w,h,soft); break;
+            case 5: offsetBento(c,w,h,soft,deep); break;
+            case 6: ticketRows(c,w,h,soft); break;
+            case 7: glassShelves(c,w,h,soft); break;
+            case 8: pixelConsole(c,w,h,deep); break;
+            case 9: notebookTabs(c,w,h,soft,deep); break;
+            case 10: petalCluster(c,w,h,soft); break;
+            case 11: arcadeBlocks(c,w,h,deep); break;
+            case 12: ribbonStacks(c,w,h,soft); break;
+            case 13: asymmetricCards(c,w,h,soft,deep); break;
+            case 14: jewelFacets(c,w,h,soft); break;
+            case 15: plushBoard(c,w,h,soft); break;
+            case 16: photoFrames(c,w,h,soft,deep); break;
+            case 17: cityPanels(c,w,h,deep); break;
+            case 18: orbitDeck(c,w,h,soft); break;
+            case 19: mosaicTiles(c,w,h,soft,deep); break;
+            case 20: cyberRails(c,w,h,deep); break;
+            case 21: gardenTrellis(c,w,h,soft,deep); break;
+            case 22: dessertBoard(c,w,h,soft); break;
+            case 23: oceanPebbles(c,w,h,soft); break;
+            case 24: luxuryPlaques(c,w,h,soft,deep); break;
+            case 25: y2kChrome(c,w,h,soft); break;
+            case 26: gothicWindows(c,w,h,deep); break;
+            case 27: dreamBedroom(c,w,h,soft,deep); break;
+            case 28: retroCassette(c,w,h,soft,deep); break;
+            case 29: kawaiiRoom(c,w,h,soft,deep); break;
+            case 30: spaceConsole(c,w,h,soft,deep); break;
+            case 31: minimalLines(c,w,h,deep); break;
+            case 32: lanternSteps(c,w,h,soft); break;
+            case 33: mechanicalDeck(c,w,h,deep); break;
+            case 34: polaroidWall(c,w,h,soft,deep); break;
+            case 35: bookPage(c,w,h,soft,deep); break;
+            case 36: neonCircuit(c,w,h,deep); break;
+            case 37: frostedDock(c,w,h,soft); break;
+            case 38: teddyShelf(c,w,h,soft,deep); break;
+            case 39: flowerMarket(c,w,h,soft,deep); break;
+            case 40: gameDesk(c,w,h,soft,deep); break;
+            case 41: nightSkyline(c,w,h,deep); break;
+            case 42: candyShop(c,w,h,soft); break;
+            case 43: auroraGlass(c,w,h,soft); break;
+            case 44: moonWindow(c,w,h,soft,deep); break;
+            case 45: stickerParade(c,w,h,soft,deep); break;
+            case 46: waveDeck(c,w,h,soft); break;
+            default: zenStones(c,w,h,soft,deep); break;
         }
     }
 
-    private void auroraSweep(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(5)); p.setStrokeCap(Paint.Cap.ROUND);
-        for(int i=0;i<3;i++) {
-            path.reset(); path.moveTo(-w*.05f,h*(.18f+i*.2f)); path.cubicTo(w*.27f,h*(.02f+i*.13f),w*.62f,h*(.34f+i*.12f),w*1.05f,h*(.15f+i*.18f));
-            p.setColor(a(i%2==0?soft:accent,34+i*5)); c.drawPath(path,p);
+    private void floatingCandy(Canvas c,float w,float h,int soft){
+        fill(soft,54); for(int r=0;r<4;r++) for(int i=0;i<7;i++){ float x=w*(.08f+i*.135f)+(r%2)*w*.025f; float y=h*(.18f+r*.19f); c.drawRoundRect(new RectF(x-w*.045f,y-h*.055f,x+w*.045f,y+h*.055f),dp(16),dp(16),p); }
+    }
+    private void scrapbook(Canvas c,float w,float h,int soft,int deep){
+        for(int i=0;i<7;i++){ float x=w*(.08f+(i%4)*.23f),y=h*(.08f+(i/4)*.40f); c.save(); c.rotate((i%2==0?-8:7),x,y); fill(i%2==0?soft:Color.WHITE,75); c.drawRect(x,y,x+w*.19f,y+h*.28f,p); fill(deep,38); c.drawRect(x+w*.025f,y+h*.03f,x+w*.165f,y+h*.17f,p); c.restore(); }
+    }
+    private void splitMechanical(Canvas c,float w,float h,int deep){
+        fill(deep,74); c.drawRoundRect(new RectF(w*.03f,h*.10f,w*.47f,h*.92f),dp(18),dp(18),p); c.drawRoundRect(new RectF(w*.53f,h*.10f,w*.97f,h*.92f),dp(18),dp(18),p); stroke(e.accent,58,2); c.drawLine(w*.5f,h*.15f,w*.5f,h*.88f,p);
+    }
+    private void cloudIslands(Canvas c,float w,float h,int soft){
+        fill(soft,48); for(int r=0;r<4;r++){ float y=h*(.18f+r*.19f); for(int i=0;i<3;i++){ float x=w*(.18f+i*.31f)+(r%2)*w*.08f; cloud(c,x,y,dp(16+r)); } }
+    }
+    private void bubbleField(Canvas c,float w,float h,int soft){
+        fill(soft,45); for(int i=0;i<18;i++){ float x=w*(.07f+(i%6)*.17f),y=h*(.16f+(i/6)*.25f); c.drawCircle(x,y,dp(16+(i%3)*5),p); }
+    }
+    private void offsetBento(Canvas c,float w,float h,int soft,int deep){
+        fill(soft,48); c.drawRoundRect(new RectF(w*.04f,h*.10f,w*.62f,h*.40f),dp(20),dp(20),p); c.drawRoundRect(new RectF(w*.67f,h*.10f,w*.96f,h*.60f),dp(20),dp(20),p); fill(deep,24); c.drawRoundRect(new RectF(w*.04f,h*.45f,w*.42f,h*.90f),dp(20),dp(20),p); c.drawRoundRect(new RectF(w*.47f,h*.65f,w*.96f,h*.90f),dp(20),dp(20),p);
+    }
+    private void ticketRows(Canvas c,float w,float h,int soft){
+        fill(soft,44); for(int r=0;r<4;r++){ float y=h*(.15f+r*.19f); RectF rr=new RectF(w*.05f,y,w*.95f,y+h*.12f); c.drawRoundRect(rr,dp(12),dp(12),p); fill(e.accent,30); for(int i=1;i<9;i++) c.drawCircle(w*(.05f+i*.10f),rr.centerY(),dp(3),p); fill(soft,44); }
+    }
+    private void glassShelves(Canvas c,float w,float h,int soft){
+        fill(Color.WHITE,e.dark?20:42); for(int r=0;r<4;r++){ float y=h*(.14f+r*.19f); c.drawRoundRect(new RectF(w*.04f,y,w*.96f,y+h*.13f),dp(14),dp(14),p); stroke(soft,54,1); c.drawLine(w*.08f,y+h*.13f,w*.92f,y+h*.13f,p); }
+    }
+    private void pixelConsole(Canvas c,float w,float h,int deep){
+        fill(deep,78); c.drawRect(w*.03f,h*.08f,w*.97f,h*.92f,p); fill(e.accent,42); for(int y=0;y<5;y++) for(int x=0;x<9;x++) if(((x+y)&1)==0) c.drawRect(w*(.07f+x*.10f),h*(.13f+y*.15f),w*(.11f+x*.10f),h*(.18f+y*.15f),p);
+    }
+    private void notebookTabs(Canvas c,float w,float h,int soft,int deep){
+        fill(Color.WHITE,e.dark?18:60); c.drawRoundRect(new RectF(w*.04f,h*.07f,w*.96f,h*.93f),dp(12),dp(12),p); stroke(deep,32,1); for(int i=0;i<10;i++) c.drawLine(w*.08f,h*(.16f+i*.075f),w*.92f,h*(.16f+i*.075f),p); fill(soft,66); for(int i=0;i<4;i++) c.drawRoundRect(new RectF(w*.08f+i*w*.20f,h*.04f,w*.19f+i*w*.20f,h*.13f),dp(8),dp(8),p);
+    }
+    private void petalCluster(Canvas c,float w,float h,int soft){
+        fill(soft,46); for(int i=0;i<12;i++){ float x=w*(.12f+(i%4)*.25f),y=h*(.18f+(i/4)*.25f); for(int k=0;k<5;k++){ double a=k*Math.PI*2/5; c.drawOval(new RectF(x+(float)Math.cos(a)*dp(12)-dp(8),y+(float)Math.sin(a)*dp(12)-dp(5),x+(float)Math.cos(a)*dp(12)+dp(8),y+(float)Math.sin(a)*dp(12)+dp(5)),p); } }
+    }
+    private void arcadeBlocks(Canvas c,float w,float h,int deep){
+        fill(deep,72); for(int r=0;r<4;r++) for(int i=0;i<8;i++){ float l=w*(.04f+i*.118f),t=h*(.13f+r*.19f); c.drawRoundRect(new RectF(l,t,l+w*.095f,t+h*.13f),dp(5),dp(5),p); fill(e.accent,36+(i%3)*8); c.drawRect(l+w*.02f,t+h*.02f,l+w*.075f,t+h*.045f,p); fill(deep,72); }
+    }
+    private void ribbonStacks(Canvas c,float w,float h,int soft){
+        for(int r=0;r<4;r++){ fill(r%2==0?soft:e.accent,38); float y=h*(.12f+r*.20f); path.reset(); path.moveTo(w*.03f,y); path.lineTo(w*.90f,y); path.lineTo(w*.97f,y+h*.07f); path.lineTo(w*.90f,y+h*.14f); path.lineTo(w*.03f,y+h*.14f); path.lineTo(w*.10f,y+h*.07f); path.close(); c.drawPath(path,p); }
+    }
+    private void asymmetricCards(Canvas c,float w,float h,int soft,int deep){
+        fill(soft,48); c.drawRoundRect(new RectF(w*.03f,h*.08f,w*.38f,h*.47f),dp(24),dp(24),p); c.drawRoundRect(new RectF(w*.42f,h*.08f,w*.97f,h*.30f),dp(12),dp(12),p); fill(deep,26); c.drawRoundRect(new RectF(w*.42f,h*.34f,w*.72f,h*.92f),dp(20),dp(20),p); c.drawRoundRect(new RectF(w*.76f,h*.34f,w*.97f,h*.92f),dp(30),dp(30),p);
+    }
+    private void jewelFacets(Canvas c,float w,float h,int soft){
+        fill(soft,42); for(int i=0;i<14;i++){ float x=w*(.08f+(i%7)*.14f),y=h*(.18f+(i/7)*.36f); polygon(c,x,y,dp(20),6); }
+    }
+    private void plushBoard(Canvas c,float w,float h,int soft){
+        fill(soft,50); c.drawRoundRect(new RectF(w*.03f,h*.08f,w*.97f,h*.92f),dp(42),dp(42),p); fill(Color.WHITE,e.dark?15:28); for(int i=0;i<7;i++) c.drawCircle(w*(.08f+i*.14f),h*.14f,dp(6),p); for(int i=0;i<7;i++) c.drawCircle(w*(.08f+i*.14f),h*.86f,dp(6),p);
+    }
+    private void photoFrames(Canvas c,float w,float h,int soft,int deep){
+        for(int i=0;i<6;i++){ float x=w*(.06f+(i%3)*.31f),y=h*(.10f+(i/3)*.39f); fill(Color.WHITE,e.dark?45:90); c.drawRoundRect(new RectF(x,y,x+w*.26f,y+h*.31f),dp(8),dp(8),p); fill(i%2==0?soft:deep,40); c.drawRect(x+w*.025f,y+h*.025f,x+w*.235f,y+h*.21f,p); }
+    }
+    private void cityPanels(Canvas c,float w,float h,int deep){
+        fill(deep,66); for(int i=0;i<9;i++){ float l=w*(.02f+i*.11f),top=h*(.16f-((i*3)%5)*.018f); c.drawRect(l,top,l+w*.095f,h*.92f,p); fill(e.accent,45); for(int y=0;y<5;y++) c.drawRect(l+w*.025f,top+h*(.04f+y*.11f),l+w*.045f,top+h*(.07f+y*.11f),p); fill(deep,66); }
+    }
+    private void orbitDeck(Canvas c,float w,float h,int soft){
+        stroke(soft,62,2); c.drawOval(new RectF(w*.12f,h*.10f,w*.88f,h*.88f),p); c.drawOval(new RectF(w*.28f,h*.18f,w*.72f,h*.82f),p); fill(soft,52); for(int i=0;i<10;i++){ double a=i*Math.PI*2/10; c.drawCircle(w*.5f+(float)Math.cos(a)*w*.34f,h*.49f+(float)Math.sin(a)*h*.34f,dp(10),p); }
+    }
+    private void mosaicTiles(Canvas c,float w,float h,int soft,int deep){
+        for(int r=0;r<5;r++) for(int i=0;i<8;i++){ fill(((r+i)&1)==0?soft:deep,34); float l=w*(.02f+i*.125f),t=h*(.08f+r*.17f); c.save(); c.rotate(((r+i)&1)==0?-3:3,l,t); c.drawRoundRect(new RectF(l,t,l+w*.11f,t+h*.145f),dp(8),dp(8),p); c.restore(); }
+    }
+    private void cyberRails(Canvas c,float w,float h,int deep){
+        fill(deep,60); c.drawRoundRect(new RectF(w*.03f,h*.08f,w*.97f,h*.92f),dp(14),dp(14),p); stroke(e.accent,70,2); for(int r=0;r<5;r++){ float y=h*(.14f+r*.16f); path.reset(); path.moveTo(w*.05f,y); path.lineTo(w*.25f,y); path.lineTo(w*.32f,y+h*.05f); path.lineTo(w*.68f,y+h*.05f); path.lineTo(w*.75f,y); path.lineTo(w*.95f,y); c.drawPath(path,p); }
+    }
+    private void gardenTrellis(Canvas c,float w,float h,int soft,int deep){
+        stroke(deep,32,2); for(int i=0;i<8;i++){ c.drawLine(w*(.05f+i*.13f),h*.08f,w*(.05f+i*.13f),h*.92f,p); } for(int i=0;i<6;i++) c.drawLine(w*.04f,h*(.1f+i*.16f),w*.96f,h*(.1f+i*.16f),p); fill(soft,58); for(int i=0;i<11;i++) c.drawCircle(w*(.07f+(i%6)*.17f),h*(.12f+(i/6)*.52f),dp(8),p);
+    }
+    private void dessertBoard(Canvas c,float w,float h,int soft){
+        fill(soft,54); c.drawRoundRect(new RectF(w*.03f,h*.08f,w*.97f,h*.92f),dp(26),dp(26),p); fill(e.accent,44); for(int i=0;i<8;i++){ float x=w*(.09f+(i%4)*.24f),y=h*(.18f+(i/4)*.45f); c.drawCircle(x,y,dp(17),p); fill(Color.WHITE,e.dark?35:65); c.drawCircle(x,y-dp(4),dp(8),p); fill(e.accent,44); }
+    }
+    private void oceanPebbles(Canvas c,float w,float h,int soft){
+        fill(soft,43); for(int i=0;i<16;i++){ float x=w*(.08f+(i%5)*.21f),y=h*(.15f+(i/5)*.22f); c.drawOval(new RectF(x-dp(18+(i%3)*4),y-dp(12),x+dp(18+(i%3)*4),y+dp(12)),p); }
+    }
+    private void luxuryPlaques(Canvas c,float w,float h,int soft,int deep){
+        fill(deep,46); c.drawRoundRect(new RectF(w*.03f,h*.08f,w*.97f,h*.92f),dp(18),dp(18),p); stroke(soft,74,2); c.drawRoundRect(new RectF(w*.06f,h*.11f,w*.94f,h*.89f),dp(14),dp(14),p); for(int r=0;r<4;r++) c.drawLine(w*.09f,h*(.21f+r*.18f),w*.91f,h*(.21f+r*.18f),p);
+    }
+    private void y2kChrome(Canvas c,float w,float h,int soft){
+        stroke(soft,70,3); for(int i=0;i<8;i++){ float x=w*(.08f+i*.12f); c.drawOval(new RectF(x-dp(18),h*.16f,x+dp(18),h*.84f),p); } fill(Color.WHITE,e.dark?18:34); c.drawRoundRect(new RectF(w*.12f,h*.36f,w*.88f,h*.64f),dp(36),dp(36),p);
+    }
+    private void gothicWindows(Canvas c,float w,float h,int deep){
+        fill(deep,65); for(int i=0;i<5;i++){ float l=w*(.04f+i*.195f),r=l+w*.15f; path.reset(); path.moveTo(l,h*.90f); path.lineTo(l,h*.28f); path.quadTo((l+r)/2,h*.06f,r,h*.28f); path.lineTo(r,h*.90f); path.close(); c.drawPath(path,p); }
+    }
+    private void dreamBedroom(Canvas c,float w,float h,int soft,int deep){
+        fill(soft,48); c.drawRoundRect(new RectF(w*.05f,h*.50f,w*.95f,h*.90f),dp(26),dp(26),p); fill(Color.WHITE,e.dark?22:44); c.drawRoundRect(new RectF(w*.08f,h*.54f,w*.45f,h*.72f),dp(20),dp(20),p); stroke(deep,35,2); c.drawRoundRect(new RectF(w*.60f,h*.10f,w*.92f,h*.44f),dp(20),dp(20),p); c.drawLine(w*.76f,h*.10f,w*.76f,h*.44f,p);
+    }
+    private void retroCassette(Canvas c,float w,float h,int soft,int deep){
+        fill(soft,48); c.drawRoundRect(new RectF(w*.04f,h*.12f,w*.96f,h*.88f),dp(14),dp(14),p); fill(deep,50); c.drawRoundRect(new RectF(w*.16f,h*.24f,w*.84f,h*.54f),dp(12),dp(12),p); fill(soft,68); c.drawCircle(w*.35f,h*.39f,dp(26),p); c.drawCircle(w*.65f,h*.39f,dp(26),p); fill(deep,46); c.drawRoundRect(new RectF(w*.25f,h*.66f,w*.75f,h*.80f),dp(8),dp(8),p);
+    }
+    private void kawaiiRoom(Canvas c,float w,float h,int soft,int deep){
+        fill(Color.WHITE,e.dark?14:32); c.drawRoundRect(new RectF(w*.04f,h*.08f,w*.96f,h*.92f),dp(28),dp(28),p); fill(soft,50); c.drawRoundRect(new RectF(w*.08f,h*.60f,w*.52f,h*.87f),dp(18),dp(18),p); c.drawRoundRect(new RectF(w*.65f,h*.20f,w*.90f,h*.55f),dp(20),dp(20),p); fill(deep,38); c.drawRect(w*.56f,h*.58f,w*.60f,h*.88f,p);
+    }
+    private void spaceConsole(Canvas c,float w,float h,int soft,int deep){
+        fill(deep,62); c.drawRoundRect(new RectF(w*.03f,h*.08f,w*.97f,h*.92f),dp(24),dp(24),p); stroke(soft,60,2); c.drawOval(new RectF(w*.20f,h*.16f,w*.80f,h*.74f),p); fill(soft,64); for(int i=0;i<12;i++) c.drawCircle(w*(.08f+(i*7%89)/100f),h*(.12f+(i*13%73)/100f),dp(2+(i%3)),p); c.drawCircle(w*.74f,h*.28f,dp(25),p);
+    }
+    private void minimalLines(Canvas c,float w,float h,int deep){
+        stroke(deep,34,1); for(int r=0;r<5;r++) c.drawLine(w*.07f,h*(.15f+r*.17f),w*.93f,h*(.15f+r*.17f),p); for(int i=0;i<7;i++) c.drawLine(w*(.08f+i*.14f),h*.10f,w*(.08f+i*.14f),h*.90f,p);
+    }
+    private void lanternSteps(Canvas c,float w,float h,int soft){
+        for(int r=0;r<5;r++){ fill(soft,44+r*4); float l=w*(.05f+r*.055f),rr=w*(.95f-r*.055f),t=h*(.10f+r*.15f); c.drawRoundRect(new RectF(l,t,rr,t+h*.10f),dp(10),dp(10),p); }
+    }
+    private void mechanicalDeck(Canvas c,float w,float h,int deep){
+        fill(deep,68); for(int r=0;r<4;r++) for(int i=0;i<9;i++){ float l=w*(.02f+i*.108f),t=h*(.12f+r*.19f); c.drawRoundRect(new RectF(l,t,l+w*.095f,t+h*.14f),dp(5),dp(5),p); stroke(e.accent,36,1); c.drawRoundRect(new RectF(l+dp(2),t+dp(2),l+w*.095f-dp(2),t+h*.14f-dp(2)),dp(3),dp(3),p); fill(deep,68); }
+    }
+    private void polaroidWall(Canvas c,float w,float h,int soft,int deep){ scrapbook(c,w,h,soft,deep); stroke(e.accent,42,2); c.drawLine(w*.04f,h*.48f,w*.96f,h*.48f,p); }
+    private void bookPage(Canvas c,float w,float h,int soft,int deep){
+        fill(Color.WHITE,e.dark?20:62); c.drawRoundRect(new RectF(w*.04f,h*.07f,w*.48f,h*.93f),dp(12),dp(12),p); c.drawRoundRect(new RectF(w*.52f,h*.07f,w*.96f,h*.93f),dp(12),dp(12),p); stroke(deep,25,1); for(int i=0;i<9;i++){ c.drawLine(w*.08f,h*(.16f+i*.075f),w*.44f,h*(.16f+i*.075f),p); c.drawLine(w*.56f,h*(.16f+i*.075f),w*.92f,h*(.16f+i*.075f),p); } fill(soft,55); c.drawRoundRect(new RectF(w*.47f,h*.07f,w*.53f,h*.93f),dp(3),dp(3),p);
+    }
+    private void neonCircuit(Canvas c,float w,float h,int deep){
+        fill(deep,66); c.drawRoundRect(new RectF(w*.03f,h*.08f,w*.97f,h*.92f),dp(12),dp(12),p); stroke(e.accent,82,2); for(int i=0;i<8;i++){ float y=h*(.14f+i*.10f); c.drawLine(w*.06f,y,w*.30f,y,p); c.drawLine(w*.30f,y,w*.36f,y+h*.04f,p); c.drawLine(w*.36f,y+h*.04f,w*.94f,y+h*.04f,p); c.drawCircle(w*.30f,y,dp(3),p); }
+    }
+    private void frostedDock(Canvas c,float w,float h,int soft){
+        fill(Color.WHITE,e.dark?18:44); c.drawRoundRect(new RectF(w*.06f,h*.12f,w*.94f,h*.88f),dp(34),dp(34),p); stroke(soft,46,1); c.drawRoundRect(new RectF(w*.09f,h*.15f,w*.91f,h*.85f),dp(28),dp(28),p);
+    }
+    private void teddyShelf(Canvas c,float w,float h,int soft,int deep){
+        fill(soft,45); for(int r=0;r<3;r++) c.drawRoundRect(new RectF(w*.06f,h*(.18f+r*.25f),w*.94f,h*(.23f+r*.25f)),dp(6),dp(6),p); for(int i=0;i<6;i++){ float x=w*(.12f+(i%3)*.38f),y=h*(.14f+(i/3)*.48f); teddy(c,x,y,dp(18),soft,deep); }
+    }
+    private void flowerMarket(Canvas c,float w,float h,int soft,int deep){
+        fill(deep,28); c.drawRoundRect(new RectF(w*.05f,h*.62f,w*.95f,h*.90f),dp(12),dp(12),p); for(int i=0;i<15;i++){ float x=w*(.08f+(i%5)*.21f),y=h*(.14f+(i/5)*.18f); flower(c,x,y,dp(10),soft,deep); }
+    }
+    private void gameDesk(Canvas c,float w,float h,int soft,int deep){
+        fill(deep,44); c.drawRoundRect(new RectF(w*.06f,h*.16f,w*.94f,h*.70f),dp(14),dp(14),p); fill(soft,46); c.drawRoundRect(new RectF(w*.25f,h*.24f,w*.75f,h*.53f),dp(8),dp(8),p); c.drawRoundRect(new RectF(w*.18f,h*.73f,w*.82f,h*.84f),dp(8),dp(8),p); fill(e.accent,58); c.drawCircle(w*.80f,h*.38f,dp(9),p);
+    }
+    private void nightSkyline(Canvas c,float w,float h,int deep){ cityPanels(c,w,h,deep); fill(Color.WHITE,60); c.drawCircle(w*.83f,h*.18f,dp(18),p); }
+    private void candyShop(Canvas c,float w,float h,int soft){
+        fill(soft,52); c.drawRoundRect(new RectF(w*.04f,h*.18f,w*.96f,h*.90f),dp(20),dp(20),p); for(int i=0;i<7;i++){ fill(i%2==0?e.accent:Color.WHITE,48); float l=w*(.05f+i*.13f); path.reset(); path.moveTo(l,h*.18f); path.lineTo(l+w*.12f,h*.18f); path.lineTo(l+w*.10f,h*.32f); path.lineTo(l+w*.02f,h*.32f); path.close(); c.drawPath(path,p); } fill(soft,60); c.drawRoundRect(new RectF(w*.16f,h*.52f,w*.84f,h*.82f),dp(18),dp(18),p);
+    }
+    private void auroraGlass(Canvas c,float w,float h,int soft){
+        fill(Color.WHITE,e.dark?12:30); c.drawRoundRect(new RectF(w*.04f,h*.08f,w*.96f,h*.92f),dp(28),dp(28),p); p.setStyle(Paint.Style.STROKE); p.setStrokeCap(Paint.Cap.ROUND); p.setStrokeWidth(dp(8)); for(int i=0;i<4;i++){ p.setColor(withAlpha(i%2==0?soft:e.accent,90)); path.reset(); path.moveTo(w*.06f,h*(.18f+i*.15f)); path.cubicTo(w*.28f,h*(.03f+i*.16f),w*.67f,h*(.44f+i*.08f),w*.95f,h*(.18f+i*.14f)); c.drawPath(path,p); } p.setStyle(Paint.Style.FILL);
+    }
+    private void moonWindow(Canvas c,float w,float h,int soft,int deep){
+        stroke(soft,62,2); c.drawRoundRect(new RectF(w*.57f,h*.08f,w*.94f,h*.48f),dp(20),dp(20),p); c.drawLine(w*.755f,h*.08f,w*.755f,h*.48f,p); c.drawLine(w*.57f,h*.28f,w*.94f,h*.28f,p); fill(e.accent,70); c.drawCircle(w*.80f,h*.20f,dp(18),p); fill(e.dark?e.start:Color.WHITE,180); c.drawCircle(w*.86f,h*.16f,dp(16),p); fill(deep,28); c.drawRoundRect(new RectF(w*.05f,h*.55f,w*.48f,h*.90f),dp(22),dp(22),p);
+    }
+    private void stickerParade(Canvas c,float w,float h,int soft,int deep){
+        fill(Color.WHITE,e.dark?18:50); for(int i=0;i<14;i++){ float x=w*(.08f+(i%7)*.14f),y=h*(.16f+(i/7)*.48f); c.save(); c.rotate((i%3-1)*10,x,y); c.drawRoundRect(new RectF(x-dp(18),y-dp(14),x+dp(18),y+dp(14)),dp(8),dp(8),p); fill(i%2==0?soft:deep,45); c.drawCircle(x,y,dp(8),p); fill(Color.WHITE,e.dark?18:50); c.restore(); }
+    }
+    private void waveDeck(Canvas c,float w,float h,int soft){
+        fill(soft,36); for(int r=0;r<5;r++){ path.reset(); float y=h*(.12f+r*.17f); path.moveTo(0,y); path.cubicTo(w*.25f,y-h*.08f,w*.75f,y+h*.08f,w,y); path.lineTo(w,y+h*.09f); path.cubicTo(w*.75f,y+h*.17f,w*.25f,y+h*.01f,0,y+h*.09f); path.close(); c.drawPath(path,p); }
+    }
+    private void zenStones(Canvas c,float w,float h,int soft,int deep){
+        fill(soft,36); for(int i=0;i<10;i++){ float x=w*(.11f+(i%5)*.20f),y=h*(.20f+(i/5)*.45f); c.drawOval(new RectF(x-dp(24),y-dp(14),x+dp(24),y+dp(14)),p); } stroke(deep,24,1); for(int i=0;i<4;i++) c.drawOval(new RectF(w*(.10f+i*.08f),h*(.08f+i*.03f),w*(.90f-i*.08f),h*(.92f-i*.03f)),p);
+    }
+
+    private void drawScene(Canvas c,float w,float h,int s){
+        int soft=NeoThemeCatalog.mix(e.accent,Color.WHITE,e.dark?30:80);
+        int deep=NeoThemeCatalog.mix(e.accent,Color.BLACK,e.dark?10:45);
+        switch(s&31){
+            case 0: bow(c,w*.83f,h*.17f,dp(18),soft,e.accent); break;
+            case 1: moon(c,w*.84f,h*.16f,dp(18),soft); break;
+            case 2: cloud(c,w*.82f,h*.15f,dp(18)); break;
+            case 3: miniConsole(c,w*.82f,h*.16f,soft,deep); break;
+            case 4: flower(c,w*.84f,h*.17f,dp(11),soft,deep); break;
+            case 5: cat(c,w*.84f,h*.17f,dp(17),soft,deep); break;
+            case 6: bunny(c,w*.84f,h*.17f,dp(16),soft,deep); break;
+            case 7: teddy(c,w*.84f,h*.17f,dp(17),soft,deep); break;
+            case 8: lamp(c,w*.84f,h*.17f,soft); break;
+            case 9: jelly(c,w*.84f,h*.18f,soft); break;
+            case 10: mushroom(c,w*.84f,h*.18f,soft,deep); break;
+            case 11: crystal(c,w*.84f,h*.18f,soft); break;
+            case 12: miniCassette(c,w*.84f,h*.18f,soft,deep); break;
+            case 13: miniGame(c,w*.84f,h*.18f,soft,deep); break;
+            case 14: shell(c,w*.84f,h*.18f,soft); break;
+            case 15: books(c,w*.84f,h*.18f,soft,deep); break;
+            case 16: butterfly(c,w*.84f,h*.18f,soft); break;
+            case 17: perfume(c,w*.84f,h*.18f,soft); break;
+            case 18: balcony(c,w*.84f,h*.18f,soft,deep); break;
+            case 19: rain(c,w*.84f,h*.18f,soft); break;
+            case 20: candy(c,w*.84f,h*.18f,soft); break;
+            case 21: bouquet(c,w*.84f,h*.18f,soft,deep); break;
+            case 22: skylineMark(c,w*.84f,h*.18f,deep); break;
+            case 23: auroraMark(c,w*.84f,h*.18f,soft); break;
+            case 24: polaroid(c,w*.84f,h*.18f,soft); break;
+            case 25: milk(c,w*.84f,h*.18f,soft); break;
+            case 26: pumpkin(c,w*.84f,h*.18f,soft); break;
+            case 27: snow(c,w*.84f,h*.18f,soft); break;
+            case 28: lantern(c,w*.84f,h*.18f,soft); break;
+            case 29: planet(c,w*.84f,h*.18f,soft); break;
+            case 30: music(c,w*.84f,h*.18f,soft); break;
+            default: leaf(c,w*.84f,h*.18f,soft,deep); break;
         }
-        p.setStyle(Paint.Style.FILL);
     }
 
-    private void quiltDiamonds(Canvas c,float w,float h,int soft,int accent) {
-        for(int y=0;y<5;y++) for(int x=0;x<8;x++) {
-            float cx=w*(.06f+x*.125f),cy=h*(.08f+y*.20f),sx=w*.03f,sy=h*.04f;
-            path.reset(); path.moveTo(cx,cy-sy); path.lineTo(cx+sx,cy); path.lineTo(cx,cy+sy); path.lineTo(cx-sx,cy); path.close();
-            p.setColor(a((x+y)%2==0?soft:accent,24)); c.drawPath(path,p);
-        }
-    }
+    private void bow(Canvas c,float x,float y,float r,int soft,int ac){ fill(soft,95); c.drawOval(new RectF(x-r*1.5f,y-r*.7f,x-r*.1f,y+r*.7f),p); c.drawOval(new RectF(x+r*.1f,y-r*.7f,x+r*1.5f,y+r*.7f),p); fill(ac,95); c.drawCircle(x,y,r*.35f,p); }
+    private void moon(Canvas c,float x,float y,float r,int col){ fill(col,88); c.drawCircle(x,y,r,p); fill(e.dark?e.start:Color.WHITE,190); c.drawCircle(x+r*.38f,y-r*.24f,r*.92f,p); }
+    private void miniConsole(Canvas c,float x,float y,int s,int d){ fill(d,80); c.drawRoundRect(new RectF(x-dp(28),y-dp(15),x+dp(28),y+dp(15)),dp(8),dp(8),p); fill(s,90); c.drawCircle(x+dp(13),y,dp(4),p); }
+    private void cat(Canvas c,float x,float y,float r,int s,int d){ fill(s,88); c.drawCircle(x,y,r,p); path.reset(); path.moveTo(x-r*.8f,y-r*.6f); path.lineTo(x-r*.4f,y-r*1.3f); path.lineTo(x-r*.05f,y-r*.6f); path.close(); c.drawPath(path,p); path.reset(); path.moveTo(x+r*.8f,y-r*.6f); path.lineTo(x+r*.4f,y-r*1.3f); path.lineTo(x+r*.05f,y-r*.6f); path.close(); c.drawPath(path,p); fill(d,120); c.drawCircle(x-r*.3f,y,dp(1.7f),p); c.drawCircle(x+r*.3f,y,dp(1.7f),p); }
+    private void bunny(Canvas c,float x,float y,float r,int s,int d){ fill(s,88); c.drawCircle(x,y,r,p); c.drawOval(new RectF(x-r*.75f,y-r*2f,x-r*.15f,y-r*.55f),p); c.drawOval(new RectF(x+r*.15f,y-r*2f,x+r*.75f,y-r*.55f),p); fill(d,115); c.drawCircle(x-r*.3f,y,dp(1.5f),p); c.drawCircle(x+r*.3f,y,dp(1.5f),p); }
+    private void teddy(Canvas c,float x,float y,float r,int s,int d){ fill(s,88); c.drawCircle(x-r*.65f,y-r*.65f,r*.42f,p); c.drawCircle(x+r*.65f,y-r*.65f,r*.42f,p); c.drawCircle(x,y,r,p); fill(d,110); c.drawCircle(x-r*.3f,y-dp(2),dp(1.5f),p); c.drawCircle(x+r*.3f,y-dp(2),dp(1.5f),p); }
+    private void lamp(Canvas c,float x,float y,int s){ stroke(s,80,3); c.drawLine(x,y+dp(20),x,y-dp(8),p); c.drawLine(x,y-dp(8),x+dp(12),y-dp(18),p); fill(s,80); path.reset(); path.moveTo(x+dp(7),y-dp(22)); path.lineTo(x+dp(24),y-dp(22)); path.lineTo(x+dp(20),y-dp(10)); path.lineTo(x+dp(11),y-dp(10)); path.close(); c.drawPath(path,p); }
+    private void jelly(Canvas c,float x,float y,int s){ fill(s,70); c.drawOval(new RectF(x-dp(16),y-dp(10),x+dp(16),y+dp(10)),p); stroke(s,70,1); for(int i=-1;i<=1;i++) c.drawLine(x+i*dp(7),y+dp(7),x+i*dp(7),y+dp(22),p); }
+    private void mushroom(Canvas c,float x,float y,int s,int d){ fill(s,82); c.drawOval(new RectF(x-dp(18),y-dp(10),x+dp(18),y+dp(10)),p); fill(d,55); c.drawRoundRect(new RectF(x-dp(5),y,x+dp(5),y+dp(22)),dp(3),dp(3),p); }
+    private void crystal(Canvas c,float x,float y,int s){ fill(s,68); polygon(c,x,y,dp(18),6); }
+    private void miniCassette(Canvas c,float x,float y,int s,int d){ fill(s,74); c.drawRoundRect(new RectF(x-dp(24),y-dp(14),x+dp(24),y+dp(14)),dp(6),dp(6),p); fill(d,85); c.drawCircle(x-dp(10),y,dp(6),p); c.drawCircle(x+dp(10),y,dp(6),p); }
+    private void miniGame(Canvas c,float x,float y,int s,int d){ fill(d,78); c.drawRoundRect(new RectF(x-dp(28),y-dp(12),x+dp(28),y+dp(12)),dp(12),dp(12),p); fill(s,88); c.drawRect(x-dp(16),y-dp(2),x-dp(6),y+dp(2),p); c.drawRect(x-dp(12),y-dp(6),x-dp(10),y+dp(6),p); c.drawCircle(x+dp(13),y,dp(4),p); }
+    private void shell(Canvas c,float x,float y,int s){ fill(s,78); c.drawOval(new RectF(x-dp(20),y-dp(15),x+dp(20),y+dp(15)),p); stroke(e.accent,60,1); for(int i=-2;i<=2;i++) c.drawLine(x,y,x+i*dp(7),y+dp(14),p); }
+    private void books(Canvas c,float x,float y,int s,int d){ for(int i=0;i<4;i++){ fill(i%2==0?s:d,65); c.drawRect(x-dp(24)+i*dp(12),y-dp(18),x-dp(14)+i*dp(12),y+dp(18),p); } }
+    private void butterfly(Canvas c,float x,float y,int s){ fill(s,80); c.drawOval(new RectF(x-dp(20),y-dp(12),x-dp(2),y+dp(2)),p); c.drawOval(new RectF(x+dp(2),y-dp(12),x+dp(20),y+dp(2)),p); c.drawOval(new RectF(x-dp(16),y,x-dp(2),y+dp(13)),p); c.drawOval(new RectF(x+dp(2),y,x+dp(16),y+dp(13)),p); }
+    private void perfume(Canvas c,float x,float y,int s){ fill(s,70); c.drawRoundRect(new RectF(x-dp(15),y-dp(12),x+dp(15),y+dp(18)),dp(5),dp(5),p); c.drawRect(x-dp(7),y-dp(20),x+dp(7),y-dp(12),p); }
+    private void balcony(Canvas c,float x,float y,int s,int d){ stroke(s,70,2); c.drawRect(x-dp(24),y-dp(20),x+dp(24),y+dp(18),p); c.drawLine(x,y-dp(20),x,y+dp(18),p); c.drawLine(x-dp(24),y,x+dp(24),y,p); fill(d,45); c.drawRect(x-dp(28),y+dp(18),x+dp(28),y+dp(22),p); }
+    private void rain(Canvas c,float x,float y,int s){ stroke(s,70,1); for(int i=-2;i<=2;i++) c.drawLine(x+i*dp(9),y-dp(14)+(i%2)*dp(4),x+i*dp(9)-dp(4),y+dp(14)+(i%2)*dp(4),p); }
+    private void candy(Canvas c,float x,float y,int s){ fill(s,82); c.drawCircle(x,y,dp(10),p); path.reset(); path.moveTo(x-dp(10),y); path.lineTo(x-dp(24),y-dp(8)); path.lineTo(x-dp(24),y+dp(8)); path.close(); c.drawPath(path,p); path.reset(); path.moveTo(x+dp(10),y); path.lineTo(x+dp(24),y-dp(8)); path.lineTo(x+dp(24),y+dp(8)); path.close(); c.drawPath(path,p); }
+    private void bouquet(Canvas c,float x,float y,int s,int d){ for(int i=0;i<5;i++) flower(c,x+(i-2)*dp(8),y+(i%2)*dp(6),dp(7),s,d); }
+    private void skylineMark(Canvas c,float x,float y,int d){ fill(d,65); for(int i=0;i<5;i++){ float l=x-dp(24)+i*dp(10); c.drawRect(l,y-dp(8+i*3),l+dp(8),y+dp(18),p); } }
+    private void auroraMark(Canvas c,float x,float y,int s){ stroke(s,70,4); path.reset(); path.moveTo(x-dp(24),y); path.cubicTo(x-dp(8),y-dp(18),x+dp(8),y+dp(18),x+dp(24),y); c.drawPath(path,p); }
+    private void polaroid(Canvas c,float x,float y,int s){ fill(Color.WHITE,e.dark?70:170); c.save(); c.rotate(-8,x,y); c.drawRect(x-dp(18),y-dp(22),x+dp(18),y+dp(22),p); fill(s,70); c.drawRect(x-dp(14),y-dp(18),x+dp(14),y+dp(8),p); c.restore(); }
+    private void milk(Canvas c,float x,float y,int s){ fill(s,76); c.drawRect(x-dp(14),y-dp(14),x+dp(14),y+dp(20),p); path.reset(); path.moveTo(x-dp(14),y-dp(14)); path.lineTo(x,y-dp(24)); path.lineTo(x+dp(14),y-dp(14)); path.close(); c.drawPath(path,p); }
+    private void pumpkin(Canvas c,float x,float y,int s){ fill(s,82); c.drawOval(new RectF(x-dp(21),y-dp(14),x+dp(21),y+dp(14)),p); fill(e.accent,85); c.drawRect(x-dp(2),y-dp(23),x+dp(2),y-dp(13),p); }
+    private void snow(Canvas c,float x,float y,int s){ stroke(s,80,2); c.drawCircle(x,y,dp(20),p); for(int i=0;i<6;i++){ double a=i*Math.PI/3; c.drawLine(x,y,x+(float)Math.cos(a)*dp(16),y+(float)Math.sin(a)*dp(16),p); } }
+    private void lantern(Canvas c,float x,float y,int s){ fill(s,80); c.drawOval(new RectF(x-dp(12),y-dp(17),x+dp(12),y+dp(17)),p); stroke(e.accent,60,1); c.drawLine(x,y-dp(24),x,y-dp(17),p); }
+    private void planet(Canvas c,float x,float y,int s){ fill(s,76); c.drawCircle(x,y,dp(12),p); stroke(s,76,2); c.drawOval(new RectF(x-dp(24),y-dp(6),x+dp(24),y+dp(6)),p); }
+    private void music(Canvas c,float x,float y,int s){ fill(s,80); c.drawCircle(x-dp(10),y+dp(10),dp(6),p); c.drawCircle(x+dp(10),y+dp(4),dp(6),p); c.drawRect(x-dp(4),y-dp(18),x-dp(2),y+dp(10),p); c.drawRect(x+dp(16),y-dp(24),x+dp(18),y+dp(4),p); c.drawRect(x-dp(4),y-dp(18),x+dp(18),y-dp(14),p); }
+    private void leaf(Canvas c,float x,float y,int s,int d){ fill(s,76); c.drawOval(new RectF(x-dp(20),y-dp(8),x,y+dp(12)),p); c.drawOval(new RectF(x,y-dp(12),x+dp(20),y+dp(8)),p); stroke(d,50,1); c.drawLine(x-dp(15),y+dp(8),x+dp(15),y-dp(8),p); }
+    private void flower(Canvas c,float x,float y,float r,int s,int d){ fill(s,82); for(int i=0;i<5;i++){ double a=i*Math.PI*2/5; float px=x+(float)Math.cos(a)*r*.72f,py=y+(float)Math.sin(a)*r*.72f; c.drawCircle(px,py,r*.48f,p); } fill(d,95); c.drawCircle(x,y,r*.30f,p); }
 
-    private void skyline(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<14;i++) {
-            float l=w*i/14f,t=h*(.52f-((i*37)%26)/100f);
-            p.setColor(a(i%2==0?soft:accent,32)); c.drawRect(l,t,l+w*.06f,h*.93f,p);
-        }
-    }
-
-    private void facets(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<10;i++) {
-            float x=w*((i*29%91)/100f),y=h*((i*43%83)/100f),s=Math.min(w,h)*(.04f+(i%3)*.016f);
-            path.reset(); path.moveTo(x,y-s); path.lineTo(x+s*.8f,y-s*.15f); path.lineTo(x+s*.45f,y+s*.8f); path.lineTo(x-s*.55f,y+s*.65f); path.lineTo(x-s*.85f,y-s*.15f); path.close();
-            p.setColor(a(i%2==0?soft:accent,26)); c.drawPath(path,p);
-        }
-    }
-
-    private void zenFrame(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1));
-        for(int i=0;i<6;i++) {
-            p.setColor(a(i%2==0?soft:accent,38));
-            float in=Math.min(w,h)*(.022f+i*.017f);
-            c.drawRoundRect(new RectF(w*.05f+in,h*.08f+in,w*.95f-in,h*.92f-in),dp(18),dp(18),p);
-        }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void petals(Canvas c,float w,float h,int accent,int soft) {
-        for(int i=0;i<18;i++) {
-            float x=w*((i*37%96)/100f),y=h*((i*61%91)/100f);
-            p.setColor(a(i%2==0?accent:soft,60));
-            c.save(); c.rotate((i*29)%80-40,x,y);
-            c.drawOval(new RectF(x-dp(2),y-dp(6),x+dp(2),y+dp(6)),p); c.restore();
-        }
-    }
-
-    private void moonStars(Canvas c,float w,float h,int soft,int accent) {
-        p.setColor(a(soft,92)); c.drawCircle(w*.82f,h*.18f,Math.min(w,h)*.08f,p);
-        p.setColor(a(e.dark?e.start:Color.WHITE,205)); c.drawCircle(w*.85f,h*.15f,Math.min(w,h)*.071f,p);
-        for(int i=0;i<15;i++) { p.setColor(a(i%2==0?soft:accent,78)); c.drawCircle(w*((i*23%93)/100f),h*((i*47%87)/100f),dp(1+i%2),p); }
-    }
-
-    private void bubbles(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1));
-        for(int i=0;i<12;i++) { p.setColor(a(i%2==0?soft:accent,64)); c.drawCircle(w*((i*31%94)/100f),h*((i*43%90)/100f),dp(3+i%4),p); }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void leaves(Canvas c,float w,float h,int deep,int soft) {
-        for(int i=0;i<13;i++) {
-            float x=w*((i*41%95)/100f),y=h*((i*53%91)/100f);
-            p.setColor(a(i%2==0?deep:soft,54)); c.save(); c.rotate((i*31)%120-60,x,y);
-            c.drawOval(new RectF(x-dp(3),y-dp(8),x+dp(3),y+dp(8)),p); c.restore();
-        }
-    }
-
-    private void dunes(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(2.4f));
-        for(int i=0;i<3;i++) {
-            float y=h*(.62f+i*.12f);
-            path.reset(); path.moveTo(-w*.05f,y); path.cubicTo(w*.25f,y-h*.15f,w*.45f,y+h*.08f,w*.68f,y-h*.05f); path.cubicTo(w*.85f,y-h*.12f,w*.95f,y+h*.03f,w*1.05f,y-h*.04f);
-            p.setColor(a(i%2==0?soft:accent,44)); c.drawPath(path,p);
-        }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void snow(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1));
-        for(int i=0;i<12;i++) {
-            float x=w*((i*37%94)/100f),y=h*((i*59%88)/100f),r=dp(4+i%4);
-            p.setColor(a(i%2==0?soft:accent,66));
-            for(int j=0;j<3;j++) {
-                double ang=Math.PI*j/3.0;
-                c.drawLine(x-(float)Math.cos(ang)*r,y-(float)Math.sin(ang)*r,x+(float)Math.cos(ang)*r,y+(float)Math.sin(ang)*r,p);
-            }
-        }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void candy(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<13;i++) {
-            float x=w*((i*29%93)/100f),y=h*((i*47%90)/100f),r=dp(3+i%4);
-            p.setColor(a(i%2==0?soft:accent,56)); c.drawCircle(x,y,r,p);
-            p.setColor(a(Color.WHITE,50)); c.drawRect(x-r*.7f,y-dp(1),x+r*.7f,y+dp(1),p);
-        }
-    }
-
-    private void circuitWorld(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1));
-        for(int i=0;i<7;i++) {
-            float y=h*(.12f+i*.12f); p.setColor(a(i%2==0?soft:accent,62));
-            c.drawLine(w*.06f,y,w*.34f,y,p); c.drawLine(w*.34f,y,w*.42f,y+h*.05f,p); c.drawLine(w*.42f,y+h*.05f,w*.94f,y+h*.05f,p); c.drawCircle(w*.94f,y+h*.05f,dp(2),p);
-        }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void cosmos(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<28;i++) { p.setColor(a(i%3==0?accent:soft,60+i%3*12)); c.drawCircle(w*((i*37%97)/100f),h*((i*67%91)/100f),dp(1+i%3),p); }
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.2f)); p.setColor(a(accent,70)); c.drawOval(new RectF(w*.12f,h*.18f,w*.34f,h*.31f),p); p.setStyle(Paint.Style.FILL);
-    }
-
-    private void coffee(Canvas c,float w,float h,int soft,int deep) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.7f));
-        for(int i=0;i<7;i++) { float x=w*(.1f+i*.14f),y=h*((i%2==0)?.2f:.75f),r=dp(6+i%3); p.setColor(a(i%2==0?soft:deep,44)); c.drawCircle(x,y,r,p); }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void botanical(Canvas c,float w,float h,int soft,int deep) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1)); p.setColor(a(deep,58));
-        for(int i=0;i<4;i++) { float x=w*(.10f+i*.25f); c.drawLine(x,h*.08f,x+w*.05f,h*.30f,p); c.drawLine(x+w*.05f,h*.30f,x+w*.02f,h*.48f,p); }
-        p.setStyle(Paint.Style.FILL);
-        for(int i=0;i<9;i++) { float x=w*((i*17%90)/100f),y=h*((i*43%82)/100f); p.setColor(a(soft,52)); c.drawOval(new RectF(x,y,x+dp(7),y+dp(13)),p); }
-    }
-
-    private void crystal(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<10;i++) {
-            float x=w*((i*31%92)/100f),y=h*((i*57%87)/100f),s=dp(7+i%4);
-            path.reset(); path.moveTo(x,y-s); path.lineTo(x+s*.55f,y-s*.2f); path.lineTo(x+s*.35f,y+s); path.lineTo(x-s*.35f,y+s); path.lineTo(x-s*.55f,y-s*.2f); path.close();
-            p.setColor(a(i%2==0?soft:accent,42)); c.drawPath(path,p);
-        }
-    }
-
-    private void lava(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<8;i++) { float x=w*((i*29%93)/100f),y=h*((i*47%90)/100f),r=dp(6+i%5); p.setColor(a(i%2==0?soft:accent,38)); c.drawCircle(x,y,r,p); c.drawCircle(x+r*.7f,y-r*.3f,r*.55f,p); }
-    }
-
-    private void rain(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.2f)); p.setStrokeCap(Paint.Cap.ROUND);
-        for(int i=0;i<22;i++) { float x=w*((i*31%97)/100f),y=h*((i*43%88)/100f); p.setColor(a(i%2==0?soft:accent,62)); c.drawLine(x,y,x-dp(3),y+dp(10+i%4),p); }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void aurora(Canvas c,float w,float h,int soft,int accent) { auroraSweep(c,w,h,soft,accent); }
-
-    private void sunset(Canvas c,float w,float h,int soft,int accent) {
-        p.setColor(a(accent,54)); c.drawCircle(w*.78f,h*.18f,dp(18),p);
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.6f));
-        for(int i=0;i<4;i++) { p.setColor(a(i%2==0?soft:accent,38)); c.drawLine(0,h*(.65f+i*.07f),w,h*(.65f+i*.07f),p); }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void city(Canvas c,float w,float h,int soft,int accent) { skyline(c,w,h,soft,accent); }
-
-    private void pixel(Canvas c,float w,float h,int soft,int accent) {
-        float s=dp(4.5f);
-        for(int i=0;i<30;i++) { float x=w*((i*17%96)/100f),y=h*((i*37%91)/100f); p.setColor(a(i%2==0?soft:accent,50)); c.drawRect(x,y,x+s,y+s,p); }
-    }
-
-    private void paper(Canvas c,float w,float h,int soft,int accent) {
-        p.setColor(a(soft,34)); for(int i=1;i<8;i++) c.drawRect(0,h*i/8f,w,h*i/8f+dp(1),p);
-        p.setColor(a(accent,50)); c.save(); c.rotate(-10,w*.18f,h*.14f); c.drawRoundRect(new RectF(w*.08f,h*.10f,w*.30f,h*.16f),dp(2),dp(2),p); c.restore();
-    }
-
-    private void velvet(Canvas c,float w,float h,int soft,int accent) { velvetBands(c,w,h,soft,accent); }
-
-    private void marble(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1));
-        for(int i=0;i<7;i++) { path.reset(); path.moveTo(-w*.05f,h*(.12f+i*.12f)); path.cubicTo(w*.24f,h*(.05f+i*.15f),w*.56f,h*(.26f+i*.08f),w*1.05f,h*(.09f+i*.13f)); p.setColor(a(i%2==0?soft:accent,40)); c.drawPath(path,p); }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void glass(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1)); p.setColor(a(Color.WHITE,e.dark?72:130));
-        for(int i=0;i<4;i++) c.drawRoundRect(new RectF(w*(.05f+i*.05f),h*(.08f+i*.04f),w*(.42f+i*.10f),h*(.35f+i*.08f)),dp(11),dp(11),p);
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void neon(Canvas c,float w,float h,int soft,int accent) {
-        p.setStrokeCap(Paint.Cap.ROUND); p.setStrokeWidth(dp(2.7f));
-        for(int i=0;i<6;i++) { p.setColor(a(i%2==0?soft:accent,90)); float y=h*(.12f+i*.15f); c.drawLine(w*.08f,y,w*(.28f+i*.11f),y,p); }
-    }
-
-    private void ink(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<9;i++) { float x=w*((i*31%91)/100f),y=h*((i*47%84)/100f),r=dp(4+i%5); p.setColor(a(i%2==0?soft:accent,40)); c.drawCircle(x,y,r,p); for(int j=0;j<3;j++) c.drawCircle(x+dp((j-1)*(6+i%3)),y+dp((j%2)*5),r*.45f,p); }
-    }
-
-    private void meadow(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<16;i++) { float x=w*((i*31%94)/100f),y=h*((i*53%88)/100f); p.setColor(a(i%2==0?soft:accent,62)); c.drawCircle(x,y,dp(2+i%2),p); c.drawRect(x-dp(.5f),y+dp(2),x+dp(.5f),y+dp(9),p); }
-    }
-
-    private void coral(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.8f));
-        for(int i=0;i<5;i++) { float x=w*(.12f+i*.19f); path.reset(); path.moveTo(x,h*.86f); path.cubicTo(x-dp(8),h*.70f,x+dp(9),h*.52f,x,h*.34f); p.setColor(a(i%2==0?soft:accent,54)); c.drawPath(path,p); }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void storm(Canvas c,float w,float h,int soft,int accent) {
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.8f));
-        for(int i=0;i<4;i++) { float x=w*(.18f+i*.22f); path.reset(); path.moveTo(x,h*.18f); path.lineTo(x-dp(8),h*.42f); path.lineTo(x+dp(3),h*.42f); path.lineTo(x-dp(5),h*.68f); p.setColor(a(i%2==0?soft:accent,62)); c.drawPath(path,p); }
-        p.setStyle(Paint.Style.FILL);
-    }
-
-    private void pumpkin(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<7;i++) { float x=w*(.1f+i*.14f),y=h*((i%2==0)?.2f:.78f); p.setColor(a(i%2==0?soft:accent,48)); c.drawOval(new RectF(x-dp(8),y-dp(6),x+dp(8),y+dp(6)),p); p.setColor(a(accent,56)); c.drawRect(x-dp(1),y-dp(10),x+dp(1),y-dp(6),p); }
-    }
-
-    private void winter(Canvas c,float w,float h,int soft,int accent) {
-        snow(c,w,h,soft,accent);
-        p.setColor(a(Color.WHITE,e.dark?60:105)); for(int i=0;i<18;i++) c.drawCircle(w*((i*41%97)/100f),h*((i*59%91)/100f),dp(1+i%2),p);
-    }
-
-    private void festival(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<24;i++) { float x=w*((i*37%97)/100f),y=h*((i*53%91)/100f); p.setColor(a(i%2==0?soft:accent,70)); c.save(); c.rotate((i*23)%90,x,y); c.drawRect(x-dp(1),y-dp(4),x+dp(1),y+dp(4),p); c.restore(); }
-    }
-
-    private void galaxy(Canvas c,float w,float h,int soft,int accent) {
-        cosmos(c,w,h,soft,accent);
-        p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1.3f)); p.setColor(a(accent,64)); c.drawOval(new RectF(w*.62f,h*.16f,w*.90f,h*.30f),p); p.setStyle(Paint.Style.FILL);
-    }
-
-    private void orchard(Canvas c,float w,float h,int soft,int accent) {
-        for(int i=0;i<10;i++) { float x=w*((i*31%91)/100f),y=h*((i*47%84)/100f); p.setColor(a(i%2==0?soft:accent,54)); c.drawCircle(x,y,dp(5+i%3),p); p.setColor(a(accent,48)); c.drawOval(new RectF(x+dp(3),y-dp(8),x+dp(8),y-dp(3)),p); }
-    }
-
-    private int a(int color,int amount) {
-        int aa=Math.max(0,Math.min(255,amount*alpha/255));
-        return Color.argb(aa,Color.red(color),Color.green(color),Color.blue(color));
-    }
-
-    private float dp(float v) { return v*d; }
-
-    @Override public void setAlpha(int value) { alpha=Math.max(0,Math.min(255,value)); invalidateSelf(); }
-    @Override public void setColorFilter(android.graphics.ColorFilter filter) { p.setColorFilter(filter); invalidateSelf(); }
-    @Override public int getOpacity() { return PixelFormat.TRANSLUCENT; }
+    private void cloud(Canvas c,float x,float y,float r){ c.drawCircle(x-r*.55f,y,r*.65f,p); c.drawCircle(x,y-r*.22f,r*.85f,p); c.drawCircle(x+r*.65f,y,r*.60f,p); c.drawRoundRect(new RectF(x-r*1.1f,y,x+r*1.15f,y+r*.58f),r*.28f,r*.28f,p); }
+    private void polygon(Canvas c,float x,float y,float r,int sides){ path.reset(); for(int i=0;i<sides;i++){ double a=-Math.PI/2+i*Math.PI*2/sides; float px=x+(float)Math.cos(a)*r,py=y+(float)Math.sin(a)*r; if(i==0) path.moveTo(px,py); else path.lineTo(px,py); } path.close(); c.drawPath(path,p); }
+    private void fill(int color,int a){ p.setShader(null); p.setStyle(Paint.Style.FILL); p.setColor(withAlpha(color,a)); }
+    private void stroke(int color,int a,float width){ p.setShader(null); p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(width)); p.setColor(withAlpha(color,a)); }
+    private int withAlpha(int color,int a){ return Color.argb(Math.max(0,Math.min(255,a*alpha/255)),Color.red(color),Color.green(color),Color.blue(color)); }
+    private float dp(float v){ return v*d; }
+    @Override public void setAlpha(int a){ alpha=a; invalidateSelf(); }
+    @Override public void setColorFilter(ColorFilter f){ p.setColorFilter(f); invalidateSelf(); }
+    @Override public int getOpacity(){ return PixelFormat.TRANSLUCENT; }
 }
 
-
 final class NeoThemeKeyDrawable extends Drawable {
-
     private final NeoThemeCatalog.Entry e;
-    private final boolean special;
-    private final boolean space;
-    private final boolean pressed;
+    private final boolean special,space,pressed;
     private final float d;
     private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path path=new Path();
 
-    private NeoThemeKeyDrawable(Context context,int pack,boolean special,boolean space,boolean pressed) {
-        e=NeoThemeCatalog.get(pack);
-        this.special=special;
-        this.space=space;
-        this.pressed=pressed;
-        d=context.getResources().getDisplayMetrics().density;
+    private NeoThemeKeyDrawable(Context c,int pack,boolean special,boolean space,boolean pressed){
+        e=NeoThemeCatalog.get(pack); this.special=special; this.space=space; this.pressed=pressed;
+        d=c.getResources().getDisplayMetrics().density;
     }
 
-    static StateListDrawable state(Context context,int pack,boolean special,boolean space) {
-        StateListDrawable state=new StateListDrawable();
-        state.addState(new int[]{android.R.attr.state_pressed},new NeoThemeKeyDrawable(context,pack,special,space,true));
-        state.addState(new int[]{},new NeoThemeKeyDrawable(context,pack,special,space,false));
-        return state;
+    static StateListDrawable state(Context c,int pack,boolean special,boolean space){
+        StateListDrawable s=new StateListDrawable();
+        s.addState(new int[]{android.R.attr.state_pressed},new NeoThemeKeyDrawable(c,pack,special,space,true));
+        s.addState(new int[]{},new NeoThemeKeyDrawable(c,pack,special,space,false));
+        return s;
     }
 
-    @Override public void draw(Canvas c) {
-        if(e==null) return;
-
-        Rect b=getBounds();
-        float w=b.width(),h=b.height();
-        if(w<=0 || h<=0) return;
-
-        int start=e.dark
-                ? NeoThemeCatalog.mix(e.start,Color.WHITE,special||space?18:9)
-                : NeoThemeCatalog.mix(e.end,e.accent,special||space?18:6);
-
-        int end=e.dark
-                ? NeoThemeCatalog.mix(e.end,e.accent,special||space?26:13)
-                : NeoThemeCatalog.mix(e.start,Color.WHITE,special||space?42:68);
-
-        if(pressed) {
-            start=NeoThemeCatalog.mix(start,e.accent,28);
-            end=NeoThemeCatalog.mix(end,Color.WHITE,16);
-        }
-
-        int opacity=pressed?230:(e.dark?198:220);
-        start=Color.argb(opacity,Color.red(start),Color.green(start),Color.blue(start));
-        end=Color.argb(opacity,Color.red(end),Color.green(end),Color.blue(end));
-
-        p.setShader(new LinearGradient(0,0,w,h,start,end,Shader.TileMode.CLAMP));
-        p.setStyle(Paint.Style.FILL);
-
+    @Override public void draw(Canvas c){
+        if(e==null) return; Rect b=getBounds(); float w=b.width(),h=b.height(); if(w<=0||h<=0) return;
+        int a=e.dark?NeoThemeCatalog.mix(e.start,Color.WHITE,special||space?18:8):NeoThemeCatalog.mix(e.end,e.accent,special||space?20:7);
+        int z=e.dark?NeoThemeCatalog.mix(e.end,e.accent,special||space?26:13):NeoThemeCatalog.mix(e.start,Color.WHITE,special||space?45:70);
+        if(pressed){ a=NeoThemeCatalog.mix(a,e.accent,30); z=NeoThemeCatalog.mix(z,Color.WHITE,14); }
+        int op=pressed?235:(e.dark?205:226);
+        a=Color.argb(op,Color.red(a),Color.green(a),Color.blue(a)); z=Color.argb(op,Color.red(z),Color.green(z),Color.blue(z));
         RectF r=new RectF(dp(1),dp(1),w-dp(1),h-dp(1));
-        float radius=dp(Math.max(4,Math.min(24,e.corner)));
-
-        switch(e.keyMode) {
-            case 1: c.drawRoundRect(r,radius,radius,p); break;
-            case 2: c.drawRoundRect(r,h*.48f,h*.48f,p); break;
-            case 3: cut(r,Math.min(w,h)*.16f); c.drawPath(path,p); break;
-            case 4: c.drawRoundRect(r,radius*.65f,radius*.65f,p); break;
-            case 5: c.drawRoundRect(r,radius,radius,p); rail(c,r,true); break;
-            case 6: gem(r,Math.min(w,h)*.14f); c.drawPath(path,p); break;
-            case 7: ticket(r,Math.min(w,h)*.12f); c.drawPath(path,p); break;
-            case 8: c.drawRoundRect(r,radius,radius,p); inner(c,r); break;
-            case 9: notch(r,Math.min(w,h)*.13f); c.drawPath(path,p); break;
-            case 10: c.drawRoundRect(r,radius*.75f,radius*.75f,p); rail(c,r,false); break;
-            case 11: split(c,r,start,end); break;
-            case 12: c.drawOval(r,p); break;
-            case 13: c.drawRoundRect(r,radius,radius,p); dots(c,r); break;
-            case 14: diamond(r,Math.min(w,h)*.10f); c.drawPath(path,p); break;
-            case 15: c.drawRoundRect(r,radius,radius,p); inset(c,r); break;
-            default: stepped(r,Math.min(w,h)*.12f); c.drawPath(path,p); break;
+        p.setShader(new LinearGradient(0,0,w,h,a,z,Shader.TileMode.CLAMP)); p.setStyle(Paint.Style.FILL);
+        int m=e.keyMode%24; float rad=dp(Math.max(4,Math.min(24,e.corner)));
+        switch(m){
+            case 0: c.drawRoundRect(r,rad,rad,p); break;
+            case 1: c.drawRoundRect(r,h*.48f,h*.48f,p); break;
+            case 2: cut(r,Math.min(w,h)*.16f); c.drawPath(path,p); break;
+            case 3: bevel(r,Math.min(w,h)*.10f); c.drawPath(path,p); break;
+            case 4: c.drawRoundRect(r,rad,rad,p); rail(c,r,true); break;
+            case 5: gem(r,Math.min(w,h)*.15f); c.drawPath(path,p); break;
+            case 6: ticket(r,Math.min(w,h)*.12f); c.drawPath(path,p); break;
+            case 7: c.drawRoundRect(r,rad,rad,p); inner(c,r); break;
+            case 8: notch(r,Math.min(w,h)*.13f); c.drawPath(path,p); break;
+            case 9: c.drawRoundRect(r,rad*.75f,rad*.75f,p); rail(c,r,false); break;
+            case 10: split(c,r,a,z); break;
+            case 11: c.drawOval(r,p); break;
+            case 12: c.drawRoundRect(r,rad,rad,p); dots(c,r); break;
+            case 13: diamond(r); c.drawPath(path,p); break;
+            case 14: c.drawRoundRect(r,rad,rad,p); inset(c,r); break;
+            case 15: stepped(r,Math.min(w,h)*.12f); c.drawPath(path,p); break;
+            case 16: c.drawCircle(r.centerX(),r.centerY(),Math.min(r.width(),r.height())*.48f,p); break;
+            case 17: c.drawRoundRect(r,Math.min(w,h)*.28f,Math.min(w,h)*.28f,p); inner(c,r); break;
+            case 18: sticker(c,r,rad); break;
+            case 19: mechanical(c,r); break;
+            case 20: paper(c,r); break;
+            case 21: plush(c,r); break;
+            case 22: pixel(c,r); break;
+            default: outline(c,r,rad); break;
         }
-
         p.setShader(null);
-
-        if(e.borders) {
-            p.setStyle(Paint.Style.STROKE);
-            p.setStrokeWidth(dp(pressed?1.5f:1f));
-            p.setColor(Color.argb(e.dark?112:90,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent)));
-            c.drawRoundRect(r,Math.min(radius,h*.42f),Math.min(radius,h*.42f),p);
-            p.setStyle(Paint.Style.FILL);
-        }
-
-        if(space) {
-            p.setColor(Color.argb(e.dark?125:108,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent)));
-            float cy=h*.5f;
-            c.drawRoundRect(new RectF(w*.38f,cy-dp(1.4f),w*.62f,cy+dp(1.4f)),dp(2),dp(2),p);
-        }
+        if(e.borders && m!=23){ p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1)); p.setColor(Color.argb(e.dark?115:92,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent))); c.drawRoundRect(r,Math.min(rad,h*.42f),Math.min(rad,h*.42f),p); p.setStyle(Paint.Style.FILL); }
+        if(space){ p.setColor(Color.argb(120,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent))); c.drawRoundRect(new RectF(w*.37f,h*.48f,w*.63f,h*.54f),dp(3),dp(3),p); }
     }
 
-    private void cut(RectF r,float x) {
-        path.reset(); path.moveTo(r.left+x,r.top); path.lineTo(r.right-x,r.top); path.lineTo(r.right,r.top+x); path.lineTo(r.right,r.bottom-x); path.lineTo(r.right-x,r.bottom); path.lineTo(r.left+x,r.bottom); path.lineTo(r.left,r.bottom-x); path.lineTo(r.left,r.top+x); path.close();
-    }
+    private void cut(RectF r,float x){ path.reset(); path.moveTo(r.left+x,r.top); path.lineTo(r.right-x,r.top); path.lineTo(r.right,r.top+x); path.lineTo(r.right,r.bottom-x); path.lineTo(r.right-x,r.bottom); path.lineTo(r.left+x,r.bottom); path.lineTo(r.left,r.bottom-x); path.lineTo(r.left,r.top+x); path.close(); }
+    private void bevel(RectF r,float x){ path.reset(); path.moveTo(r.left+x,r.top); path.lineTo(r.right-x,r.top); path.lineTo(r.right,r.top+x); path.lineTo(r.right,r.bottom); path.lineTo(r.left,r.bottom); path.lineTo(r.left,r.top+x); path.close(); }
+    private void gem(RectF r,float x){ path.reset(); path.moveTo(r.left+x,r.top); path.lineTo(r.right-x,r.top); path.lineTo(r.right,r.centerY()); path.lineTo(r.right-x,r.bottom); path.lineTo(r.left+x,r.bottom); path.lineTo(r.left,r.centerY()); path.close(); }
+    private void ticket(RectF r,float x){ path.reset(); path.moveTo(r.left+x,r.top); path.lineTo(r.right-x,r.top); path.quadTo(r.right,r.top,r.right,r.top+x); path.lineTo(r.right,r.centerY()-x*.45f); path.quadTo(r.right-x*.8f,r.centerY(),r.right,r.centerY()+x*.45f); path.lineTo(r.right,r.bottom-x); path.quadTo(r.right,r.bottom,r.right-x,r.bottom); path.lineTo(r.left+x,r.bottom); path.quadTo(r.left,r.bottom,r.left,r.bottom-x); path.lineTo(r.left,r.centerY()+x*.45f); path.quadTo(r.left+x*.8f,r.centerY(),r.left,r.centerY()-x*.45f); path.lineTo(r.left,r.top+x); path.quadTo(r.left,r.top,r.left+x,r.top); path.close(); }
+    private void notch(RectF r,float x){ path.reset(); path.moveTo(r.left+x,r.top); path.lineTo(r.centerX()-x,r.top); path.lineTo(r.centerX(),r.top+x*.65f); path.lineTo(r.centerX()+x,r.top); path.lineTo(r.right-x,r.top); path.quadTo(r.right,r.top,r.right,r.top+x); path.lineTo(r.right,r.bottom-x); path.quadTo(r.right,r.bottom,r.right-x,r.bottom); path.lineTo(r.left+x,r.bottom); path.quadTo(r.left,r.bottom,r.left,r.bottom-x); path.lineTo(r.left,r.top+x); path.quadTo(r.left,r.top,r.left+x,r.top); path.close(); }
+    private void diamond(RectF r){ path.reset(); path.moveTo(r.centerX(),r.top); path.lineTo(r.right,r.centerY()); path.lineTo(r.centerX(),r.bottom); path.lineTo(r.left,r.centerY()); path.close(); }
+    private void stepped(RectF r,float x){ path.reset(); path.moveTo(r.left+x,r.top); path.lineTo(r.right-x,r.top); path.lineTo(r.right-x,r.top+x*.45f); path.lineTo(r.right,r.top+x*.45f); path.lineTo(r.right,r.bottom-x*.45f); path.lineTo(r.right-x,r.bottom-x*.45f); path.lineTo(r.right-x,r.bottom); path.lineTo(r.left+x,r.bottom); path.lineTo(r.left+x,r.bottom-x*.45f); path.lineTo(r.left,r.bottom-x*.45f); path.lineTo(r.left,r.top+x*.45f); path.lineTo(r.left+x,r.top+x*.45f); path.close(); }
+    private void rail(Canvas c,RectF r,boolean top){ p.setShader(null); p.setColor(Color.argb(120,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent))); float y=top?r.top+dp(2):r.bottom-dp(4); c.drawRoundRect(new RectF(r.left+dp(6),y,r.right-dp(6),y+dp(2)),dp(2),dp(2),p); }
+    private void inner(Canvas c,RectF r){ p.setShader(null); p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1)); p.setColor(Color.argb(78,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent))); c.drawRoundRect(new RectF(r.left+dp(3),r.top+dp(3),r.right-dp(3),r.bottom-dp(3)),dp(6),dp(6),p); p.setStyle(Paint.Style.FILL); }
+    private void split(Canvas c,RectF r,int a,int z){ p.setShader(null); p.setColor(a); c.drawRoundRect(r,dp(8),dp(8),p); path.reset(); path.moveTo(r.centerX(),r.top); path.lineTo(r.right,r.top); path.lineTo(r.right,r.bottom); path.lineTo(r.centerX()-r.width()*.12f,r.bottom); path.close(); p.setColor(z); c.drawPath(path,p); }
+    private void dots(Canvas c,RectF r){ p.setShader(null); p.setColor(Color.argb(110,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent))); c.drawCircle(r.left+dp(6),r.top+dp(6),dp(2),p); c.drawCircle(r.right-dp(6),r.bottom-dp(6),dp(2),p); }
+    private void inset(Canvas c,RectF r){ p.setShader(null); p.setColor(Color.argb(46,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent))); c.drawRoundRect(new RectF(r.left+dp(4),r.top+dp(4),r.right-dp(4),r.bottom-dp(4)),dp(5),dp(5),p); }
+    private void sticker(Canvas c,RectF r,float rad){ c.drawRoundRect(r,rad,rad,p); p.setShader(null); p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(3)); p.setColor(Color.argb(170,255,255,255)); c.drawRoundRect(new RectF(r.left+dp(1.5f),r.top+dp(1.5f),r.right-dp(1.5f),r.bottom-dp(1.5f)),rad,rad,p); p.setStyle(Paint.Style.FILL); }
+    private void mechanical(Canvas c,RectF r){ c.drawRoundRect(r,dp(5),dp(5),p); p.setShader(null); p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(2)); p.setColor(Color.argb(80,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent))); c.drawRoundRect(new RectF(r.left+dp(3),r.top+dp(3),r.right-dp(3),r.bottom-dp(3)),dp(3),dp(3),p); p.setStyle(Paint.Style.FILL); }
+    private void paper(Canvas c,RectF r){ c.drawRoundRect(r,dp(3),dp(3),p); p.setShader(null); p.setColor(Color.argb(45,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent))); c.drawRect(r.left+dp(4),r.top+dp(5),r.right-dp(4),r.top+dp(7),p); }
+    private void plush(Canvas c,RectF r){ c.drawRoundRect(r,Math.min(r.width(),r.height())*.35f,Math.min(r.width(),r.height())*.35f,p); p.setShader(null); p.setColor(Color.argb(40,255,255,255)); c.drawOval(new RectF(r.left+dp(4),r.top+dp(3),r.right-dp(4),r.centerY()),p); }
+    private void pixel(Canvas c,RectF r){ c.drawRect(r,p); p.setShader(null); p.setColor(Color.argb(60,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent))); c.drawRect(r.left+dp(3),r.top+dp(3),r.right-dp(3),r.top+dp(6),p); }
+    private void outline(Canvas c,RectF r,float rad){ p.setShader(null); p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(2)); p.setColor(Color.argb(200,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent))); c.drawRoundRect(r,rad,rad,p); p.setStyle(Paint.Style.FILL); }
 
-    private void gem(RectF r,float x) {
-        path.reset(); path.moveTo(r.left+x,r.top); path.lineTo(r.right-x,r.top); path.lineTo(r.right,r.centerY()); path.lineTo(r.right-x,r.bottom); path.lineTo(r.left+x,r.bottom); path.lineTo(r.left,r.centerY()); path.close();
-    }
-
-    private void ticket(RectF r,float x) {
-        path.reset(); path.moveTo(r.left+x,r.top); path.lineTo(r.right-x,r.top); path.quadTo(r.right,r.top,r.right,r.top+x); path.lineTo(r.right,r.centerY()-x*.45f); path.quadTo(r.right-x*.8f,r.centerY(),r.right,r.centerY()+x*.45f); path.lineTo(r.right,r.bottom-x); path.quadTo(r.right,r.bottom,r.right-x,r.bottom); path.lineTo(r.left+x,r.bottom); path.quadTo(r.left,r.bottom,r.left,r.bottom-x); path.lineTo(r.left,r.centerY()+x*.45f); path.quadTo(r.left+x*.8f,r.centerY(),r.left,r.centerY()-x*.45f); path.lineTo(r.left,r.top+x); path.quadTo(r.left,r.top,r.left+x,r.top); path.close();
-    }
-
-    private void notch(RectF r,float x) {
-        path.reset(); path.moveTo(r.left+x,r.top); path.lineTo(r.centerX()-x,r.top); path.lineTo(r.centerX(),r.top+x*.65f); path.lineTo(r.centerX()+x,r.top); path.lineTo(r.right-x,r.top); path.quadTo(r.right,r.top,r.right,r.top+x); path.lineTo(r.right,r.bottom-x); path.quadTo(r.right,r.bottom,r.right-x,r.bottom); path.lineTo(r.left+x,r.bottom); path.quadTo(r.left,r.bottom,r.left,r.bottom-x); path.lineTo(r.left,r.top+x); path.quadTo(r.left,r.top,r.left+x,r.top); path.close();
-    }
-
-    private void diamond(RectF r,float x) {
-        path.reset(); path.moveTo(r.left+x,r.top); path.lineTo(r.right-x,r.top); path.lineTo(r.right,r.centerY()); path.lineTo(r.right-x,r.bottom); path.lineTo(r.left+x,r.bottom); path.lineTo(r.left,r.centerY()); path.close();
-    }
-
-    private void stepped(RectF r,float x) {
-        path.reset(); path.moveTo(r.left+x,r.top); path.lineTo(r.right-x,r.top); path.lineTo(r.right-x,r.top+x*.45f); path.lineTo(r.right,r.top+x*.45f); path.lineTo(r.right,r.bottom-x*.45f); path.lineTo(r.right-x,r.bottom-x*.45f); path.lineTo(r.right-x,r.bottom); path.lineTo(r.left+x,r.bottom); path.lineTo(r.left+x,r.bottom-x*.45f); path.lineTo(r.left,r.bottom-x*.45f); path.lineTo(r.left,r.top+x*.45f); path.lineTo(r.left+x,r.top+x*.45f); path.close();
-    }
-
-    private void rail(Canvas c,RectF r,boolean top) {
-        p.setShader(null); p.setColor(Color.argb(118,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent)));
-        float y=top?r.top+dp(2):r.bottom-dp(4);
-        c.drawRoundRect(new RectF(r.left+dp(6),y,r.right-dp(6),y+dp(2)),dp(2),dp(2),p);
-    }
-
-    private void inner(Canvas c,RectF r) {
-        p.setShader(null); p.setStyle(Paint.Style.STROKE); p.setStrokeWidth(dp(1)); p.setColor(Color.argb(74,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent)));
-        c.drawRoundRect(new RectF(r.left+dp(3),r.top+dp(3),r.right-dp(3),r.bottom-dp(3)),dp(6),dp(6),p); p.setStyle(Paint.Style.FILL);
-    }
-
-    private void split(Canvas c,RectF r,int start,int end) {
-        p.setShader(null); p.setColor(start); c.drawRoundRect(r,dp(8),dp(8),p);
-        path.reset(); path.moveTo(r.centerX(),r.top); path.lineTo(r.right,r.top); path.lineTo(r.right,r.bottom); path.lineTo(r.centerX()-r.width()*.12f,r.bottom); path.close(); p.setColor(end); c.drawPath(path,p);
-    }
-
-    private void dots(Canvas c,RectF r) {
-        p.setShader(null); p.setColor(Color.argb(100,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent)));
-        c.drawCircle(r.left+dp(6),r.top+dp(6),dp(2),p); c.drawCircle(r.right-dp(6),r.bottom-dp(6),dp(2),p);
-    }
-
-    private void inset(Canvas c,RectF r) {
-        p.setShader(null); p.setColor(Color.argb(42,Color.red(e.accent),Color.green(e.accent),Color.blue(e.accent)));
-        c.drawRoundRect(new RectF(r.left+dp(4),r.top+dp(4),r.right-dp(4),r.bottom-dp(4)),dp(5),dp(5),p);
-    }
-
-    private float dp(float v) { return v*d; }
-
-    @Override public void setAlpha(int alpha) {}
-    @Override public void setColorFilter(android.graphics.ColorFilter filter) { p.setColorFilter(filter); invalidateSelf(); }
-    @Override public int getOpacity() { return PixelFormat.TRANSLUCENT; }
+    private float dp(float v){ return v*d; }
+    @Override public void setAlpha(int a){}
+    @Override public void setColorFilter(ColorFilter f){ p.setColorFilter(f); invalidateSelf(); }
+    @Override public int getOpacity(){ return PixelFormat.TRANSLUCENT; }
 }
