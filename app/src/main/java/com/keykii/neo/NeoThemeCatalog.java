@@ -154,18 +154,26 @@ final class NeoThemeCatalog {
     private static synchronized int[] order(String f){
         String key=f==null?"all":f;
         int[] cached=ORDER_CACHE.get(key);if(cached!=null)return cached;
-        java.util.ArrayList<Integer>[] buckets=new java.util.ArrayList[48];
-        for(int a=0;a<48;a++)buckets[a]=new java.util.ArrayList<>();
-        for(Entry e:ENTRIES)if(matches(e.pack,key))buckets[e.architecture].add(e.pack);
+        boolean[] used=new boolean[COUNT];
         java.util.ArrayList<Integer> out=new java.util.ArrayList<>();
-        int round=0;
-        while(true){
-            boolean added=false;
-            for(int step=0;step<48;step++){
-                int a=Math.floorMod(step*17+round*13,48);
-                if(round<buckets[a].size()){out.add(buckets[a].get(round));added=true;}
+        int total=0;for(Entry e:ENTRIES)if(matches(e.pack,key))total++;
+        while(out.size()<total){
+            java.util.HashSet<Integer> pageArch=new java.util.HashSet<>();
+            java.util.HashSet<Integer> pageArt=new java.util.HashSet<>();
+            int slots=Math.min(PAGE_SIZE,total-out.size());
+            for(int slot=0;slot<slots;slot++){
+                int best=-1,bestScore=Integer.MIN_VALUE;
+                for(int i=0;i<COUNT;i++){
+                    if(used[i])continue;Entry e=ENTRIES[i];if(!matches(e.pack,key))continue;
+                    int score=(pageArch.contains(e.architecture)?0:100)+(pageArt.contains(e.art)?0:70)+(i<32?10:0);
+                    // Stable tie-breaker keeps the shop deterministic between launches.
+                    score-=i/64;
+                    if(score>bestScore){bestScore=score;best=i;}
+                }
+                if(best<0)break;
+                used[best]=true;Entry e=ENTRIES[best];out.add(e.pack);
+                pageArch.add(e.architecture);pageArt.add(e.art);
             }
-            if(!added)break;round++;
         }
         int[] arr=new int[out.size()];for(int i=0;i<arr.length;i++)arr[i]=out.get(i);
         ORDER_CACHE.put(key,arr);return arr;
