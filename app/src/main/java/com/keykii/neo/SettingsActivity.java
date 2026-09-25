@@ -2274,64 +2274,95 @@ public class SettingsActivity extends Activity {
 
         LinearLayout page=page(
                 "Fonts",
-                "Tap a style to preview it on your keyboard",
+                "Choose a font style for your KeyKii keyboard",
                 true
         );
 
-        addInfoCard(
-                page,
-                "Separate from Themes",
-                "Your theme and font are independent. A font only changes the KeyKii keyboard letters and numbers; the text you type into apps stays normal."
+        LinearLayout hero=new LinearLayout(this);
+        hero.setOrientation(LinearLayout.VERTICAL);
+        hero.setPadding(dp(18),dp(16),dp(18),dp(15));
+
+        GradientDrawable heroBg=
+                new GradientDrawable(
+                        GradientDrawable.Orientation.TL_BR,
+                        new int[]{
+                                Color.rgb(255,244,235),
+                                Color.rgb(246,248,239),
+                                Color.rgb(250,242,250)
+                        }
+                );
+        heroBg.setCornerRadius(dp(24));
+        heroBg.setStroke(dp(1),Color.rgb(238,229,224));
+        hero.setBackground(heroBg);
+
+        TextView heroTitle=new TextView(this);
+        heroTitle.setText("31 keyboard font styles");
+        heroTitle.setTextColor(TEXT);
+        heroTitle.setTextSize(19);
+        heroTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+
+        TextView heroSub=new TextView(this);
+        heroSub.setText(
+                "Cute, handwritten, script, retro, pixel, serif and decorative styles. " +
+                "Fonts stay separate from themes."
         );
+        heroSub.setTextColor(MUTED);
+        heroSub.setTextSize(11);
+        heroSub.setPadding(0,dp(5),0,0);
 
-        addSection(page,"Free essentials");
-        addFontStoreCard(page,0,"System","Clean Android lettering",false);
-        addFontStoreCard(page,1,"Rounded","Soft rounded lettering",false);
-        addFontStoreCard(page,2,"Serif","Classic book-style lettering",false);
-        addFontStoreCard(page,3,"Mono","Fixed-width modern lettering",false);
-        addFontStoreCard(page,4,"Condensed","Slim space-saving lettering",false);
-        addFontStoreCard(page,5,"Casual","Relaxed handwritten system style",false);
-        addFontStoreCard(page,6,"Medium","Clean slightly bolder lettering",false);
+        hero.addView(heroTitle);
+        hero.addView(heroSub);
 
-        addSection(page,"Popular styles");
+        LinearLayout.LayoutParams hp=
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+        hp.setMargins(0,dp(6),0,dp(14));
+        page.addView(hero,hp);
 
-        addInfoCard(
-                page,
-                "24 KeyKii font styles",
-                "Playful, handwritten, script, pixel, retro and decorative fonts. PRO styles are unlocked for testing in this build."
-        );
+        addSection(page,"Free collection");
+        addFontStoreCard(page,0,"System","Clean Android",false);
+        addFontStoreCard(page,1,"Rounded","Soft rounded",false);
+        addFontStoreCard(page,2,"Serif","Classic book",false);
+        addFontStoreCard(page,3,"Mono","Fixed width",false);
+        addFontStoreCard(page,4,"Condensed","Slim modern",false);
+        addFontStoreCard(page,5,"Casual","Relaxed handwriting",false);
+        addFontStoreCard(page,6,"Medium","Clean bold",false);
 
-        addFontStoreCard(page,100,"Fredoka","Round and friendly",true);
-        addFontStoreCard(page,101,"DynaPuff","Puffy hand-drawn style",true);
-        addFontStoreCard(page,102,"Rubik Bubbles","Bubble outline lettering",true);
+        addSection(page,"Popular font styles");
+        addFontStoreCard(page,100,"Fredoka","Round & friendly",true);
+        addFontStoreCard(page,101,"DynaPuff","Puffy hand-drawn",true);
+        addFontStoreCard(page,102,"Rubik Bubbles","Bubble outline",true);
         addFontStoreCard(page,103,"Patrick Hand","Natural handwriting",true);
         addFontStoreCard(page,104,"Lobster","Bold connected script",true);
-        addFontStoreCard(page,105,"Bungee","Arcade display style",true);
-        addFontStoreCard(page,106,"Press Start 2P","Pixel game lettering",true);
-        addFontStoreCard(page,107,"Cinzel Decorative","Elegant decorative serif",true);
+        addFontStoreCard(page,105,"Bungee","Arcade display",true);
+        addFontStoreCard(page,106,"Press Start 2P","Pixel game",true);
+        addFontStoreCard(page,107,"Cinzel Decorative","Elegant serif",true);
         addFontStoreCard(page,108,"Pacifico","Smooth brush script",true);
-        addFontStoreCard(page,109,"Caveat","Loose handwritten notes",true);
-        addFontStoreCard(page,110,"Berkshire Swash","Fancy swash lettering",true);
-        addFontStoreCard(page,111,"Kaushan Script","Energetic handwritten script",true);
+        addFontStoreCard(page,109,"Caveat","Loose handwritten",true);
+        addFontStoreCard(page,110,"Berkshire Swash","Fancy swash",true);
+        addFontStoreCard(page,111,"Kaushan Script","Energetic script",true);
 
-        addSection(page,"More styles");
-        addFontStoreCard(page,112,"Fascinate Inline","Retro inline display",true);
-        addFontStoreCard(page,113,"Monoton","Neon line display style",true);
-        addFontStoreCard(page,114,"Frijole","Chunky decorative lettering",true);
-        addFontStoreCard(page,115,"Barrio","Playful irregular display",true);
-        addFontStoreCard(page,116,"Knewave","Bold painted lettering",true);
-        addFontStoreCard(page,117,"Rye","Vintage western serif",true);
-        addFontStoreCard(page,118,"Creepster","Spooky display lettering",true);
-        addFontStoreCard(page,119,"Baloo 2","Soft chunky rounded style",true);
-        addFontStoreCard(page,120,"Modak","Extra-puffy display style",true);
-        addFontStoreCard(page,121,"Fredericka the Great","Sketchy artistic serif",true);
-        addFontStoreCard(page,122,"Gluten","Bouncy playful lettering",true);
-        addFontStoreCard(page,123,"Londrina Sketch","Hand-drawn outline style",true);
+        addSection(page,"More to love");
+        addFontStoreCard(page,112,"Fascinate Inline","Retro inline",true);
+        addFontStoreCard(page,113,"Monoton","Neon line",true);
+        addFontStoreCard(page,114,"Frijole","Chunky decorative",true);
+        addFontStoreCard(page,115,"Barrio","Playful irregular",true);
+        addFontStoreCard(page,116,"Knewave","Bold painted",true);
+        addFontStoreCard(page,117,"Rye","Vintage western",true);
+        addFontStoreCard(page,118,"Creepster","Spooky display",true);
+        addFontStoreCard(page,119,"Baloo 2","Soft chunky",true);
+        addFontStoreCard(page,120,"Modak","Extra puffy",true);
+        addFontStoreCard(page,121,"Fredericka the Great","Sketchy artistic",true);
+        addFontStoreCard(page,122,"Gluten","Bouncy playful",true);
+        addFontStoreCard(page,123,"Londrina Sketch","Hand-drawn outline",true);
 
         addInfoCard(
                 page,
-                "Font licenses",
-                "The bundled collection uses open-license Google Fonts projects. The SIL Open Font License text is included in the app assets."
+                "Font behavior",
+                "The selected font changes only the letters and numbers shown on the KeyKii keyboard. " +
+                "Text you type into apps remains normal."
         );
 
         setContentView(wrap(page));
@@ -2348,39 +2379,46 @@ public class SettingsActivity extends Activity {
         boolean selected=
                 prefs.getInt("keyboard_font_style",0)==style;
 
-        LinearLayout card=new LinearLayout(this);
-        card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dp(15),dp(10),dp(15),dp(9));
+        LinearLayout row=new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(16),dp(7),dp(10),dp(7));
 
         int surface;
-        switch(Math.abs(style)%4) {
+        switch(Math.abs(style)%5) {
             case 0:
-                surface=Color.rgb(249,249,245);
+                surface=Color.rgb(248,249,244);
                 break;
             case 1:
-                surface=Color.rgb(248,246,241);
+                surface=Color.rgb(250,247,240);
                 break;
             case 2:
-                surface=Color.rgb(246,248,245);
+                surface=Color.rgb(247,249,245);
+                break;
+            case 3:
+                surface=Color.rgb(250,245,246);
                 break;
             default:
-                surface=Color.rgb(250,246,247);
+                surface=Color.rgb(248,246,250);
                 break;
         }
 
         if(selected)
             surface=Color.rgb(247,239,252);
 
-        GradientDrawable bg=round(surface,17);
+        GradientDrawable bg=round(surface,13);
         bg.setStroke(
                 dp(selected ? 2 : 1),
                 selected
-                        ? Color.rgb(182,145,205)
-                        : Color.rgb(236,230,226)
+                        ? Color.rgb(181,143,204)
+                        : Color.rgb(238,232,227)
         );
-        card.setBackground(bg);
+        row.setBackground(bg);
 
-        FrameLayout top=new FrameLayout(this);
+        LinearLayout words=new LinearLayout(this);
+        words.setOrientation(LinearLayout.VERTICAL);
+        words.setGravity(Gravity.CENTER);
+        words.setPadding(0,0,dp(8),0);
 
         TextView sample=new TextView(this);
         sample.setText(name);
@@ -2390,12 +2428,34 @@ public class SettingsActivity extends Activity {
         sample.setSingleLine(true);
         sample.setTypeface(settingsKeyboardTypeface(style));
 
-        top.addView(
+        TextView sub=new TextView(this);
+        sub.setText(description);
+        sub.setTextColor(MUTED);
+        sub.setTextSize(9);
+        sub.setGravity(Gravity.CENTER);
+        sub.setSingleLine(true);
+
+        words.addView(
                 sample,
-                new FrameLayout.LayoutParams(
+                new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
-                        dp(42),
-                        Gravity.CENTER
+                        dp(32)
+                )
+        );
+        words.addView(
+                sub,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(16)
+                )
+        );
+
+        row.addView(
+                words,
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(50),
+                        1f
                 )
         );
 
@@ -2405,57 +2465,51 @@ public class SettingsActivity extends Activity {
                         ? "✓"
                         : (pro ? "PRO" : "FREE")
         );
-        badge.setTextColor(
-                pro && !selected
-                        ? Color.rgb(169,92,181)
-                        : Color.rgb(95,139,106)
-        );
         badge.setTextSize(selected ? 18 : 10);
         badge.setGravity(Gravity.CENTER);
+        badge.setTextColor(
+                selected
+                        ? Color.rgb(114,79,133)
+                        : (
+                            pro
+                                ? Color.rgb(184,95,115)
+                                : Color.rgb(80,145,96)
+                          )
+        );
 
         GradientDrawable badgeBg=
                 round(
-                        pro
-                                ? Color.rgb(249,234,251)
-                                : Color.rgb(232,247,235),
-                        10
+                        selected
+                                ? Color.rgb(239,224,248)
+                                : (
+                                    pro
+                                        ? Color.rgb(253,239,240)
+                                        : Color.rgb(233,247,235)
+                                  ),
+                        11
                 );
 
         badge.setBackground(badgeBg);
 
-        FrameLayout.LayoutParams badgeParams=
-                new FrameLayout.LayoutParams(
-                        dp(selected ? 34 : 48),
-                        dp(24),
-                        Gravity.END | Gravity.CENTER_VERTICAL
-                );
-
-        top.addView(badge,badgeParams);
-        card.addView(top,new LinearLayout.LayoutParams(-1,dp(44)));
-
-        TextView sub=new TextView(this);
-        sub.setText(description+"  •  Aa Bb Cc 123");
-        sub.setTextColor(MUTED);
-        sub.setTextSize(10);
-        sub.setGravity(Gravity.CENTER);
-        sub.setSingleLine(true);
-        sub.setTypeface(settingsKeyboardTypeface(style));
-
-        card.addView(
-                sub,
+        row.addView(
+                badge,
                 new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        dp(25)
+                        dp(52),
+                        dp(28)
                 )
         );
 
-        card.setOnClickListener(v ->
+        row.setOnClickListener(v ->
                 showFontPreview(style,name,pro)
         );
 
-        LinearLayout.LayoutParams cp=cardParams();
-        cp.setMargins(0,dp(4),0,dp(4));
-        page.addView(card,cp);
+        LinearLayout.LayoutParams rp=
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(66)
+                );
+        rp.setMargins(0,dp(3),0,dp(3));
+        page.addView(row,rp);
     }
 
 
@@ -2495,7 +2549,7 @@ public class SettingsActivity extends Activity {
 
         if(pro) {
             TextView note=new TextView(this);
-            note.setText("PRO preview • unlocked for testing in KeyKii 2.49.0");
+            note.setText("PRO preview • unlocked for testing in KeyKii 2.50.0");
             note.setTextColor(Color.rgb(169,92,181));
             note.setTextSize(11);
             note.setGravity(Gravity.CENTER);
