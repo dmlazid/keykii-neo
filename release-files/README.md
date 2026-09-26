@@ -2,6 +2,6 @@
 
 All future KeyKii build downloads are kept in this one GitHub folder.
 
-**Latest:** [2.57.7](./2.57.7/)
+**Latest:** [2.57.8](./2.57.8/)
 
 Each version folder contains the APK, Play AAB, SHA-256 file, renderer audit ZIP and a short README.
