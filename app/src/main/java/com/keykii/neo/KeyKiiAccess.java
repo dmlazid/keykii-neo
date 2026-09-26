@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 final class KeyKiiAccess {
     static final String PREF_PASS_UNTIL="reward_access_until";
     static final String PREF_LIFETIME_PRO="lifetime_pro_owned";
+    static final String PREF_OWNER_UNLOCKED="owner_access_unlocked";
     static final long PASS_MS=24L*60L*60L*1000L;
 
     private KeyKiiAccess(){}
@@ -23,8 +24,34 @@ final class KeyKiiAccess {
         return prefs(context).getLong(PREF_PASS_UNTIL,0L)>System.currentTimeMillis();
     }
 
+    static boolean isOwner(Context context){
+        return prefs(context).getBoolean(PREF_OWNER_UNLOCKED,false);
+    }
+
+    static boolean activateOwner(Context context,String code){
+        if(code==null)return false;
+        String candidate=sha256(code.trim());
+        String expected=BuildConfig.KEYKII_OWNER_CODE_HASH;
+        if(expected==null||expected.isEmpty())return false;
+
+        boolean same=constantTimeEquals(candidate,expected);
+        if(same){
+            prefs(context).edit()
+                    .putBoolean(PREF_OWNER_UNLOCKED,true)
+                    .remove(PREF_PASS_UNTIL)
+                    .apply();
+        }
+        return same;
+    }
+
+    static void deactivateOwner(Context context){
+        prefs(context).edit()
+                .putBoolean(PREF_OWNER_UNLOCKED,false)
+                .apply();
+    }
+
     static boolean canUsePremium(Context context){
-        return hasLifetimePro(context)||has24HourPass(context);
+        return isOwner(context)||hasLifetimePro(context)||has24HourPass(context);
     }
 
     static long remainingMs(Context context){
@@ -32,6 +59,8 @@ final class KeyKiiAccess {
     }
 
     static String remainingLabel(Context context){
+        if(isOwner(context))return "Owner access • permanent";
+        if(hasLifetimePro(context))return "Lifetime PRO";
         long ms=remainingMs(context);
         if(ms<=0L)return "Not active";
         long minutes=(ms+59999L)/60000L;
@@ -42,9 +71,32 @@ final class KeyKiiAccess {
     }
 
     static void grant24Hours(Context context){
+        if(isOwner(context))return;
         prefs(context).edit()
                 .putLong(PREF_PASS_UNTIL,System.currentTimeMillis()+PASS_MS)
                 .apply();
+    }
+
+    private static String sha256(String value){
+        try{
+            java.security.MessageDigest digest=
+                    java.security.MessageDigest.getInstance("SHA-256");
+            byte[] bytes=digest.digest(
+                    value.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+            );
+            StringBuilder out=new StringBuilder();
+            for(byte b:bytes)out.append(String.format("%02x",b&0xff));
+            return out.toString();
+        }catch(Exception e){
+            return "";
+        }
+    }
+
+    private static boolean constantTimeEquals(String a,String b){
+        if(a==null||b==null||a.length()!=b.length())return false;
+        int diff=0;
+        for(int i=0;i<a.length();i++)diff|=a.charAt(i)^b.charAt(i);
+        return diff==0;
     }
 
     static boolean themeNeedsAccess(int pack){

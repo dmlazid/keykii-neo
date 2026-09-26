@@ -342,6 +342,13 @@ public class SettingsActivity extends Activity {
         addSettingsDivider(app);
         addSettingsActionRow(app,"↗","Share KeyKii",v -> showShareKeyKii());
         addSettingsDivider(app);
+        addSettingsActionRow(
+                app,
+                "★",
+                KeyKiiAccess.isOwner(this) ? "Owner Access ✓" : "Owner Access",
+                v -> showOwnerAccess()
+        );
+        addSettingsDivider(app);
         addSettingsActionRow(app,"ⓘ","About KeyKii",v -> showAbout());
         addSettingsDivider(app);
         addSettingsActionRow(app,"?","Help & feedback",v -> showHelp());
@@ -4272,7 +4279,9 @@ public class SettingsActivity extends Activity {
             TextView note=new TextView(this);
             note.setText(
                     hasAdAccess()
-                            ? "✓ 24-hour access active • "+KeyKiiAccess.remainingLabel(this)
+                            ? (hasOwnerAccess()
+                                ? "★ Owner access • permanent • no ad required"
+                                : "✓ Premium access active • "+KeyKiiAccess.remainingLabel(this))
                             : "Watch one rewarded ad to use PRO/ad fonts and PRO themes for 24 hours"
             );
             note.setTextColor(hasAdAccess()?Color.rgb(62,139,82):Color.rgb(169,92,181));
@@ -5112,6 +5121,17 @@ public class SettingsActivity extends Activity {
         return KeyKiiAccess.canUsePremium(this);
     }
 
+    private boolean hasOwnerAccess(){
+        return KeyKiiAccess.isOwner(this);
+    }
+
+    private String premiumAccessBadge(){
+        if(hasOwnerAccess())return "★ OWNER";
+        if(KeyKiiAccess.hasLifetimePro(this))return "✓ LIFETIME PRO";
+        if(KeyKiiAccess.has24HourPass(this))return "✓ 24H ACCESS";
+        return "";
+    }
+
     private boolean fontNeedsAdAccess(int style,boolean pro){
         return pro||KeyKiiAccess.fontNeedsAccess(style);
     }
@@ -5140,26 +5160,44 @@ public class SettingsActivity extends Activity {
         card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding(dp(16),dp(13),dp(16),dp(13));
 
+        boolean owner=hasOwnerAccess();
         boolean active=hasAdAccess();
         GradientDrawable bg=round(
-                active ? Color.rgb(235,249,239) : Color.rgb(251,242,255),
+                owner ? Color.rgb(245,237,255) :
+                (active ? Color.rgb(235,249,239) : Color.rgb(251,242,255)),
                 20
         );
-        bg.setStroke(dp(1),active ? Color.rgb(164,211,175) : Color.rgb(224,199,238));
+        bg.setStroke(
+                dp(1),
+                owner ? Color.rgb(190,145,225) :
+                (active ? Color.rgb(164,211,175) : Color.rgb(224,199,238))
+        );
         card.setBackground(bg);
 
         TextView title=new TextView(this);
-        title.setText(active ? "✓ 24-hour access active" : "▶ Watch ad • Unlock for 24 hours");
-        title.setTextColor(active ? Color.rgb(54,126,75) : Color.rgb(137,72,169));
+        title.setText(
+                owner
+                        ? "★ Owner access active"
+                        : (active
+                            ? "✓ Premium access active"
+                            : "▶ Watch ad • Unlock for 24 hours")
+        );
+        title.setTextColor(
+                owner
+                        ? Color.rgb(126,74,162)
+                        : (active ? Color.rgb(54,126,75) : Color.rgb(137,72,169))
+        );
         title.setTextSize(14);
         title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
         card.addView(title);
 
         TextView sub=new TextView(this);
         sub.setText(
-                active
-                        ? KeyKiiAccess.remainingLabel(this)+" • PRO themes + ad-gated fonts"
-                        : "Complete one rewarded ad to use PRO themes and ad-gated fonts free for 24 hours."
+                owner
+                        ? "Permanent PRO themes + fonts • ads disabled on this device"
+                        : (active
+                            ? KeyKiiAccess.remainingLabel(this)+" • PRO themes + ad-gated fonts"
+                            : "Complete one rewarded ad to use PRO themes and ad-gated fonts free for 24 hours.")
         );
         sub.setTextColor(MUTED);
         sub.setTextSize(10);
@@ -5333,7 +5371,7 @@ public class SettingsActivity extends Activity {
 
         badge.setText(
                 stylePackPro(pack)
-                        ? (hasAdAccess() ? "✓ 24H ACCESS" : stylePackPriceLabel(pack)+" • PRO")
+                        ? (hasAdAccess() ? premiumAccessBadge() : stylePackPriceLabel(pack)+" • PRO")
                         : "FREE"
         );
 
@@ -5705,7 +5743,7 @@ public class SettingsActivity extends Activity {
         badge.setText(
                 stylePackPro(pack)
                         ? (hasAdAccess()
-                            ? "✓ 24H ACCESS ACTIVE"
+                            ? premiumAccessBadge()+" ACTIVE"
                             : "KEYKII PRO • "+stylePackPriceLabel(pack)+" • OR WATCH AD")
                         : "FREE THEME"
         );
@@ -5745,7 +5783,9 @@ public class SettingsActivity extends Activity {
                 stylePackSubtitle(pack)+
                 (stylePackPro(pack)
                         ? (hasAdAccess()
-                            ? "\n24-hour access active • Apply now"
+                            ? (hasOwnerAccess()
+                                ? "\nOwner access • Apply now • No ad required"
+                                : "\nPremium access active • Apply now")
                             : "\nWatch one rewarded ad to unlock all PRO themes + ad-gated fonts for 24h")
                         : "\nFree theme • Uses your current font")
         );
@@ -8239,6 +8279,86 @@ public class SettingsActivity extends Activity {
 
         setContentView(wrap(page));
     }
+
+    private void showOwnerAccess(){
+        screen="owner_access";
+        hideSoftKeyboardNow();
+
+        LinearLayout page=page(
+                "Owner Access",
+                "Private access for the KeyKii owner",
+                true
+        );
+
+        if(KeyKiiAccess.isOwner(this)){
+            addInfoCard(
+                    page,
+                    "★ Owner access is active",
+                    "This device has permanent access to all PRO themes and ad-gated fonts. Rewarded and random ads are disabled for you."
+            );
+            addInfoCard(
+                    page,
+                    "Friends are unchanged",
+                    "The owner unlock is stored only on this device. Friends who install the same APK still use the normal FREE / PRO / rewarded-ad system unless they know your private owner code."
+            );
+            addActionButton(
+                    page,
+                    "Disable owner access on this device",
+                    v -> {
+                        KeyKiiAccess.deactivateOwner(this);
+                        toast("Owner access disabled");
+                        showOwnerAccess();
+                    }
+            );
+            setContentView(wrap(page));
+            return;
+        }
+
+        addInfoCard(
+                page,
+                "Owner code",
+                "Enter your private owner code once. Keep it secret. Do not post it in screenshots, GitHub, or messages to users."
+        );
+
+        EditText code=new EditText(this);
+        code.setSingleLine(true);
+        code.setHint("Enter owner code");
+        code.setTextColor(TEXT);
+        code.setHintTextColor(Color.rgb(175,166,180));
+        code.setTextSize(14);
+        code.setPadding(dp(16),0,dp(16),0);
+        code.setInputType(
+                android.text.InputType.TYPE_CLASS_TEXT |
+                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        );
+        code.setBackground(round(Color.WHITE,18));
+
+        LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,dp(52));
+        cp.setMargins(0,dp(8),0,dp(8));
+        page.addView(code,cp);
+
+        addActionButton(
+                page,
+                "Unlock owner access",
+                v -> {
+                    if(KeyKiiAccess.activateOwner(this,code.getText().toString())){
+                        toast("Owner access unlocked ★");
+                        showOwnerAccess();
+                    }else{
+                        toast("Owner code is not correct");
+                    }
+                }
+        );
+
+        addInfoCard(
+                page,
+                "What owner access does",
+                "All PRO themes and fonts apply immediately, the 24-hour timer is ignored, and KeyKii does not show rewarded or random interstitial ads on this device."
+        );
+
+        setContentView(wrap(page));
+    }
+
 
     private void showAbout() {
         screen = "about";

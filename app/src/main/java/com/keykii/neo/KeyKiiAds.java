@@ -52,7 +52,7 @@ final class KeyKiiAds {
     }
 
     void start(){
-        if(activity.isFinishing())return;
+        if(activity.isFinishing()||KeyKiiAccess.isOwner(activity))return;
         consentInformation=UserMessagingPlatform.getConsentInformation(activity);
         ConsentRequestParameters params=
                 new ConsentRequestParameters.Builder().build();
@@ -71,7 +71,7 @@ final class KeyKiiAds {
     }
 
     private synchronized void maybeInitializeAds(){
-        if(initialized||activity.isFinishing())return;
+        if(initialized||activity.isFinishing()||KeyKiiAccess.isOwner(activity))return;
         if(consentInformation!=null&&!consentInformation.canRequestAds())return;
         initialized=true;
 
@@ -138,6 +138,7 @@ final class KeyKiiAds {
     }
 
     private void loadRewarded(){
+        if(KeyKiiAccess.isOwner(activity))return;
         if(rewardedLoading||rewardedAd!=null||activity.isFinishing())return;
         if(BuildConfig.ADMOB_REWARDED_ID==null||BuildConfig.ADMOB_REWARDED_ID.isEmpty())return;
         rewardedLoading=true;
@@ -214,6 +215,7 @@ final class KeyKiiAds {
      * a theme/font). Threshold is 5-8 completed tasks and at least 4 minutes.
      */
     void recordNaturalBreak(){
+        if(KeyKiiAccess.isOwner(activity))return;
         if(activity.isFinishing()||rewardShowing)return;
         naturalBreaks++;
 
@@ -244,6 +246,7 @@ final class KeyKiiAds {
     }
 
     private void loadInterstitial(){
+        if(KeyKiiAccess.isOwner(activity))return;
         if(interstitialLoading||interstitialAd!=null||activity.isFinishing())return;
         if(BuildConfig.ADMOB_INTERSTITIAL_ID==null||BuildConfig.ADMOB_INTERSTITIAL_ID.isEmpty())return;
         interstitialLoading=true;
