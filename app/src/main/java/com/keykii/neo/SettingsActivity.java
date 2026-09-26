@@ -1442,6 +1442,54 @@ public class SettingsActivity extends Activity {
                 KeyKiiFontCollection.favoriteCount(this)+" favorites",
                 v -> showFonts()
         );
+        addRow(
+                page,
+                "✦",
+                "Saved looks",
+                KeyKiiLookCollection.count(this)+" theme + font combos",
+                v -> showMine()
+        );
+
+        addThemeSection(page,"✦ SAVED LOOKS");
+        int currentPack=prefs.getInt("keykii_style_pack",-1);
+        int currentFont=prefs.getInt("keyboard_font_style",0);
+        boolean canSaveCurrent=
+                prefs.getInt("theme_surface_mode",0)==2 &&
+                ((currentPack>=100&&currentPack<=139)||NeoThemeCatalog.isNeoPack(currentPack));
+
+        if(canSaveCurrent){
+            boolean alreadySaved=KeyKiiLookCollection.contains(this,currentPack,currentFont);
+            addActionButton(
+                    page,
+                    alreadySaved
+                            ? "✓ Current look already saved"
+                            : "＋ Save current theme + font",
+                    v -> {
+                        KeyKiiLookCollection.save(this,currentPack,currentFont);
+                        toast("Current look saved");
+                        showMine();
+                    }
+            );
+        }else{
+            addInfoCard(
+                    page,
+                    "Save a complete look",
+                    "Apply a Theme Shop design first, then return here to save that theme together with your current font."
+            );
+        }
+
+        java.util.ArrayList<KeyKiiLookCollection.Look> savedLooks=
+                KeyKiiLookCollection.all(this);
+        if(savedLooks.isEmpty()){
+            addInfoCard(
+                    page,
+                    "No saved looks yet",
+                    "Save a theme + font combination so you can restore both with one tap."
+            );
+        }else{
+            for(KeyKiiLookCollection.Look look:savedLooks)
+                addSavedLookCard(page,look);
+        }
 
         int[] favorites=KeyKiiThemeCollection.favorites(this,12);
         addThemeSection(page,"♥ FAVORITE THEMES");
@@ -1495,6 +1543,99 @@ public class SettingsActivity extends Activity {
         addActionButton(page,"Discover more fonts",v -> showFonts());
         setContentView(shopRoot(wrap(page),"mine"));
     }
+
+    private void addSavedLookCard(
+            LinearLayout page,
+            KeyKiiLookCollection.Look look
+    ){
+        LinearLayout card=new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(16),dp(12),dp(16),dp(12));
+        GradientDrawable bg=round(Color.WHITE,18);
+        bg.setStroke(dp(1),Color.rgb(229,218,235));
+        card.setBackground(bg);
+
+        TextView title=new TextView(this);
+        title.setText(stylePackName(look.pack));
+        title.setTextColor(TEXT);
+        title.setTextSize(15);
+        title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        card.addView(title);
+
+        TextView sub=new TextView(this);
+        sub.setText("Aa  "+fontNameForAnyStyle(look.font)+"  •  theme + font");
+        sub.setTextColor(MUTED);
+        sub.setTextSize(11);
+        sub.setPadding(0,dp(3),0,dp(7));
+        card.addView(sub);
+
+        LinearLayout actions=new LinearLayout(this);
+        actions.setGravity(Gravity.CENTER);
+
+        TextView apply=textButton("Apply look");
+        TextView remove=textButton("Remove");
+        apply.setTextSize(13);
+        remove.setTextSize(13);
+
+        apply.setOnClickListener(v -> {
+            Runnable doApply=() -> applySavedLook(look.pack,look.font);
+            boolean locked=
+                    (stylePackPro(look.pack) ||
+                     fontNeedsAdAccess(look.font,fontProForStyle(look.font))) &&
+                    !hasAdAccess();
+            if(locked){
+                request24HourAdAccess(doApply);
+            }else{
+                doApply.run();
+            }
+        });
+
+        remove.setOnClickListener(v -> {
+            KeyKiiLookCollection.remove(this,look.pack,look.font);
+            toast("Saved look removed");
+            showMine();
+        });
+
+        LinearLayout.LayoutParams bp=new LinearLayout.LayoutParams(0,dp(44),1f);
+        bp.setMargins(dp(3),0,dp(3),0);
+        actions.addView(apply,bp);
+        actions.addView(remove,bp);
+        card.addView(actions);
+
+        LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(
+                -1,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        cp.setMargins(0,dp(4),0,dp(6));
+        page.addView(card,cp);
+    }
+
+    private void applySavedLook(int pack,int font){
+        int[] spec=stylePackSpec(pack);
+        prefs.edit()
+                .putInt("theme_surface_mode",2)
+                .putInt("theme",spec[6])
+                .putInt("theme_custom_start",spec[0])
+                .putInt("theme_custom_end",spec[1])
+                .putInt("accent_color",spec[2])
+                .putInt("key_corner_radius",spec[3])
+                .putInt("theme_transparency",spec[4])
+                .putBoolean("theme_key_borders",spec[5]==1)
+                .putBoolean("photo_key_borders",spec[5]==1)
+                .putInt("theme_decor_style",spec[7])
+                .putInt("theme_key_style",spec[8])
+                .putBoolean("theme_auto_day_night",false)
+                .putInt("keykii_style_pack",pack)
+                .putInt("keyboard_font_style",font)
+                .apply();
+
+        KeyKiiThemeCollection.rememberApplied(this,pack);
+        KeyKiiFontCollection.rememberApplied(this,font);
+        toast("Look applied ✨");
+        if(ads!=null)ads.recordNaturalBreak();
+        showMine();
+    }
+
 
     private View shopRoot(ScrollView scroll,String active){
         FrameLayout root=new FrameLayout(this);
@@ -10381,6 +10522,12 @@ public class SettingsActivity extends Activity {
 
 
     private String themeName() {
+        if(prefs.getInt("theme_surface_mode",0)==2){
+            int pack=prefs.getInt("keykii_style_pack",-1);
+            if((pack>=100&&pack<=139)||NeoThemeCatalog.isNeoPack(pack))
+                return stylePackName(pack);
+        }
+
         int theme;
 
         if (prefs.getBoolean("theme_auto_day_night", false)) {
