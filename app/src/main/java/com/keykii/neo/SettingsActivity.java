@@ -258,7 +258,7 @@ public class SettingsActivity extends Activity {
         if("intro".equals(screen) || "intro_language".equals(screen)) {
             return;
         }
-        if("app_language".equals(screen)) {
+        if("app_language".equals(screen) || "share_keykii".equals(screen)) {
             showHome();
             return;
         }
@@ -339,6 +339,8 @@ public class SettingsActivity extends Activity {
         addSettingsActionRow(app,"☺","Emoji & kaomoji",v -> showEmoji());
         addSettingsDivider(app);
         addSettingsActionRow(app,"🔒","Privacy",v -> showPrivacy());
+        addSettingsDivider(app);
+        addSettingsActionRow(app,"↗","Share KeyKii",v -> showShareKeyKii());
         addSettingsDivider(app);
         addSettingsActionRow(app,"ⓘ","About KeyKii",v -> showAbout());
         addSettingsDivider(app);
@@ -1355,6 +1357,7 @@ public class SettingsActivity extends Activity {
             case "Dictionary":return "Diccionario";
             case "Privacy":return "Privacidad";
             case "About KeyKii":return "Acerca de KeyKii";
+            case "Share KeyKii":return "Compartir KeyKii";
             case "Help & feedback":return "Ayuda y comentarios";
             case "App version":return "Versión de la app";
             case "Themes":return "Temas";
@@ -1539,6 +1542,15 @@ public class SettingsActivity extends Activity {
             for(int style:recentFonts)addFontCollectionCard(page,style);
         }
 
+        addThemeSection(page,"↗ SHARE KEYKII");
+        addInfoCard(
+                page,
+                "Let a friend try KeyKii",
+                "Share a direct APK link for this exact KeyKii version. Your friend can download and install it on Android even before KeyKii is on Google Play."
+        );
+        addActionButton(page,"Share KeyKii with a friend",v -> shareKeyKii());
+        addActionButton(page,"Copy APK download link",v -> copyKeyKiiDownloadLink());
+
         addActionButton(page,"Discover more themes",v -> showTheme());
         addActionButton(page,"Discover more fonts",v -> showFonts());
         setContentView(shopRoot(wrap(page),"mine"));
@@ -1634,6 +1646,110 @@ public class SettingsActivity extends Activity {
         toast("Look applied ✨");
         if(ads!=null)ads.recordNaturalBreak();
         showMine();
+    }
+
+
+    private String keyKiiApkDownloadUrl(){
+        String version=BuildConfig.VERSION_NAME;
+        return "https://github.com/dmlazid/keykii-neo/raw/refs/heads/main/release-files/"
+                +version+"/KeyKii-Neo-"+version+".apk";
+    }
+
+    private String keyKiiReleaseFolderUrl(){
+        String version=BuildConfig.VERSION_NAME;
+        return "https://github.com/dmlazid/keykii-neo/tree/main/release-files/"+version;
+    }
+
+    private void shareKeyKii(){
+        String version=BuildConfig.VERSION_NAME;
+        String message=
+                "Try KeyKii Neo "+version+" on Android ✨\n\n"+
+                "Download APK:\n"+keyKiiApkDownloadUrl()+"\n\n"+
+                "After downloading, open the APK and allow installation from that browser/files app if Android asks.\n\n"+
+                "Release files:\n"+keyKiiReleaseFolderUrl();
+
+        android.content.Intent share=
+                new android.content.Intent(android.content.Intent.ACTION_SEND);
+        share.setType("text/plain");
+        share.putExtra(
+                android.content.Intent.EXTRA_SUBJECT,
+                "KeyKii Neo "+version
+        );
+        share.putExtra(android.content.Intent.EXTRA_TEXT,message);
+
+        startActivity(
+                android.content.Intent.createChooser(
+                        share,
+                        "Share KeyKii Neo"
+                )
+        );
+    }
+
+    private void copyKeyKiiDownloadLink(){
+        android.content.ClipboardManager clipboard=
+                (android.content.ClipboardManager)
+                        getSystemService(CLIPBOARD_SERVICE);
+
+        if(clipboard==null){
+            toast("Could not access clipboard");
+            return;
+        }
+
+        android.content.ClipData clip=
+                android.content.ClipData.newPlainText(
+                        "KeyKii Neo APK",
+                        keyKiiApkDownloadUrl()
+                );
+
+        clipboard.setPrimaryClip(clip);
+        toast("APK download link copied");
+    }
+
+    private void showShareKeyKii(){
+        screen="share_keykii";
+        hideSoftKeyboardNow();
+
+        LinearLayout page=page(
+                "Share KeyKii",
+                "Let friends test the same KeyKii build",
+                true
+        );
+
+        addInfoCard(
+                page,
+                "KeyKii Neo "+BuildConfig.VERSION_NAME,
+                "This shares the APK for the exact version installed on your phone. Your friend does not need Google Play to install the test APK."
+        );
+
+        addSection(page,"Share");
+        addActionButton(page,"↗ Share KeyKii with a friend",v -> shareKeyKii());
+        addActionButton(page,"⧉ Copy APK download link",v -> copyKeyKiiDownloadLink());
+
+        addSection(page,"For your friend");
+        addInfoCard(
+                page,
+                "How to install",
+                "1. Open the shared link and download the APK.\n"+
+                "2. Tap the downloaded APK.\n"+
+                "3. If Android blocks it, allow Install unknown apps for the browser or Files app used to download it.\n"+
+                "4. Install and open KeyKii Neo.\n"+
+                "5. Enable KeyKii in Android keyboard settings and select it as the current keyboard."
+        );
+
+        addInfoCard(
+                page,
+                "Test ads",
+                "This development build still uses Google's test ad IDs. Friends can test the 24-hour rewarded unlock, but test ads do not generate earnings."
+        );
+
+        addSection(page,"Release files");
+        addInfoCard(
+                page,
+                "GitHub release folder",
+                keyKiiReleaseFolderUrl()
+        );
+
+        setContentView(wrap(page));
     }
 
 
