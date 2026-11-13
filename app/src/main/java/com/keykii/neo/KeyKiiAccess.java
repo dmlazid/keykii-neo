@@ -103,16 +103,17 @@ final class KeyKiiAccess {
         switch(pack){
             case 100: case 102: case 106: case 108: case 113: case 117:
             case 200: case 201: case 202: case 206:
+            case 210: case 212: case 214: case 219:
                 return false;
             default:
-                return (pack>=100&&pack<=119)||(pack>=200&&pack<=209);
+                return (pack>=100&&pack<=119)||(pack>=200&&pack<=219);
         }
     }
 
     static boolean fontNeedsAccess(int style){
         if(ColorFontCatalog.isColorStyle(style))return true;
         if(style>=RemoteFontCatalog.FIRST_STYLE)return true;
-        return (style>=100&&style<=123)||(style>=136&&style<=151)||(style>=155&&style<=157);
+        return (style>=100&&style<=123)||(style>=136&&style<=151)||(style>=155&&style<=157)||(style>=160&&style<=161)||(style>=164&&style<=165);
     }
 
     /**

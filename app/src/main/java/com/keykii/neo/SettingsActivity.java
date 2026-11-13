@@ -75,6 +75,7 @@ public class SettingsActivity extends Activity {
     private final java.util.ArrayList<TextView> themeFilterChips =
             new java.util.ArrayList<>();
     private int themeRenderGeneration = 0;
+    private TextView themeCountBadge;
 
     private LinearLayout fontCategoryContent;
     private android.widget.HorizontalScrollView fontFilterScroll;
@@ -1464,7 +1465,7 @@ public class SettingsActivity extends Activity {
         int currentFont=prefs.getInt("keyboard_font_style",0);
         boolean canSaveCurrent=
                 prefs.getInt("theme_surface_mode",0)==2 &&
-                ((currentPack>=100&&currentPack<=119)||(currentPack>=200&&currentPack<=209));
+                ((currentPack>=100&&currentPack<=119)||(currentPack>=200&&currentPack<=219));
 
         if(canSaveCurrent){
             boolean alreadySaved=KeyKiiLookCollection.contains(this,currentPack,currentFont);
@@ -2989,6 +2990,14 @@ public class SettingsActivity extends Activity {
             case 155: return "Righteous";
             case 156: return "Dancing Script";
             case 157: return "Comfortaa";
+            case 158: return "Syne";
+            case 159: return "Outfit";
+            case 160: return "Cormorant Garamond";
+            case 161: return "Sacramento";
+            case 162: return "Plus Jakarta Sans";
+            case 163: return "Bricolage Grotesque";
+            case 164: return "Sora";
+            case 165: return "DM Serif Display";
 
             default:
                 if(ColorFontCatalog.isColorStyle(value)) {
@@ -3146,6 +3155,22 @@ public class SettingsActivity extends Activity {
                     return Typeface.createFromAsset(getAssets(),"fonts/dancing_script.ttf");
                 case 157:
                     return Typeface.createFromAsset(getAssets(),"fonts/comfortaa.ttf");
+                case 158:
+                    return Typeface.createFromAsset(getAssets(),"fonts/syne.ttf");
+                case 159:
+                    return Typeface.createFromAsset(getAssets(),"fonts/outfit.ttf");
+                case 160:
+                    return Typeface.createFromAsset(getAssets(),"fonts/cormorant_garamond.ttf");
+                case 161:
+                    return Typeface.createFromAsset(getAssets(),"fonts/sacramento.ttf");
+                case 162:
+                    return Typeface.createFromAsset(getAssets(),"fonts/plus_jakarta_sans.ttf");
+                case 163:
+                    return Typeface.createFromAsset(getAssets(),"fonts/bricolage_grotesque.ttf");
+                case 164:
+                    return Typeface.createFromAsset(getAssets(),"fonts/sora.ttf");
+                case 165:
+                    return Typeface.createFromAsset(getAssets(),"fonts/dm_serif_display.ttf");
                 default:
                     return Typeface.create("sans-serif",Typeface.NORMAL);
             }
@@ -3210,7 +3235,7 @@ public class SettingsActivity extends Activity {
         hero.setBackground(heroBg);
 
         TextView heroTitle=new TextView(this);
-        heroTitle.setText("1,389 keyboard font styles");
+        heroTitle.setText("1,397 keyboard font styles");
         heroTitle.setTextColor(TEXT);
         heroTitle.setTextSize(19);
         heroTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
@@ -3288,14 +3313,15 @@ public class SettingsActivity extends Activity {
             int[] base={
                     0,1,2,3,4,5,6,
                     124,125,126,127,128,129,130,131,132,133,134,135,
-                    152,153,154
+                    152,153,154,158,159,162,163
             };
             String[] names={
                     "System","Rounded","Serif","Mono","Condensed","Casual","Medium",
                     "Black Ops One","Bowlby One SC","Bubblegum Sans","Cherry Bomb One",
                     "Codystar","Diplomata SC","Emblema One","Ewert","Faster One",
                     "Finger Paint","Geostar","Geostar Fill",
-                    "Quicksand","Playfair Display","Space Grotesk"
+                    "Quicksand","Playfair Display","Space Grotesk","Syne","Outfit",
+                    "Plus Jakarta Sans","Bricolage Grotesque"
             };
 
             for(int i=0;i<base.length;i++)
@@ -3320,7 +3346,7 @@ public class SettingsActivity extends Activity {
                     100,101,102,103,104,105,106,107,108,109,110,111,
                     112,113,114,115,116,117,118,119,120,121,122,123,
                     136,137,138,139,140,141,142,143,144,145,146,147,
-                    148,149,150,151,155,156,157
+                    148,149,150,151,155,156,157,160,161,164,165
             };
 
             for(int style:pro)
@@ -3342,6 +3368,8 @@ public class SettingsActivity extends Activity {
             addSection(page,"Trending");
 
             int[] trend={
+                    162,163,164,165,
+                    158,159,160,161,
                     152,153,154,155,156,157,
                     100,101,102,103,104,105,106,
                     108,109,119,126,127,139,149
@@ -3387,16 +3415,24 @@ public class SettingsActivity extends Activity {
             addFontStoreCard(page,5,"Casual","Relaxed handwriting",false);
             addFontStoreCard(page,6,"Medium","Clean bold",false);
 
-            addSection(page,"✦ New stylish fonts");
+            addSection(page,"✦ New modern fonts");
             String[] newDescs={
                     "Soft rounded modern",
                     "Editorial luxury serif",
                     "Crisp geometric tech",
                     "Sleek retro display",
                     "Flowing script calligraphy",
-                    "Bubbly rounded geometric"
+                    "Bubbly rounded geometric",
+                    "Artistic modern geometric",
+                    "Clean minimalist sans",
+                    "Refined editorial serif",
+                    "Airy monoline signature",
+                    "Contemporary UI geometric sans",
+                    "Expressive neo-grotesk",
+                    "Futuristic humanist sans",
+                    "High-contrast modern display"
             };
-            for(int style=152;style<=157;style++)
+            for(int style=152;style<=165;style++)
                 addFontStoreCard(
                         page,
                         style,
@@ -3472,15 +3508,17 @@ public class SettingsActivity extends Activity {
                 "Diplomata SC","Emblema One","Ewert","Faster One","Finger Paint","Geostar","Geostar Fill","Gravitas One",
                 "Henny Penny","Jolly Lodger","Kablammo","Kirang Haerang","Lacquer","Limelight","Metal Mania","Mogra",
                 "Nosifer","Rampart One","Ribeye","Rubik Beastly","Rubik Moonrocks","Train One","Unifraktur Cook",
-                "Quicksand","Playfair Display","Space Grotesk","Righteous","Dancing Script","Comfortaa"};
-        if(style>=100&&style<=157)return n[style-100];
+                "Quicksand","Playfair Display","Space Grotesk","Righteous","Dancing Script","Comfortaa",
+                "Syne","Outfit","Cormorant Garamond","Sacramento",
+                "Plus Jakarta Sans","Bricolage Grotesque","Sora","DM Serif Display"};
+        if(style>=100&&style<=165)return n[style-100];
         return "System";
     }
 
     private void addFontSearchBar(LinearLayout page){
         EditText search=new EditText(this);
         search.setSingleLine(true);
-        search.setHint("Search 1,389 fonts • rounded, serif, script, mono…");
+        search.setHint("Search 1,397 fonts • rounded, serif, script, mono…");
         search.setTextColor(TEXT);
         search.setHintTextColor(Color.rgb(166,154,171));
         search.setTextSize(14);
@@ -3516,7 +3554,7 @@ public class SettingsActivity extends Activity {
                 seenNames.add(name.toLowerCase(java.util.Locale.ROOT));
             }
         }
-        for(int style=100;style<=157;style++){
+        for(int style=100;style<=165;style++){
             String name=fontNameForAnyStyle(style);
             if(name.toLowerCase(java.util.Locale.ROOT).contains(q)){
                 found.add(style);
@@ -3849,22 +3887,26 @@ public class SettingsActivity extends Activity {
             RemoteFontCatalog.Entry e=RemoteFontCatalog.find(style);
             return e!=null&&e.pro;
         }
-        return (style>=100&&style<=123)||(style>=136&&style<=151)||(style>=155&&style<=157);
+        return (style>=100&&style<=123)||(style>=136&&style<=151)||(style>=155&&style<=157)||(style>=160&&style<=161)||(style>=164&&style<=165);
     }
 
     private void showQuickFontPicker() {
-        final int[] quickStyles={0,1,152,153,154,155,156,157,100,108};
+        final int[] quickStyles={0,1,162,163,164,165,158,159,160,161,152,153,154,155};
         final String[] quickLabels={
                 "System (Free)",
                 "Rounded (Free)",
-                "Quicksand (New • Free)",
-                "Playfair Display (New • Free)",
-                "Space Grotesk (New • Free)",
-                "Righteous (New • PRO)",
-                "Dancing Script (New • PRO)",
-                "Comfortaa (New • PRO)",
-                "Fredoka (PRO)",
-                "Pacifico (PRO)"
+                "Plus Jakarta Sans (New • Free)",
+                "Bricolage Grotesque (New • Free)",
+                "Sora (New • PRO)",
+                "DM Serif Display (New • PRO)",
+                "Syne (Free)",
+                "Outfit (Free)",
+                "Cormorant Garamond (PRO)",
+                "Sacramento (PRO)",
+                "Quicksand (Free)",
+                "Playfair Display (Free)",
+                "Space Grotesk (Free)",
+                "Righteous (PRO)"
         };
         int current=prefs.getInt("keyboard_font_style",0);
         int checked=0;
@@ -3890,7 +3932,7 @@ public class SettingsActivity extends Activity {
                     }
                     apply.run();
                 })
-                .setNeutralButton("Browse all 1,389 fonts",(d,w) -> showFonts())
+                .setNeutralButton("Browse all 1,397 fonts",(d,w) -> showFonts())
                 .setNegativeButton("Cancel",null)
                 .show();
     }
@@ -4571,6 +4613,16 @@ public class SettingsActivity extends Activity {
             case 207: return "new pro aesthetic dark floral luxury rose pink velvet";
             case 208: return "new pro aesthetic dreamy dark minimal ocean space gaming night blue moon";
             case 209: return "new pro aesthetic dark minimal luxury food retro gold brown espresso";
+            case 210: return "new free tactile 3d aesthetic minimal nature wood carved walnut shelf";
+            case 211: return "new pro tactile 3d cute aesthetic floral nature sakura cherry linen";
+            case 212: return "new free tactile 3d cute aesthetic ocean nature summer resin beach starfish";
+            case 213: return "new pro tactile 3d cute aesthetic dreamy food boba paw cream kawaii";
+            case 214: return "new free tactile 3d aesthetic dark space dreamy weather night starry moon";
+            case 215: return "new pro tactile 3d aesthetic dark floral nature luxury hydrangea purple";
+            case 216: return "new pro tactile 3d cute aesthetic food pastel glaze drip linen";
+            case 217: return "new pro tactile 3d aesthetic ocean retro minimal wave ceramic indigo";
+            case 218: return "new pro tactile 3d cute aesthetic dreamy pastel plush fur fluffy cloud moon";
+            case 219: return "new free tactile 3d cute aesthetic dreamy pastel marshmallow cloud star";
             case 100: return "free cute aesthetic floral seasonal cherry blossom pink";
             case 101: return "pro dreamy space ocean blue sky moon";
             case 102: return "free cute nature food matcha bunny green";
@@ -4605,6 +4657,8 @@ public class SettingsActivity extends Activity {
     private int[] themeSearchResults(){
         String q=themeSearchQuery==null?"":themeSearchQuery.trim();
         java.util.ArrayList<Integer> found=new java.util.ArrayList<>();
+        for(int pack=210;pack<=219;pack++)
+            if(themeMatchesSearch(pack,q))found.add(pack);
         for(int pack=200;pack<=209;pack++)
             if(themeMatchesSearch(pack,q))found.add(pack);
         for(int pack=100;pack<=119;pack++)
@@ -4616,6 +4670,8 @@ public class SettingsActivity extends Activity {
 
     private void renderThemeSearchResults(int generation){
         int[] all=themeSearchResults();
+        if(themeCountBadge!=null)
+            themeCountBadge.setText("Viewing "+all.length+" of 40 themes");
         addThemeSection(
                 themeCategoryContent,
                 "⌕ SEARCH RESULTS • "+all.length
@@ -4826,15 +4882,21 @@ public class SettingsActivity extends Activity {
                 newThemePacksForMode(
                         themeBrowseMode
                 );
+        final int[] legacyPacks=
+                legacyThemePacksForMode(
+                        themeBrowseMode
+                );
+        if(themeCountBadge!=null) {
+            themeCountBadge.setText(
+                    "Viewing "+(newPacks.length+legacyPacks.length)+" of 40 themes"
+            );
+        }
 
         Runnable legacyAndTools=() -> {
             if(generation!=themeRenderGeneration)
                 return;
 
-            int[] legacy=
-                    legacyThemePacksForMode(
-                            themeBrowseMode
-                    );
+            int[] legacy=legacyPacks;
 
             if(legacy.length>0) {
                 addThemeSection(
@@ -4881,13 +4943,20 @@ public class SettingsActivity extends Activity {
             String mode
     ) {
         if(mode==null || "all".equals(mode) || "new".equals(mode)) {
-            int[] all=new int[10];
+            int[] all=new int[20];
             for(int i=0;i<10;i++)
-                all[i]=200+i;
+                all[i]=210+i;
+            for(int i=0;i<10;i++)
+                all[10+i]=200+i;
             return all;
         }
         String q=mode.toLowerCase(java.util.Locale.ROOT);
         java.util.ArrayList<Integer> matched=new java.util.ArrayList<>();
+        for(int pack=210;pack<=219;pack++) {
+            String tags=themeSearchTags(pack);
+            if((" "+tags+" ").contains(" "+q+" "))
+                matched.add(pack);
+        }
         for(int pack=200;pack<=209;pack++) {
             String tags=themeSearchTags(pack);
             if((" "+tags+" ").contains(" "+q+" "))
@@ -5145,7 +5214,7 @@ public class SettingsActivity extends Activity {
                 new TextView(this);
 
         title.setText(
-                "✨ KeyKii Theme Shop"
+                "✨ KeyKii Theme Shop: 10 NEW Themes Added!"
         );
 
         title.setTextColor(TEXT);
@@ -5161,7 +5230,7 @@ public class SettingsActivity extends Activity {
                 new TextView(this);
 
         sub.setText(
-                "Explore 10 new clean gradient themes and your 20 original uploaded themes (30 themes total). FREE themes stay free, while PRO themes show their launch price before you preview them."
+                "Explore 10 new 3D tactile studio themes, 10 clean gradient themes, and your 20 original uploaded themes (40 themes total), plus 4 new modern fonts."
         );
 
         sub.setTextColor(MUTED);
@@ -5174,6 +5243,14 @@ public class SettingsActivity extends Activity {
         );
 
         hero.addView(sub);
+
+        themeCountBadge=new TextView(this);
+        themeCountBadge.setText("Viewing 40 of 40 themes");
+        themeCountBadge.setTextColor(Color.rgb(122,66,151));
+        themeCountBadge.setTextSize(11);
+        themeCountBadge.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        themeCountBadge.setPadding(0,dp(6),0,0);
+        hero.addView(themeCountBadge);
 
         LinearLayout.LayoutParams p=
                 new LinearLayout.LayoutParams(
@@ -5526,7 +5603,7 @@ public class SettingsActivity extends Activity {
         boolean borders=spec[5]==1;
         boolean dark=spec[6]==0;
         int decor=spec[7];
-        boolean cleanPack=pack>=200 && pack<=209;
+        boolean cleanPack=pack>=200 && pack<=219;
 
         LinearLayout keyboard=
                 new LinearLayout(this);
@@ -5559,7 +5636,7 @@ public class SettingsActivity extends Activity {
         android.graphics.drawable.Drawable background=
                 panelBg;
 
-        if(!cleanPack && decor>0) {
+        if((!cleanPack && decor>0) || (pack>=210 && pack<=219)) {
             android.graphics.drawable.Drawable themeArt=
                     pack==116
                             ? new ThemePreviewDecorDrawable(
@@ -5699,11 +5776,12 @@ public class SettingsActivity extends Activity {
                                     : (value.length()>2 ? 4.5f : 6.5f)
                     );
                     key.setTypeface(currentFont);
-                    key.setTextColor(
-                            dark
+                    int keyInkColor = (pack==214)
+                            ? Color.rgb(247,223,164)
+                            : ((pack==210 || pack==215 || pack==217 || dark)
                                     ? Color.WHITE
-                                    : Color.rgb(37,33,46)
-                    );
+                                    : Color.rgb(37,33,46));
+                    key.setTextColor(keyInkColor);
                     keyBox.addView(key,new FrameLayout.LayoutParams(-1,-1));
 
                     if(stickerRes!=0) {
@@ -5807,7 +5885,7 @@ public class SettingsActivity extends Activity {
                 row.addView(key,kp);
             }
 
-            if(cleanPack && r==3) {
+            if(pack>=200 && pack<=209 && r==3) {
                 int interRes=previewThemePrimaryAssetRes(pack);
                 if(interRes!=0) {
                     FrameLayout rowWrap=new FrameLayout(this);
@@ -6161,12 +6239,41 @@ public class SettingsActivity extends Activity {
         int start=(special || wideKey) ? palette[2] : palette[0];
         int end=(special || wideKey) ? palette[3] : palette[1];
         int stroke=(special || wideKey) ? palette[5] : palette[4];
+        int radius=dp(Math.max(5,corner));
+
+        if(pack>=210 && pack<=219) {
+            int skirtColor=blendPreviewColor(end,Color.BLACK,pack==214 ? 65 : 34);
+            GradientDrawable skirt=new GradientDrawable();
+            skirt.setColor(skirtColor);
+            skirt.setCornerRadius(radius);
+
+            GradientDrawable face=new GradientDrawable(
+                    GradientDrawable.Orientation.TL_BR,
+                    new int[]{start,end}
+            );
+            face.setCornerRadius(radius);
+            face.setStroke(dp(1),stroke);
+
+            GradientDrawable shine=new GradientDrawable(
+                    GradientDrawable.Orientation.TOP_BOTTOM,
+                    new int[]{pack==214 ? Color.argb(46,247,219,160) : Color.argb(72,255,255,255), Color.TRANSPARENT}
+            );
+            shine.setCornerRadius(radius);
+
+            android.graphics.drawable.LayerDrawable layers=new android.graphics.drawable.LayerDrawable(
+                    new android.graphics.drawable.Drawable[]{skirt,face,shine}
+            );
+            layers.setLayerInset(0,0,dp(1),0,0);
+            layers.setLayerInset(1,0,0,0,dp(2));
+            layers.setLayerInset(2,dp(1),dp(1),dp(1),dp(8));
+            return layers;
+        }
 
         GradientDrawable bg=new GradientDrawable(
                 GradientDrawable.Orientation.TL_BR,
                 new int[]{start,end}
         );
-        bg.setCornerRadius(dp(Math.max(5,corner)));
+        bg.setCornerRadius(radius);
         bg.setStroke(dp(1),stroke);
         return bg;
     }
@@ -6183,6 +6290,16 @@ public class SettingsActivity extends Activity {
             case 207: return new int[]{0xFF342330,0xFF241921,0xFF522F45,0xFF32202C,0x55F27CA7,0x88F27CA7};
             case 208: return new int[]{0xFF1E2C47,0xFF162035,0xFF294069,0xFF1D2B46,0x5574B6FF,0x8874B6FF};
             case 209: return new int[]{0xFF312822,0xFF221C18,0xFF4B3B2B,0xFF2D241D,0x55E7B773,0x88E7B773};
+            case 210: return new int[]{0xFF9C663F,0xFF6E4325,0xFF4D87F7,0xFF2D62D4,0x88E2B080,0xAAFFFFFF};
+            case 211: return new int[]{0xFFFBE1E6,0xFFEDE2D6,0xFFD9C6D6,0xFFB9CEE3,0xFFFFFFFF,0x99F39EB4};
+            case 212: return new int[]{0xFFF4E6CF,0xFFCFEAF2,0xFF4E97B8,0xFF2F7399,0xCCFFFFFF,0xEEFFFFFF};
+            case 213: return new int[]{0xFFFFFBF8,0xFFF6E6DF,0xFFF6DFC4,0xFFECD0E0,0xFFE8CDB8,0xFFFFFFFF};
+            case 214: return new int[]{0xFF24252B,0xFF101116,0xFF333128,0xFF181920,0x88D8B467,0xCCD8B467};
+            case 215: return new int[]{0xFF6B6673,0xFF4A4552,0xFF536DC9,0xFF3B4F9E,0x77D4C6EE,0xAAC7B8F0};
+            case 216: return new int[]{0xFFF9E5DA,0xFFDFEDF5,0xFFD9B2C8,0xFF8ABED6,0xEEFFFFFF,0xFFFFFFFF};
+            case 217: return new int[]{0xFF29415A,0xFF1A2B3E,0xFFE3936B,0xFF355C8C,0x66F5EFE2,0xAAF5EFE2};
+            case 218: return new int[]{0xFFFAD3E0,0xFFD9E6FA,0xFFE7D3FB,0xFFFCEBC8,0xEEFFFFFF,0xFFFFFFFF};
+            case 219: return new int[]{0xFFFBD8E4,0xFFD8F3EA,0xFFE8DBFA,0xFFCFEAFA,0xEEFFFFFF,0xFFFFFFFF};
             default:  return new int[]{0xFFDDD0F4,0xFFFBF8FF,0xFFCAAFE9,0xFFEDE3FA,0xFFFFFFFF,0xFFFFFFFF};
         }
     }
@@ -6198,7 +6315,7 @@ public class SettingsActivity extends Activity {
             int transparency,
             int pack
     ) {
-        if(pack>=200 && pack<=209) {
+        if(pack>=200 && pack<=219) {
             return previewCleanGradientKeyBackground(
                     pack,
                     corner,
@@ -6653,6 +6770,16 @@ public class SettingsActivity extends Activity {
             case 207: return new int[]{Color.rgb(27,20,26),Color.rgb(43,28,39),Color.rgb(242,124,167),12,96,1,0,0,0};
             case 208: return new int[]{Color.rgb(15,22,36),Color.rgb(24,35,58),Color.rgb(116,182,255),12,96,1,0,0,0};
             case 209: return new int[]{Color.rgb(24,20,17),Color.rgb(38,31,26),Color.rgb(231,183,115),12,96,1,0,0,0};
+            case 210: return new int[]{Color.rgb(92,52,26),Color.rgb(58,31,14),Color.rgb(245,210,162),11,96,1,0,40,0};
+            case 211: return new int[]{Color.rgb(56,44,41),Color.rgb(34,27,25),Color.rgb(243,145,172),12,96,1,1,41,0};
+            case 212: return new int[]{Color.rgb(20,28,36),Color.rgb(38,60,78),Color.rgb(235,112,78),12,96,1,1,42,0};
+            case 213: return new int[]{Color.rgb(244,212,198),Color.rgb(252,235,228),Color.rgb(222,126,138),13,96,1,1,43,0};
+            case 214: return new int[]{Color.rgb(12,14,20),Color.rgb(24,27,38),Color.rgb(246,196,84),12,96,1,0,44,0};
+            case 215: return new int[]{Color.rgb(29,27,35),Color.rgb(46,42,56),Color.rgb(189,154,242),12,96,1,0,45,0};
+            case 216: return new int[]{Color.rgb(46,40,38),Color.rgb(28,24,23),Color.rgb(238,142,164),12,96,1,1,46,0};
+            case 217: return new int[]{Color.rgb(28,39,48),Color.rgb(44,61,74),Color.rgb(234,132,88),11,96,1,0,47,0};
+            case 218: return new int[]{Color.rgb(246,216,236),Color.rgb(225,220,248),Color.rgb(198,118,214),14,96,1,1,48,0};
+            case 219: return new int[]{Color.rgb(251,247,238),Color.rgb(242,234,250),Color.rgb(232,124,166),13,96,1,1,49,0};
 
             default:
                 return stylePackSpec(100);
@@ -6694,6 +6821,16 @@ public class SettingsActivity extends Activity {
             case 207: return "Obsidian Rose Velvet";
             case 208: return "Deep Space Crescent";
             case 209: return "Espresso Gold Noir";
+            case 210: return "Carved Walnut Woodcraft";
+            case 211: return "Sakura Linen Relief";
+            case 212: return "Crystal Tide Diorama";
+            case 213: return "Cream Boba Kawaii";
+            case 214: return "Obsidian Weather 3D";
+            case 215: return "Hydrangea Slate Garden";
+            case 216: return "Pastel Glaze Drip";
+            case 217: return "Ukiyo Wave Ceramic";
+            case 218: return "Fluffy Pastel Cloud";
+            case 219: return "Marshmallow Sky Bakery";
             default: return "Aesthetic Theme";
         }
     }
@@ -6733,6 +6870,16 @@ public class SettingsActivity extends Activity {
             case 207: return "Velvet obsidian plum gradient with crisp rose-gold heart accents";
             case 208: return "Smooth deep navy gradient with moonlit star and cloud decals";
             case 209: return "Warm dark espresso keys with gilded butterfly and star accents";
+            case 210: return "Carved walnut wood-grain 3D keys on warm wooden shelves with timber leaf decals";
+            case 211: return "Sculpted sakura cherry-blossom linen keys on an espresso tray";
+            case 212: return "Crystal resin ocean & beach diorama keys with starfish and coastal shell decals";
+            case 213: return "Glazed cream ceramic keys on an engraved pastel tray with kawaii paw decals";
+            case 214: return "Sculpted 3D obsidian keys over starry night skies with golden weather decals";
+            case 215: return "Velvet slate pebble keys framed in midnight foliage with hydrangea flower decals";
+            case 216: return "Glossy melted pastel glaze keys over vintage bronze with icing drip decals";
+            case 217: return "Ukiyo-e indigo wave ceramic keys with terracotta sunset keys and wave decals";
+            case 218: return "Plush pastel rainbow fur keys over bokeh cloud skies with sleepy moon decals";
+            case 219: return "Squishy marshmallow pastel keys on star-and-cloud mats with happy cloud decals";
             default: return "KeyKii clean aesthetic theme";
         }
     }
@@ -6752,16 +6899,20 @@ public class SettingsActivity extends Activity {
             case 201:
             case 202:
             case 206:
+            case 210:
+            case 212:
+            case 214:
+            case 219:
                 return false;
 
             default:
-                return (pack>=100 && pack<=119) || (pack>=200 && pack<=209);
+                return (pack>=100 && pack<=119) || (pack>=200 && pack<=219);
         }
     }
 
     private int stylePackPricePeso(int pack) {
         if(!stylePackPro(pack)) return 0;
-        if(pack>=200 && pack<=209) return 19;
+        if(pack>=200 && pack<=219) return 19;
         return NeoThemeCatalog.PRICE_REGULAR;
     }
 
@@ -6805,6 +6956,16 @@ public class SettingsActivity extends Activity {
             case 207: return R.drawable.theme_motif_heart;
             case 208: return R.drawable.theme_motif_moonstar;
             case 209: return R.drawable.theme_motif_butterfly;
+            case 210: return R.drawable.theme_motif_210;
+            case 211: return R.drawable.theme_motif_211;
+            case 212: return R.drawable.theme_motif_212;
+            case 213: return R.drawable.theme_motif_213;
+            case 214: return R.drawable.theme_motif_214;
+            case 215: return R.drawable.theme_motif_215;
+            case 216: return R.drawable.theme_motif_216;
+            case 217: return R.drawable.theme_motif_217;
+            case 218: return R.drawable.theme_motif_218;
+            case 219: return R.drawable.theme_motif_219;
         }
 
         return 0;
@@ -6895,6 +7056,67 @@ public class SettingsActivity extends Activity {
             int pack,
             String value
     ) {
+        if(pack>=210 && pack<=219) {
+            switch(pack) {
+                case 210:
+                    if(value.equals("w") || value.equals("s") || value.equals("KeyKii"))
+                        return R.drawable.theme_motif_210;
+                    if(value.equals("p")) return R.drawable.theme_motif_leaf;
+                    return 0;
+                case 211:
+                    if(value.equals("1") || value.equals("q") || value.equals("f") || value.equals("p") || value.equals("KeyKii"))
+                        return R.drawable.theme_motif_211;
+                    if(value.equals("5")) return R.drawable.theme_motif_flower;
+                    return 0;
+                case 212:
+                    if(value.equals("2") || value.equals("s") || value.equals("w") || value.equals("0") || value.equals("KeyKii"))
+                        return R.drawable.theme_motif_212;
+                    if(value.equals("m")) return R.drawable.theme_motif_bubble;
+                    return 0;
+                case 213:
+                    if(value.equals("1") || value.equals("3") || value.equals("5") || value.equals("7") || value.equals("9"))
+                        return R.drawable.theme_motif_213;
+                    if(value.equals("a")) return R.drawable.theme_motif_cloud;
+                    if(value.equals("f")) return R.drawable.theme_motif_flower;
+                    if(value.equals("KeyKii")) return R.drawable.theme_motif_heart;
+                    return 0;
+                case 214:
+                    if(value.equals("q") || value.equals("w") || value.equals("o") || value.equals("c"))
+                        return R.drawable.theme_motif_214;
+                    if(value.equals("i") || value.equals("k")) return R.drawable.theme_motif_moonstar;
+                    if(value.equals("KeyKii")) return R.drawable.theme_motif_star;
+                    return 0;
+                case 215:
+                    if(value.equals("1") || value.equals("q") || value.equals("e") || value.equals("p") || value.equals("g") || value.equals("KeyKii"))
+                        return R.drawable.theme_motif_215;
+                    if(value.equals("0")) return R.drawable.theme_motif_leaf;
+                    return 0;
+                case 216:
+                    if(value.equals("2") || value.equals("t") || value.equals("y") || value.equals("g") || value.equals("KeyKii"))
+                        return R.drawable.theme_motif_216;
+                    if(value.equals("5")) return R.drawable.theme_motif_cake;
+                    return 0;
+                case 217:
+                    if(value.equals("w") || value.equals("g") || value.equals("h") || value.equals("0") || value.equals("KeyKii"))
+                        return R.drawable.theme_motif_217;
+                    if(value.equals("1")) return R.drawable.theme_motif_cloud;
+                    return 0;
+                case 218:
+                    if(value.equals("1") || value.equals("⇧") || value.equals("⌫") || value.equals("KeyKii"))
+                        return R.drawable.theme_motif_218;
+                    if(value.equals("q")) return R.drawable.theme_motif_bunny;
+                    if(value.equals("↵")) return R.drawable.theme_motif_cat;
+                    return 0;
+                case 219:
+                    if(value.equals("1") || value.equals("5") || value.equals("0") || value.equals("a") || value.equals("KeyKii"))
+                        return R.drawable.theme_motif_219;
+                    if(value.equals("q")) return R.drawable.theme_motif_star;
+                    if(value.equals("⌫")) return R.drawable.theme_motif_bubble;
+                    return 0;
+            }
+            return 0;
+        }
+
         boolean left=
                 value.equals("q") ||
                 value.equals("1") ||
@@ -10926,7 +11148,7 @@ public class SettingsActivity extends Activity {
     private String themeName() {
         if(prefs.getInt("theme_surface_mode",0)==2){
             int pack=prefs.getInt("keykii_style_pack",-1);
-            if((pack>=100&&pack<=119)||(pack>=200&&pack<=209))
+            if((pack>=100&&pack<=119)||(pack>=200&&pack<=219))
                 return stylePackName(pack);
         }
 

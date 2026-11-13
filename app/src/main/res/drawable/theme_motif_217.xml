@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <!-- Ukiyo Wave Ceramic: cresting Japanese ocean wave -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M14,76 C14,48 34,20 64,22 C76,23 84,31 82,42 C80,50 70,52 66,44 C64,39 69,34 62,34 C48,34 38,48 44,62 C52,58 66,58 86,70 L86,84 L14,84 Z"/>
+</vector>

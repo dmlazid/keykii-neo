@@ -4605,10 +4605,71 @@ public class KeyKiiService extends InputMethodService {
             );
 
         if(
-            !((pack>=100 && pack<=119) || (pack>=200 && pack<=209)) ||
+            !((pack>=100 && pack<=119) || (pack>=200 && pack<=219)) ||
             action==null ||
             action.isEmpty()
         ) {
+            return 0;
+        }
+
+        if(pack>=210 && pack<=219) {
+            switch(pack) {
+                case 210:
+                    if(action.equals("w") || action.equals("s") || action.equals("SPACE"))
+                        return R.drawable.theme_motif_210;
+                    if(action.equals("p")) return R.drawable.theme_motif_leaf;
+                    return 0;
+                case 211:
+                    if(action.equals("1") || action.equals("q") || action.equals("f") || action.equals("p") || action.equals("SPACE"))
+                        return R.drawable.theme_motif_211;
+                    if(action.equals("5")) return R.drawable.theme_motif_flower;
+                    return 0;
+                case 212:
+                    if(action.equals("2") || action.equals("s") || action.equals("w") || action.equals("0") || action.equals("SPACE"))
+                        return R.drawable.theme_motif_212;
+                    if(action.equals("m")) return R.drawable.theme_motif_bubble;
+                    return 0;
+                case 213:
+                    if(action.equals("1") || action.equals("3") || action.equals("5") || action.equals("7") || action.equals("9"))
+                        return R.drawable.theme_motif_213;
+                    if(action.equals("a")) return R.drawable.theme_motif_cloud;
+                    if(action.equals("f")) return R.drawable.theme_motif_flower;
+                    if(action.equals("SPACE")) return R.drawable.theme_motif_heart;
+                    return 0;
+                case 214:
+                    if(action.equals("q") || action.equals("w") || action.equals("o") || action.equals("c"))
+                        return R.drawable.theme_motif_214;
+                    if(action.equals("i") || action.equals("k")) return R.drawable.theme_motif_moonstar;
+                    if(action.equals("SPACE")) return R.drawable.theme_motif_star;
+                    return 0;
+                case 215:
+                    if(action.equals("1") || action.equals("q") || action.equals("e") || action.equals("p") || action.equals("g") || action.equals("SPACE"))
+                        return R.drawable.theme_motif_215;
+                    if(action.equals("0")) return R.drawable.theme_motif_leaf;
+                    return 0;
+                case 216:
+                    if(action.equals("2") || action.equals("t") || action.equals("y") || action.equals("g") || action.equals("SPACE"))
+                        return R.drawable.theme_motif_216;
+                    if(action.equals("5")) return R.drawable.theme_motif_cake;
+                    return 0;
+                case 217:
+                    if(action.equals("w") || action.equals("g") || action.equals("h") || action.equals("0") || action.equals("SPACE"))
+                        return R.drawable.theme_motif_217;
+                    if(action.equals("1")) return R.drawable.theme_motif_cloud;
+                    return 0;
+                case 218:
+                    if(action.equals("1") || action.equals("SHIFT") || action.equals("BACK") || action.equals("SPACE"))
+                        return R.drawable.theme_motif_218;
+                    if(action.equals("q")) return R.drawable.theme_motif_bunny;
+                    if(action.equals("ENTER")) return R.drawable.theme_motif_cat;
+                    return 0;
+                case 219:
+                    if(action.equals("1") || action.equals("5") || action.equals("0") || action.equals("a") || action.equals("SPACE"))
+                        return R.drawable.theme_motif_219;
+                    if(action.equals("q")) return R.drawable.theme_motif_star;
+                    if(action.equals("BACK")) return R.drawable.theme_motif_bubble;
+                    return 0;
+            }
             return 0;
         }
 
@@ -4768,6 +4829,16 @@ public class KeyKiiService extends InputMethodService {
             case 207: return R.drawable.theme_motif_heart;
             case 208: return R.drawable.theme_motif_moonstar;
             case 209: return R.drawable.theme_motif_butterfly;
+            case 210: return R.drawable.theme_motif_210;
+            case 211: return R.drawable.theme_motif_211;
+            case 212: return R.drawable.theme_motif_212;
+            case 213: return R.drawable.theme_motif_213;
+            case 214: return R.drawable.theme_motif_214;
+            case 215: return R.drawable.theme_motif_215;
+            case 216: return R.drawable.theme_motif_216;
+            case 217: return R.drawable.theme_motif_217;
+            case 218: return R.drawable.theme_motif_218;
+            case 219: return R.drawable.theme_motif_219;
         }
 
         return 0;
@@ -15370,15 +15441,16 @@ public class KeyKiiService extends InputMethodService {
 
         panel.setForeground(null);
 
-        if(decorStyle>0) {
+        if(decorStyle>0 || (stylePack>=210 && stylePack<=219)) {
             android.graphics.drawable.Drawable themeArt;
 
             if(
-                decorStyle>=20 &&
+                (decorStyle>=20 &&
                 decorStyle<=39 &&
                 stylePack>=100 &&
                 stylePack<=119 &&
-                stylePack!=116
+                stylePack!=116) ||
+                (stylePack>=210 && stylePack<=219)
             ) {
                 themeArt=
                     new ThemeSceneDrawable(
@@ -17271,6 +17343,30 @@ public class KeyKiiService extends InputMethodService {
             case 157:
                 result=assetKeyboardTypeface("fonts/comfortaa.ttf");
                 break;
+            case 158:
+                result=assetKeyboardTypeface("fonts/syne.ttf");
+                break;
+            case 159:
+                result=assetKeyboardTypeface("fonts/outfit.ttf");
+                break;
+            case 160:
+                result=assetKeyboardTypeface("fonts/cormorant_garamond.ttf");
+                break;
+            case 161:
+                result=assetKeyboardTypeface("fonts/sacramento.ttf");
+                break;
+            case 162:
+                result=assetKeyboardTypeface("fonts/plus_jakarta_sans.ttf");
+                break;
+            case 163:
+                result=assetKeyboardTypeface("fonts/bricolage_grotesque.ttf");
+                break;
+            case 164:
+                result=assetKeyboardTypeface("fonts/sora.ttf");
+                break;
+            case 165:
+                result=assetKeyboardTypeface("fonts/dm_serif_display.ttf");
+                break;
             default:
                 result=android.graphics.Typeface.create(
                     "sans-serif",
@@ -17310,7 +17406,10 @@ public class KeyKiiService extends InputMethodService {
                 MODE_PRIVATE
             );
         int pack=p.getInt("keykii_style_pack",-1);
-        if(p.getInt("theme_surface_mode",0)==2 && pack>=200 && pack<=209) {
+        if(p.getInt("theme_surface_mode",0)==2 && pack>=200 && pack<=219) {
+            if(pack==214) return Color.rgb(247,223,164);
+            if(pack==210 || pack==215 || pack==217) return Color.WHITE;
+            if(pack>=211 && pack<=219) return Color.rgb(37,33,46);
             return theme==1
                 ? Color.rgb(37,33,46)
                 : Color.WHITE;
@@ -17428,7 +17527,7 @@ public class KeyKiiService extends InputMethodService {
         if(
             getSharedPreferences("keykii_prefs",MODE_PRIVATE).getInt("theme_surface_mode",0)==2 &&
             activeIllustratedPack>=200 &&
-            activeIllustratedPack<=209
+            activeIllustratedPack<=219
         ) {
             return cleanGradientThemeKeyBackground(
                 activeIllustratedPack,
@@ -18065,6 +18164,16 @@ public class KeyKiiService extends InputMethodService {
             case 207: return new int[]{0xFF342330,0xFF241921,0xFF522F45,0xFF32202C,0x55F27CA7,0x88F27CA7};
             case 208: return new int[]{0xFF1E2C47,0xFF162035,0xFF294069,0xFF1D2B46,0x5574B6FF,0x8874B6FF};
             case 209: return new int[]{0xFF312822,0xFF221C18,0xFF4B3B2B,0xFF2D241D,0x55E7B773,0x88E7B773};
+            case 210: return new int[]{0xFF9C663F,0xFF6E4325,0xFF4D87F7,0xFF2D62D4,0x88E2B080,0xAAFFFFFF};
+            case 211: return new int[]{0xFFFBE1E6,0xFFEDE2D6,0xFFD9C6D6,0xFFB9CEE3,0xFFFFFFFF,0x99F39EB4};
+            case 212: return new int[]{0xFFF4E6CF,0xFFCFEAF2,0xFF4E97B8,0xFF2F7399,0xCCFFFFFF,0xEEFFFFFF};
+            case 213: return new int[]{0xFFFFFBF8,0xFFF6E6DF,0xFFF6DFC4,0xFFECD0E0,0xFFE8CDB8,0xFFFFFFFF};
+            case 214: return new int[]{0xFF24252B,0xFF101116,0xFF333128,0xFF181920,0x88D8B467,0xCCD8B467};
+            case 215: return new int[]{0xFF6B6673,0xFF4A4552,0xFF536DC9,0xFF3B4F9E,0x77D4C6EE,0xAAC7B8F0};
+            case 216: return new int[]{0xFFF9E5DA,0xFFDFEDF5,0xFFD9B2C8,0xFF8ABED6,0xEEFFFFFF,0xFFFFFFFF};
+            case 217: return new int[]{0xFF29415A,0xFF1A2B3E,0xFFE3936B,0xFF355C8C,0x66F5EFE2,0xAAF5EFE2};
+            case 218: return new int[]{0xFFFAD3E0,0xFFD9E6FA,0xFFE7D3FB,0xFFFCEBC8,0xEEFFFFFF,0xFFFFFFFF};
+            case 219: return new int[]{0xFFFBD8E4,0xFFD8F3EA,0xFFE8DBFA,0xFFCFEAFA,0xEEFFFFFF,0xFFFFFFFF};
             default:  return new int[]{0xFFDDD0F4,0xFFFBF8FF,0xFFCAAFE9,0xFFEDE3FA,0xFFFFFFFF,0xFFFFFFFF};
         }
     }
@@ -18082,6 +18191,10 @@ public class KeyKiiService extends InputMethodService {
         int pressedStart=blendThemeColor(normalStart,accentColor(),22);
         int pressedEnd=blendThemeColor(normalEnd,accentColor(),16);
 
+        if(pack>=210 && pack<=219) {
+            return tactile3DKeyBackground(normalStart,normalEnd,pressedStart,pressedEnd,stroke,pack);
+        }
+
         GradientDrawable normal=new GradientDrawable(
             GradientDrawable.Orientation.TL_BR,
             new int[]{normalStart,normalEnd}
@@ -18095,6 +18208,61 @@ public class KeyKiiService extends InputMethodService {
         );
         pressed.setCornerRadius(dp(keyCornerRadius()));
         pressed.setStroke(dp(1),stroke);
+
+        StateListDrawable state=new StateListDrawable();
+        state.addState(new int[]{android.R.attr.state_pressed},pressed);
+        state.addState(new int[]{},normal);
+        return state;
+    }
+
+    StateListDrawable tactile3DKeyBackground(
+        int normalStart,
+        int normalEnd,
+        int pressedStart,
+        int pressedEnd,
+        int stroke,
+        int pack
+    ) {
+        int radius=dp(keyCornerRadius());
+        int skirtColor=blendThemeColor(normalEnd,Color.BLACK,pack==214 ? 65 : 34);
+        int shineColor=(pack==214) ? Color.argb(46,247,219,160) : Color.argb(72,255,255,255);
+
+        GradientDrawable normalSkirt=new GradientDrawable();
+        normalSkirt.setColor(skirtColor);
+        normalSkirt.setCornerRadius(radius);
+
+        GradientDrawable normalFace=new GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            new int[]{normalStart,normalEnd}
+        );
+        normalFace.setCornerRadius(radius);
+        normalFace.setStroke(dp(1),stroke);
+
+        GradientDrawable normalShine=new GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            new int[]{shineColor,Color.TRANSPARENT}
+        );
+        normalShine.setCornerRadius(radius);
+
+        android.graphics.drawable.LayerDrawable normal=new android.graphics.drawable.LayerDrawable(
+            new android.graphics.drawable.Drawable[]{normalSkirt,normalFace,normalShine}
+        );
+        normal.setLayerInset(0,0,dp(2),0,0);
+        normal.setLayerInset(1,0,0,0,dp(3));
+        normal.setLayerInset(2,dp(2),dp(1),dp(2),dp(12));
+
+        GradientDrawable pressedFace=new GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            new int[]{pressedStart,pressedEnd}
+        );
+        pressedFace.setCornerRadius(radius);
+        pressedFace.setStroke(dp(1),stroke);
+
+        android.graphics.drawable.LayerDrawable pressed=new android.graphics.drawable.LayerDrawable(
+            new android.graphics.drawable.Drawable[]{normalSkirt,pressedFace}
+        );
+        pressed.setLayerInset(0,0,dp(2),0,0);
+        pressed.setLayerInset(1,0,dp(2),0,dp(1));
 
         StateListDrawable state=new StateListDrawable();
         state.addState(new int[]{android.R.attr.state_pressed},pressed);

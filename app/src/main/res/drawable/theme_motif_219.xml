@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <!-- Marshmallow Sky Bakery: puffy kawaii cloud & twinkling star -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M34,34 C41,26 55,26 62,34 C66,38 69,43 70,48 C80,48 88,55 88,64 C88,74 80,80 68,80 L28,80 C18,80 12,73 12,64 C12,55 19,48 28,48 C29,43 31,38 34,34 Z M76,14 L79,22 L87,25 L79,28 L76,36 L73,28 L65,25 L73,22 Z"/>
+</vector>

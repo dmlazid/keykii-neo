@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/** JVM unit tests verifying the 30 active themes, 6 new fonts, and keyboard layout geometry. */
+/** JVM unit tests verifying the 40 active themes, 14 bundled new fonts, and keyboard layout geometry. */
 public final class ThemeAndFontCatalogTest {
 
     @Test
@@ -22,28 +22,41 @@ public final class ThemeAndFontCatalogTest {
     }
 
     @Test
-    public void exactlyThirtyThemesAreActiveWithExpectedTiers() {
+    public void exactlyFortyThemesAreActiveWithExpectedTiers() {
         int activeCount = 0;
         for (int p = 0; p <= 1600; p++) {
-            boolean expected = (p >= 100 && p <= 119) || (p >= 200 && p <= 209);
+            boolean expected = (p >= 100 && p <= 119) || (p >= 200 && p <= 219);
             assertEquals("Pack " + p + " membership mismatch", expected, KeyKiiThemeCollection.isThemePack(p));
             if (expected) {
                 activeCount++;
                 boolean expectedFree =
                         p == 100 || p == 102 || p == 106 || p == 108 || p == 113 || p == 117
-                        || p == 200 || p == 201 || p == 202 || p == 206;
+                        || p == 200 || p == 201 || p == 202 || p == 206
+                        || p == 210 || p == 212 || p == 214 || p == 219;
                 assertEquals("Tier mismatch for pack " + p, !expectedFree, KeyKiiAccess.themeNeedsAccess(p));
             }
         }
-        assertEquals(30, activeCount);
+        assertEquals(40, activeCount);
     }
 
     @Test
-    public void sixNewFontsHaveExpectedAccessTiers() {
+    public void bundledNewFontsHaveExpectedAccessTiers() {
         for (int style = 152; style <= 154; style++) {
             assertFalse("New font " + style + " should be free", KeyKiiAccess.fontNeedsAccess(style));
         }
         for (int style = 155; style <= 157; style++) {
+            assertTrue("New font " + style + " should require Pro access", KeyKiiAccess.fontNeedsAccess(style));
+        }
+        for (int style = 158; style <= 159; style++) {
+            assertFalse("New font " + style + " should be free", KeyKiiAccess.fontNeedsAccess(style));
+        }
+        for (int style = 160; style <= 161; style++) {
+            assertTrue("New font " + style + " should require Pro access", KeyKiiAccess.fontNeedsAccess(style));
+        }
+        for (int style = 162; style <= 163; style++) {
+            assertFalse("New font " + style + " should be free", KeyKiiAccess.fontNeedsAccess(style));
+        }
+        for (int style = 164; style <= 165; style++) {
             assertTrue("New font " + style + " should require Pro access", KeyKiiAccess.fontNeedsAccess(style));
         }
     }

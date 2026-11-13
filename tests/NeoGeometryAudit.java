@@ -12,8 +12,8 @@ import java.util.regex.Pattern;
  * Host regression gate for KeyKii Neo:
  * - Verifies keyboard layout geometry across 48 profiles, 11 editions, 10 languages, 3 modes
  * - Verifies 512 bulk Neo packs & 120-139 bulk illustrated packs remain removed
- * - Verifies all 30 active themes (100-119 original + 200-209 clean gradient)
- * - Verifies all 6 new stylish font assets (152-157) and shop metadata
+ * - Verifies all 40 active themes (100-119 original + 200-219 clean/3D tactile)
+ * - Verifies all 14 new stylish font assets (152-165) and shop metadata
  */
 public final class NeoGeometryAudit {
     static void check(boolean ok, String message) {
@@ -69,38 +69,48 @@ public final class NeoGeometryAudit {
                 "IllustratedThemeAssets.isNewPack must return false");
 
         String collection = readText(root.resolve("app/src/main/java/com/keykii/neo/KeyKiiThemeCollection.java"));
-        check(collection.contains("(pack>=100&&pack<=119)||(pack>=200&&pack<=209)"),
-                "KeyKiiThemeCollection.isThemePack must allow only 100-119 and 200-209");
+        check(collection.contains("(pack>=100&&pack<=119)||(pack>=200&&pack<=219)"),
+                "KeyKiiThemeCollection.isThemePack must allow only 100-119 and 200-219");
 
         String access = readText(root.resolve("app/src/main/java/com/keykii/neo/KeyKiiAccess.java"));
-        check(access.contains("(pack>=100&&pack<=119)||(pack>=200&&pack<=209)"),
-                "KeyKiiAccess.themeNeedsAccess must match 30 active themes");
-        check(access.contains("(style>=155&&style<=157)"),
-                "KeyKiiAccess.fontNeedsAccess must include 155-157 PRO tier fonts");
+        check(access.contains("(pack>=100&&pack<=119)||(pack>=200&&pack<=219)"),
+                "KeyKiiAccess.themeNeedsAccess must match 40 active themes");
+        check(access.contains("(style>=155&&style<=157)") && access.contains("(style>=160&&style<=161)") && access.contains("(style>=164&&style<=165)"),
+                "KeyKiiAccess.fontNeedsAccess must include 155-157, 160-161, and 164-165 PRO tier fonts");
 
         String settings = readText(root.resolve("app/src/main/java/com/keykii/neo/SettingsActivity.java"));
         check(!settings.contains("512 new theme compositions"),
                 "SettingsActivity must not reference removed 512 new theme compositions");
-        check(settings.contains("30 themes total"),
-                "SettingsActivity Theme Shop banner must report 30 themes total");
+        check(settings.contains("KeyKii Theme Shop: 10 NEW Themes Added!"),
+                "SettingsActivity Theme Shop banner must announce 10 NEW Themes Added!");
+        check(settings.contains("40 themes total") && settings.contains("of 40 themes"),
+                "SettingsActivity Theme Shop must report 40 themes total");
 
         for (int p = 100; p <= 119; p++) {
             check(settings.contains("case " + p + ":"), "Original theme missing in SettingsActivity: " + p);
         }
-        for (int p = 200; p <= 209; p++) {
-            check(settings.contains("case " + p + ":"), "Clean gradient theme missing in SettingsActivity: " + p);
+        for (int p = 200; p <= 219; p++) {
+            check(settings.contains("case " + p + ":"), "Clean gradient/studio theme missing in SettingsActivity: " + p);
+        }
+        for (int p = 210; p <= 219; p++) {
+            Path motif = root.resolve("app/src/main/res/drawable").resolve("theme_motif_" + p + ".xml");
+            check(Files.isRegularFile(motif), "Missing vector motif drawable: " + motif);
         }
 
         String service = readText(root.resolve("app/src/main/java/com/keykii/neo/KeyKiiService.java"));
         String[] newFontFiles = {
                 "quicksand.ttf", "playfair_display.ttf", "space_grotesk.ttf",
-                "righteous.ttf", "dancing_script.ttf", "comfortaa.ttf"
+                "righteous.ttf", "dancing_script.ttf", "comfortaa.ttf",
+                "syne.ttf", "outfit.ttf", "cormorant_garamond.ttf", "sacramento.ttf",
+                "plus_jakarta_sans.ttf", "bricolage_grotesque.ttf", "sora.ttf", "dm_serif_display.ttf"
         };
         String[] newFontNames = {
                 "Quicksand", "Playfair Display", "Space Grotesk",
-                "Righteous", "Dancing Script", "Comfortaa"
+                "Righteous", "Dancing Script", "Comfortaa",
+                "Syne", "Outfit", "Cormorant Garamond", "Sacramento",
+                "Plus Jakarta Sans", "Bricolage Grotesque", "Sora", "DM Serif Display"
         };
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < newFontFiles.length; i++) {
             int styleId = 152 + i;
             String file = newFontFiles[i];
             String name = newFontNames[i];
@@ -130,10 +140,10 @@ public final class NeoGeometryAudit {
         String[] langs = {"en-US", "en-GB", "fil", "ceb", "es", "fr", "de", "tr", "pt", "it"};
 
         // Audit active theme geometry profile (family 0, composition 0) and all 48 geometry profiles x 11 editions.
-        int[] activeThemes = new int[30];
+        int[] activeThemes = new int[40];
         for (int i = 0; i < 20; i++) activeThemes[i] = 100 + i;
-        for (int i = 0; i < 10; i++) activeThemes[20 + i] = 200 + i;
-        check(activeThemes.length == 30, "Expected 30 active themes");
+        for (int i = 0; i < 20; i++) activeThemes[20 + i] = 200 + i;
+        check(activeThemes.length == 40, "Expected 40 active themes");
 
         for (int pack = 0; pack < NeoGeometry.FAMILY_COUNT * 11; pack++) {
             for (String language : langs) {
@@ -173,6 +183,6 @@ public final class NeoGeometryAudit {
             }
         }
         check(layouts.size() >= NeoGeometry.FAMILY_COUNT, "Expected distinct layout profiles");
-        System.out.println("PASS: 30 themes (100-119, 200-209), 6 new fonts (152-157), and " + checks + " keyboard geometry configurations verified (" + layouts.size() + " distinct layouts).");
+        System.out.println("PASS: 40 themes (100-119, 200-219), 14 bundled new fonts (152-165), and " + checks + " keyboard geometry configurations verified (" + layouts.size() + " distinct layouts).");
     }
 }

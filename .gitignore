@@ -3,3 +3,4 @@ keykii-release.jks
 local.properties
 build/
 .gradle/
+.playwright-cli/

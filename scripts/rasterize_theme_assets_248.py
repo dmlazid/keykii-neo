@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Verify active KeyKii theme motifs and font assets (30 themes + 6 new fonts).
+"""Verify active KeyKii theme motifs and font assets (40 themes + 14 bundled fonts).
 
 Note: Bulk illustrated packs (120-139) and the 512 Neo packs (1000-1511) were
 removed, so this script validates the active 20 original themes (100-119),
-10 clean gradient themes (200-209), their vector motif drawables, and the
-6 new bundled TTF fonts (152-157) without regenerating deleted bulk art.
+20 clean/3D tactile themes (200-219), their vector motif drawables, and the
+14 bundled stylish TTF fonts (152-165) without regenerating deleted bulk art.
 """
 from pathlib import Path
 import sys
@@ -21,6 +21,14 @@ REQUIRED_NEW_FONTS = (
     "righteous.ttf",
     "dancing_script.ttf",
     "comfortaa.ttf",
+    "syne.ttf",
+    "outfit.ttf",
+    "cormorant_garamond.ttf",
+    "sacramento.ttf",
+    "plus_jakarta_sans.ttf",
+    "bricolage_grotesque.ttf",
+    "sora.ttf",
+    "dm_serif_display.ttf",
 )
 
 REQUIRED_MOTIFS = (
@@ -44,6 +52,16 @@ REQUIRED_MOTIFS = (
     "theme_motif_snow.xml",
     "theme_motif_star.xml",
     "theme_motif_strawberry.xml",
+    "theme_motif_210.xml",
+    "theme_motif_211.xml",
+    "theme_motif_212.xml",
+    "theme_motif_213.xml",
+    "theme_motif_214.xml",
+    "theme_motif_215.xml",
+    "theme_motif_216.xml",
+    "theme_motif_217.xml",
+    "theme_motif_218.xml",
+    "theme_motif_219.xml",
 )
 
 VALID_SFNT_HEADERS = (b"\x00\x01\x00\x00", b"OTTO", b"true")
@@ -80,7 +98,7 @@ def main() -> int:
 
     print(
         f"Verified {len(REQUIRED_MOTIFS)} theme motif drawables and "
-        f"{len(REQUIRED_NEW_FONTS)} new font assets for the 30 active KeyKii themes."
+        f"{len(REQUIRED_NEW_FONTS)} bundled font assets for the 40 active KeyKii themes."
     )
     return 0
 

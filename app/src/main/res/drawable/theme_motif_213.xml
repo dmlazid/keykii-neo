@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <!-- Cream Boba Kawaii: raised 3D kitty paw print -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M24,42 A8,10 0,1 1,23.9,42 Z M41,28 A8,10 0,1 1,40.9,28 Z M61,28 A8,10 0,1 1,60.9,28 Z M77,42 A8,10 0,1 1,76.9,42 Z M50,48 C34,48 25,62 28,76 C30,85 40,88 50,86 C60,88 70,85 72,76 C75,62 66,48 50,48 Z"/>
+</vector>

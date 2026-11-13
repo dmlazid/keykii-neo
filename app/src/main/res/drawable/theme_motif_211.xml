@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <!-- Sakura Linen Relief: 5-petal embroidered cherry blossom -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M50,10 C59,12 63,25 54,37 C66,28 80,31 82,42 C84,52 72,58 58,52 C70,63 73,77 63,83 C54,89 44,80 48,64 C39,79 27,85 20,76 C13,68 20,56 35,51 C20,50 12,41 16,30 C21,20 35,23 44,36 C39,23 42,10 50,10 Z"/>
+</vector>

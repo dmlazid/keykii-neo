@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <!-- Obsidian Weather 3D: raised 3D sun-cloud & crescent weather emblem -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M62,16 A16,16 0,1 1,61.9,16 Z M28,44 C32,34 44,30 55,34 C60,36 64,40 66,45 C76,45 84,52 84,62 C84,72 76,78 65,78 L28,78 C18,78 12,71 12,62 C12,53 19,45 28,44 Z"/>
+</vector>

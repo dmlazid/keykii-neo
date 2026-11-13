@@ -43,6 +43,137 @@ function loadMotifSvgs() {
 }
 
 const THEMES = [
+  {
+    id: 210, group: 'new', tactile: true, name: 'Carved Walnut Woodcraft',
+    sub: 'Carved walnut wood-grain 3D keys on warm wooden shelves with timber leaf decals',
+    tier: 'FREE', dark: true,
+    board: ['#5C341A', '#3A1F0E'],
+    boardCss: 'repeating-linear-gradient(180deg, rgba(36,18,8,0.62) 0 3px, transparent 3px 20%), repeating-linear-gradient(88deg, rgba(228,185,134,0.06) 0 1px, transparent 1px 14px), linear-gradient(135deg, #5C341A, #3A1F0E)',
+    ink: '#FFF7ED', accent: '#F5D2A2',
+    key: ['#9C663F', '#6E4325'], special: ['#825130', '#58341B'], enterBg: ['#4D87F7', '#2D62D4'],
+    keyCycle: [['#9C663F', '#6E4325'], ['#8B5834', '#5F381E'], ['#AA744A', '#7A4C2B']],
+    stroke: 'rgba(226,176,128,0.55)', specialStroke: 'rgba(255,255,255,0.68)', skirt: '#3C2211',
+    decals: { w: '210', s: '210', p: 'leaf', English: '210' },
+    tags: 'new free tactile 3d wood walnut timber forest craft brown'
+  },
+  {
+    id: 211, group: 'new', tactile: true, name: 'Sakura Linen Relief',
+    sub: 'Sculpted sakura cherry-blossom linen keys on an espresso tray',
+    tier: '₱19 • PRO', dark: false,
+    board: ['#382C29', '#221B19'],
+    boardCss: 'radial-gradient(circle at 16% 18%, rgba(255,178,198,0.22), transparent 28%), radial-gradient(circle at 86% 80%, rgba(255,178,198,0.20), transparent 26%), repeating-linear-gradient(45deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 4px), linear-gradient(135deg, #382C29, #221B19)',
+    ink: '#25212E', modInk: '#FFF5F7', accent: '#E86B8B',
+    key: ['#FBE1E6', '#EDE2D6'], special: ['#4A3935', '#2F2320'], enterBg: ['#6DA0EC', '#4A7BD1'], spaceBg: ['#FBF2EC', '#F6D8E0'],
+    keyCycle: [['#FBF2EC', '#EFE2D8'], ['#F8C8D2', '#EEA6B6'], ['#D9E8DE', '#C2D4C9'], ['#CCDCED', '#B2C8DF'], ['#F8E5BE', '#ECD2A0']],
+    stroke: '#FFFFFF', specialStroke: 'rgba(243,158,180,0.62)', skirt: '#BDA8A1',
+    decals: { '1': '211', q: '211', f: '211', p: '211', '5': 'flower', English: '211' },
+    tags: 'new pro tactile 3d sakura floral cherry blossom linen pastel espresso'
+  },
+  {
+    id: 212, group: 'new', tactile: true, name: 'Crystal Tide Diorama',
+    sub: 'Crystal resin ocean & beach diorama keys with starfish and coastal shell decals',
+    tier: 'FREE', dark: false,
+    board: ['#141C24', '#263C4E'],
+    boardCss: 'radial-gradient(circle at 22% 24%, rgba(122,220,242,0.24), transparent 34%), radial-gradient(circle at 78% 76%, rgba(255,232,188,0.18), transparent 32%), linear-gradient(135deg, #172736, #27445B)',
+    boardBorder: '2px solid rgba(212,245,255,0.72)',
+    ink: '#1E2A38', modInk: '#FFFFFF', accent: '#EB704E',
+    key: ['#F4E6CF', '#CFEAF2'], special: ['#4E97B8', '#2F7399'],
+    keyCycle: [['#FCE694', '#F4D078'], ['#F4E6CF', '#E8D5B7'], ['#CFEAF2', '#8CD2E8'], ['#F8A387', '#E37352']],
+    stroke: 'rgba(255,255,255,0.88)', specialStroke: 'rgba(255,255,255,0.92)', skirt: '#5C8EA6',
+    decals: { '2': '212', s: '212', w: '212', '0': '212', m: 'bubble', English: '212' },
+    tags: 'new free tactile 3d ocean beach resin shell starfish crystal diorama'
+  },
+  {
+    id: 213, group: 'new', tactile: true, name: 'Cream Boba Kawaii',
+    sub: 'Glazed cream ceramic keys on an engraved pastel tray with kawaii paw decals',
+    tier: '₱19 • PRO', dark: false,
+    board: ['#F4D4C6', '#FCEBE4'],
+    boardCss: 'radial-gradient(circle at 12px 12px, rgba(214,152,140,0.18) 1.5px, transparent 2px), linear-gradient(135deg, #F4D4C6, #FCEBE4)',
+    boardBgSize: '26px 26px, cover',
+    ink: '#4A3631', accent: '#DE7E8A',
+    key: ['#FFFBF8', '#F6E6DF'], special: ['#F6DFC4', '#ECD0E0'], spaceBg: ['#E8EEF6', '#FBF5F9'],
+    stroke: '#E8CDB8', specialStroke: '#FFFFFF', skirt: '#D7B9AA', doubleRim: '#F6DFC4',
+    decals: { '1': '213', '3': '213', '5': '213', '7': '213', '9': '213', a: 'cloud', f: 'flower', English: 'heart' },
+    tags: 'new pro tactile 3d kawaii boba paw cake cream pastel cute ceramic'
+  },
+  {
+    id: 214, group: 'new', tactile: true, name: 'Obsidian Weather 3D',
+    sub: 'Sculpted 3D obsidian keys over starry night skies with golden weather decals',
+    tier: 'FREE', dark: true,
+    board: ['#0C0E14', '#181B26'],
+    boardCss: 'radial-gradient(circle at 14% 16%, rgba(248,212,132,0.75) 1.5px, transparent 2.5px), radial-gradient(circle at 84% 18%, rgba(255,225,150,0.8) 1.8px, transparent 2.8px), radial-gradient(circle at 48% 86%, rgba(248,212,132,0.6) 1.4px, transparent 2.4px), radial-gradient(circle at 72% 72%, rgba(255,255,255,0.5) 1px, transparent 2px), linear-gradient(135deg, #0C0E14, #181B26)',
+    ink: '#F7DFA4', accent: '#F6C454',
+    key: ['#24252B', '#101116'], special: ['#333128', '#181920'],
+    stroke: 'rgba(216,180,103,0.56)', specialStroke: 'rgba(216,180,103,0.85)', skirt: '#06070A',
+    decals: { q: '214', w: '214', o: '214', c: '214', i: 'moonstar', k: 'moonstar', English: 'star' },
+    tags: 'new free tactile 3d dark obsidian gold weather sun moon cloud night sky'
+  },
+  {
+    id: 215, group: 'new', tactile: true, name: 'Hydrangea Slate Garden',
+    sub: 'Velvet slate pebble keys framed in midnight foliage with hydrangea flower decals',
+    tier: '₱19 • PRO', dark: true,
+    board: ['#1D1B23', '#2E2A38'],
+    boardCss: 'radial-gradient(circle at 12% 18%, rgba(186,158,236,0.22), transparent 34%), radial-gradient(circle at 88% 78%, rgba(138,178,128,0.20), transparent 36%), linear-gradient(135deg, #1D1B23, #2E2A38)',
+    ink: '#FFFFFF', accent: '#BD9AF2',
+    key: ['#6B6673', '#4A4552'], special: ['#536DC9', '#3B4F9E'],
+    stroke: 'rgba(212,198,238,0.48)', specialStroke: 'rgba(199,184,240,0.72)', skirt: '#2B2832',
+    decals: { '1': '215', q: '215', e: '215', p: '215', g: '215', '0': 'leaf', English: '215' },
+    tags: 'new pro tactile 3d floral hydrangea slate botanical dark garden'
+  },
+  {
+    id: 216, group: 'new', tactile: true, name: 'Pastel Glaze Drip',
+    sub: 'Glossy melted pastel glaze keys over vintage bronze with icing drip decals',
+    tier: '₱19 • PRO', dark: false,
+    board: ['#2E2826', '#1C1817'],
+    boardCss: 'radial-gradient(circle at 20% 20%, rgba(248,212,224,0.16), transparent 35%), radial-gradient(circle at 80% 82%, rgba(184,224,238,0.16), transparent 35%), linear-gradient(135deg, #2E2826, #1C1817)',
+    ink: '#25212E', accent: '#EE8EA4',
+    key: ['#F9E5DA', '#DFEDF5'], special: ['#D9B2C8', '#8ABED6'],
+    keyCycle: [['#F9E5DA', '#FCEFD6'], ['#F5D7E4', '#E8D8F5'], ['#DFEDF5', '#D6F2EA']],
+    stroke: '#FFFFFF', specialStroke: '#FFFFFF', skirt: '#9D8C86',
+    decals: { '2': '216', t: '216', y: '216', g: '216', '5': 'cake', English: '216' },
+    tags: 'new pro tactile 3d pastel glaze drip glossy icing dessert minimal'
+  },
+  {
+    id: 217, group: 'new', tactile: true, name: 'Ukiyo Wave Ceramic',
+    sub: 'Ukiyo-e indigo wave ceramic keys with terracotta sunset keys and wave decals',
+    tier: '₱19 • PRO', dark: true,
+    board: ['#1C2730', '#2C3D4A'],
+    boardCss: 'radial-gradient(ellipse at 50% 10%, rgba(232,224,206,0.14), transparent 58%), linear-gradient(135deg, #1C2730, #2C3D4A)',
+    ink: '#FFFFFF', accent: '#EA8458',
+    key: ['#29415A', '#1A2B3E'], special: ['#E3936B', '#355C8C'],
+    sunsetKeys: ['g', 'h', 'j'],
+    stroke: 'rgba(245,239,226,0.45)', specialStroke: 'rgba(245,239,226,0.72)', skirt: '#101B27',
+    decals: { w: '217', g: '217', h: '217', '0': '217', '1': 'cloud', English: '217' },
+    tags: 'new pro tactile 3d ocean wave ukiyo japanese indigo ceramic retro'
+  },
+  {
+    id: 218, group: 'new', tactile: true, name: 'Fluffy Pastel Cloud',
+    sub: 'Plush pastel rainbow fur keys over bokeh cloud skies with sleepy moon decals',
+    tier: '₱19 • PRO', dark: false,
+    board: ['#F6D8EC', '#E1DCF8'],
+    boardCss: 'radial-gradient(circle at 18% 22%, rgba(255,255,255,0.68) 6px, transparent 18px), radial-gradient(circle at 80% 72%, rgba(255,255,255,0.62) 8px, transparent 20px), linear-gradient(135deg, #F6D8EC, #E1DCF8)',
+    boardBorder: '2.5px dashed rgba(255,255,255,0.88)',
+    ink: '#25212E', accent: '#C676D6',
+    key: ['#FAD3E0', '#D9E6FA'], special: ['#E7D3FB', '#FCEBC8'],
+    keyCycle: [['#FAD3E0', '#FCE1EC'], ['#FCEBC8', '#FFF4DC'], ['#D9E6FA', '#E9F2FF'], ['#E7D3FB', '#F3E8FF']],
+    stroke: '#FFFFFF', specialStroke: '#FFFFFF', skirt: '#C8B9DC',
+    decals: { '1': '218', q: 'bunny', '⇧': '218', '⌫': '218', '↵': 'cat', English: '218' },
+    tags: 'new pro tactile 3d plush fur fluffy pastel rainbow cloud moon sleepy'
+  },
+  {
+    id: 219, group: 'new', tactile: true, name: 'Marshmallow Sky Bakery',
+    sub: 'Squishy marshmallow pastel keys on star-and-cloud mats with happy cloud decals',
+    tier: 'FREE', dark: false,
+    board: ['#FBF7EE', '#F2EAFA'],
+    boardCss: 'radial-gradient(circle at 14% 20%, rgba(210,232,250,0.82) 12px, transparent 26px), radial-gradient(circle at 86% 78%, rgba(246,214,232,0.82) 14px, transparent 28px), linear-gradient(135deg, #FBF7EE, #F2EAFA)',
+    ink: '#25212E', accent: '#E87CA6',
+    key: ['#FBD8E4', '#D8F3EA'], special: ['#E8DBFA', '#CFEAFA'],
+    keyCycle: [['#FBD8E4', '#FFEBF2'], ['#FCEBC8', '#FFF5DD'], ['#D8F3EA', '#EBFBF6'], ['#CFEAFA', '#E8F6FF']],
+    stroke: '#FFFFFF', specialStroke: '#FFFFFF', skirt: '#D5C6DF',
+    decals: { '1': '219', '5': '219', '0': '219', a: '219', q: 'star', '⌫': 'bubble', English: '219' },
+    tags: 'new free tactile 3d cute aesthetic dreamy pastel marshmallow cloud star'
+  },
+
   { id: 200, group: 'new', name: 'Purple Lotus Mist', sub: 'Soft lavender gradient keys with crisp corner lotus and butterfly decals', tier: 'FREE', dark: false, board: ['#EDE4FA', '#F8F4FF'], accent: '#8E5CC8', key: ['#DDD0F4', '#FBF8FF'], special: ['#CAAFE9', '#EDE3FA'], stroke: '#FFFFFF', specialStroke: '#FFFFFF', primary: 'lotus', secondary: 'butterfly', space: 'lotus', tags: 'new free cute aesthetic dreamy floral luxury pastel lotus purple' },
   { id: 201, group: 'new', name: 'Sakura Cloud Pastel', sub: 'Pastel sakura cloud gradient with clean corner blossom decals', tier: 'FREE', dark: false, board: ['#FFE6F0', '#FFF7FA'], accent: '#DD6297', key: ['#FAD4E4', '#FFF8FB'], special: ['#F3B7D2', '#FFEAF2'], stroke: '#FFFFFF', specialStroke: '#FFFFFF', primary: 'flower', secondary: 'cherry', space: 'heart', tags: 'new free cute aesthetic floral nature seasonal pink blossom sakura' },
   { id: 202, group: 'new', name: 'Matcha Dew Minimal', sub: 'Fresh matcha pastel keys with delicate leaf and cup accents', tier: 'FREE', dark: false, board: ['#E6F3E4', '#F7FCF6'], accent: '#55985E', key: ['#D2EAD0', '#F7FCF6'], special: ['#B7DCB5', '#E6F4E4'], stroke: '#FFFFFF', specialStroke: '#FFFFFF', primary: 'leaf', secondary: 'flower', space: 'cup', tags: 'new free aesthetic minimal nature floral food green matcha' },
@@ -78,12 +209,20 @@ const THEMES = [
 
 const FONTS = [
   { id: 0, name: 'Default Sans', file: null, badge: 'SYSTEM', isNew: false },
-  { id: 152, name: 'Quicksand', file: 'quicksand.ttf', badge: 'NEW • FREE', isNew: true },
-  { id: 153, name: 'Playfair Display', file: 'playfair_display.ttf', badge: 'NEW • FREE', isNew: true },
-  { id: 154, name: 'Space Grotesk', file: 'space_grotesk.ttf', badge: 'NEW • FREE', isNew: true },
-  { id: 155, name: 'Righteous', file: 'righteous.ttf', badge: 'NEW • PRO', isNew: true },
-  { id: 156, name: 'Dancing Script', file: 'dancing_script.ttf', badge: 'NEW • PRO', isNew: true },
-  { id: 157, name: 'Comfortaa', file: 'comfortaa.ttf', badge: 'NEW • PRO', isNew: true },
+  { id: 162, name: 'Plus Jakarta Sans', file: 'plus_jakarta_sans.ttf', badge: 'NEW • FREE', isNew: true },
+  { id: 163, name: 'Bricolage Grotesque', file: 'bricolage_grotesque.ttf', badge: 'NEW • FREE', isNew: true },
+  { id: 164, name: 'Sora', file: 'sora.ttf', badge: 'NEW • PRO', isNew: true },
+  { id: 165, name: 'DM Serif Display', file: 'dm_serif_display.ttf', badge: 'NEW • PRO', isNew: true },
+  { id: 158, name: 'Syne', file: 'syne.ttf', badge: 'FREE', isNew: false },
+  { id: 159, name: 'Outfit', file: 'outfit.ttf', badge: 'FREE', isNew: false },
+  { id: 160, name: 'Cormorant Garamond', file: 'cormorant_garamond.ttf', badge: 'PRO', isNew: false },
+  { id: 161, name: 'Sacramento', file: 'sacramento.ttf', badge: 'PRO', isNew: false },
+  { id: 152, name: 'Quicksand', file: 'quicksand.ttf', badge: 'FREE', isNew: false },
+  { id: 153, name: 'Playfair Display', file: 'playfair_display.ttf', badge: 'FREE', isNew: false },
+  { id: 154, name: 'Space Grotesk', file: 'space_grotesk.ttf', badge: 'FREE', isNew: false },
+  { id: 155, name: 'Righteous', file: 'righteous.ttf', badge: 'PRO', isNew: false },
+  { id: 156, name: 'Dancing Script', file: 'dancing_script.ttf', badge: 'PRO', isNew: false },
+  { id: 157, name: 'Comfortaa', file: 'comfortaa.ttf', badge: 'PRO', isNew: false },
   { id: 100, name: 'Fredoka', file: 'fredoka.ttf', badge: 'FREE', isNew: false },
   { id: 101, name: 'DynaPuff', file: 'dynapuff.ttf', badge: 'FREE', isNew: false },
   { id: 103, name: 'Patrick Hand', file: 'patrick_hand.ttf', badge: 'FREE', isNew: false },
@@ -153,6 +292,9 @@ function renderHtml() {
     .hero h1 {
       margin: 0 0 6px;
       font-size: 22px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .hero p {
       margin: 0;
@@ -257,29 +399,33 @@ function renderHtml() {
       font-weight: 500;
       cursor: pointer;
       border: 1px solid transparent;
+      box-shadow: 0 1px 3px rgba(36, 26, 46, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.45);
       transition: transform 60ms ease;
       padding: 0;
       background: transparent;
     }
+    .keycap.tactile {
+      box-shadow: 0 3px 0 var(--kskirt, rgba(0,0,0,0.22)), 0 4px 8px rgba(0,0,0,0.16), inset 0 1.5px 0 rgba(255,255,255,0.62);
+    }
     .keycap:active { transform: scale(0.95); }
     .keycap.special { flex: 1.32 1 0; font-size: 13px; }
     .keycap.space { flex: 3.7 1 0; font-size: 13px; }
-    .keycap.plain { background: transparent !important; border-color: transparent !important; }
+    .keycap.plain { background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
     .keycap .decal {
       position: absolute;
       top: 3px;
       right: 3px;
-      width: 12px;
-      height: 12px;
+      width: 15px;
+      height: 15px;
       pointer-events: none;
-      opacity: 0.9;
+      opacity: 0.96;
     }
     .keycap.space .decal {
       top: 50%;
-      right: 10px;
+      right: 12px;
       transform: translateY(-50%);
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
     }
     .inter-decal {
       position: absolute;
@@ -312,8 +458,11 @@ function renderHtml() {
       border: 1px solid var(--border);
       background: #fff;
       border-radius: 12px;
-      padding: 8px 10px;
+      padding: 8px 9px;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
     .font-btn.active {
       border-color: var(--purple);
@@ -321,11 +470,9 @@ function renderHtml() {
     }
     .font-btn .fname {
       display: block;
-      font-size: 13px;
+      font-size: 12.5px;
+      line-height: 1.25;
       color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
     .font-btn .fmeta {
       display: block;
@@ -429,8 +576,11 @@ function renderHtml() {
   <div class="shell">
     <div class="hero">
       <div>
-        <h1>✨ KeyKii Theme Shop</h1>
-        <p>Explore 10 new clean gradient themes and your 20 original uploaded themes (30 themes total), plus 6 new stylish key-label fonts and live corner-decal keyboard preview.</p>
+        <h1>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#7E4EB8" aria-hidden="true"><path d="M12 2L14.3 9.2L21.5 11.5L14.3 13.8L12 21L9.7 13.8L2.5 11.5L9.7 9.2L12 2ZM19 3L19.9 5.6L22.5 6.5L19.9 7.4L19 10L18.1 7.4L15.5 6.5L18.1 5.6L19 3Z"/></svg>
+          <span>KeyKii Theme Shop: 10 NEW Themes Added!</span>
+        </h1>
+        <p>Explore 10 new 3D tactile studio themes, 10 clean gradient themes, and your 20 original uploaded themes (40 themes total), plus 4 new modern fonts and live 3D decal preview.</p>
       </div>
       ${apkSizeMb ? `<a class="apk-btn" href="/download/app-debug.apk" download="KeyKii-Neo-debug.apk">⬇ Download Debug APK (${apkSizeMb} MB)</a>` : ''}
     </div>
@@ -446,21 +596,22 @@ function renderHtml() {
         <div class="kbd-surface" id="liveKeyboard"></div>
 
         <div class="font-section">
-          <p class="section-label">✦ Key Label Fonts (1,389 Total • 6 New Bundled)</p>
+          <p class="section-label">✦ Key Label Fonts (1,397 Total • 4 New Added)</p>
           <div class="font-grid" id="fontGrid"></div>
         </div>
       </div>
 
       <div>
         <div class="toolbar">
-          <button class="filter-tab active" data-mode="all">All (30)</button>
-          <button class="filter-tab" data-mode="new">✦ New Clean (10)</button>
+          <button class="filter-tab active" data-mode="all">All (40)</button>
+          <button class="filter-tab" data-mode="new">✦ New Clean &amp; 3D (20)</button>
           <button class="filter-tab" data-mode="original">Original (20)</button>
           <button class="filter-tab" data-mode="free">Free</button>
           <button class="filter-tab" data-mode="dark">Dark</button>
           <button class="filter-tab" data-mode="floral">Floral</button>
-          <input class="search-input" id="searchInput" type="search" placeholder="Search themes • lotus, blossom, matcha, dark…" />
+          <input class="search-input" id="searchInput" type="search" placeholder="Search themes • wood, weather, ocean, plush, floral, dark…" />
         </div>
+        <p class="section-label" id="themeCounter" style="margin-bottom:10px;">Viewing 40 of 40 themes</p>
         <div class="themes-grid" id="themesGrid"></div>
       </div>
     </div>
@@ -483,14 +634,35 @@ function renderHtml() {
     }
 
     function fontCssFamily(font) {
-      return font.file ? ('"KeyKiiFont' + font.id + '", system-ui, sans-serif') : 'system-ui, -apple-system, sans-serif';
+      return font.file ? ('KeyKiiFont' + font.id + ', system-ui, sans-serif') : 'system-ui, -apple-system, sans-serif';
     }
 
     function stickerFor(theme, label) {
+      if (theme.decals) {
+        return theme.decals[label] || '';
+      }
       if (['1','5','q','⇧'].includes(label)) return theme.primary;
       if (['0','p','⌫'].includes(label)) return theme.secondary;
       if (label === 'English') return theme.space;
       return '';
+    }
+
+    function resolveKeyColors(t, label, idx, isSpace, isSpecial) {
+      let fill = (isSpecial || isSpace) ? t.special : t.key;
+      let ink = t.ink || (t.dark ? '#FFFFFF' : '#25212E');
+      if (isSpecial && t.modInk) ink = t.modInk;
+      if (isSpace && t.modInk && !t.spaceBg) ink = t.modInk;
+      if (label === '↵' && t.enterBg) {
+        fill = t.enterBg;
+        ink = '#FFFFFF';
+      } else if (isSpace && t.spaceBg) {
+        fill = t.spaceBg;
+      } else if (t.sunsetKeys && t.sunsetKeys.includes(label)) {
+        fill = ['#E3936B', '#B86646'];
+      } else if (t.keyCycle && !isSpecial && !isSpace) {
+        fill = t.keyCycle[idx % t.keyCycle.length];
+      }
+      return { fill, ink };
     }
 
     function renderLiveKeyboard() {
@@ -502,8 +674,10 @@ function renderHtml() {
       input.style.fontFamily = fontCssFamily(activeFont);
 
       const board = document.getElementById('liveKeyboard');
-      board.style.background = 'linear-gradient(135deg,' + t.board[0] + ',' + t.board[1] + ')';
-      const ink = t.dark ? '#FFFFFF' : '#25212E';
+      board.style.background = t.boardCss || ('linear-gradient(135deg,' + t.board[0] + ',' + t.board[1] + ')');
+      board.style.backgroundSize = t.boardBgSize || 'cover';
+      board.style.border = t.boardBorder || '1px solid rgba(255,255,255,0.45)';
+
       const rows = [
         ['1','2','3','4','5','6','7','8','9','0'],
         ['q','w','e','r','t','y','u','i','o','p'],
@@ -512,20 +686,25 @@ function renderHtml() {
         ['?123',',','English','.','↵']
       ];
 
+      let keyCounter = 0;
       board.innerHTML = rows.map((row, rIdx) => {
         const rowClass = rIdx === 2 ? 'kbd-row mid' : 'kbd-row';
         const keysHtml = row.map((label) => {
+          const idx = keyCounter++;
           const isSpace = label === 'English';
           const isSpecial = ['⇧','⌫','?123','↵'].includes(label);
-          const isPlain = label === ',' || label === '.';
-          const fill = (isSpecial || isSpace) ? t.special : t.key;
+          const isPlain = !t.tactile && (label === ',' || label === '.');
+          const { fill, ink } = resolveKeyColors(t, label, idx, isSpace, isSpecial);
           const border = (isSpecial || isSpace) ? t.specialStroke : t.stroke;
-          const cls = 'keycap' + (isSpace ? ' space' : isSpecial ? ' special' : '') + (isPlain ? ' plain' : '');
+          const cls = 'keycap' + (t.tactile ? ' tactile' : '') + (isSpace ? ' space' : isSpecial ? ' special' : '') + (isPlain ? ' plain' : '');
           const sticker = stickerFor(t, label);
+          const shadowExtra = t.doubleRim ? (', 0 0 0 2px ' + t.doubleRim) : '';
           const style = [
             'color:' + ink,
             'font-family:' + fontCssFamily(activeFont),
-            isPlain ? '' : 'background:linear-gradient(135deg,' + fill[0] + ',' + fill[1] + ')',
+            t.skirt ? '--kskirt:' + t.skirt : '',
+            (!isPlain && shadowExtra) ? 'box-shadow:0 3px 0 ' + t.skirt + shadowExtra : '',
+            isPlain ? '' : 'background:linear-gradient(145deg,' + fill[0] + ',' + fill[1] + ')',
             isPlain ? '' : 'border-color:' + border
           ].filter(Boolean).join(';');
           return '<button type="button" class="' + cls + '" data-key="' + label + '" style="' + style + '">' +
@@ -535,7 +714,7 @@ function renderHtml() {
         }).join('');
 
         let interDecals = '';
-        if (rIdx === 3 && t.primary) {
+        if (rIdx === 3 && t.primary && !t.decals) {
           interDecals =
             '<span class="inter-decal" style="left:29.5%;color:' + t.accent + '">' + (MOTIFS[t.primary] || '') + '</span>' +
             '<span class="inter-decal" style="left:70.5%;color:' + t.accent + '">' + (MOTIFS[t.primary] || '') + '</span>';
@@ -592,8 +771,9 @@ function renderHtml() {
     function renderThemes() {
       const grid = document.getElementById('themesGrid');
       const items = THEMES.filter(matchesFilter);
+      const counter = document.getElementById('themeCounter');
+      if (counter) counter.textContent = 'Viewing ' + items.length + ' of ' + THEMES.length + ' themes';
       grid.innerHTML = items.map((t) => {
-        const ink = t.dark ? '#FFFFFF' : '#25212E';
         const rows = [
           ['1','2','3','4','5','6','7','8','9','0'],
           ['q','w','e','r','t','y','u','i','o','p'],
@@ -601,14 +781,17 @@ function renderHtml() {
           ['⇧','z','x','c','v','b','n','m','⌫'],
           ['123',',','English','.','↵']
         ];
+        let miniCounter = 0;
         const boardHtml = rows.map((row) =>
           '<div class="mini-row">' + row.map((label) => {
+            const idx = miniCounter++;
             const wide = label === 'English';
             const spec = wide || ['⇧','⌫','123','↵'].includes(label);
-            const fill = spec ? t.special : t.key;
+            const { fill, ink } = resolveKeyColors(t, label, idx, wide, spec && !wide);
             const border = spec ? t.specialStroke : t.stroke;
             const st = stickerFor(t, label);
-            const bgStyle = 'background:linear-gradient(135deg,' + fill[0] + ',' + fill[1] + ');border-color:' + border + ';color:' + ink + ';font-family:' + fontCssFamily(activeFont);
+            const tactileShadow = t.tactile && t.skirt ? (';box-shadow:0 1.5px 0 ' + t.skirt) : '';
+            const bgStyle = 'background:linear-gradient(145deg,' + fill[0] + ',' + fill[1] + ');border-color:' + border + ';color:' + ink + ';font-family:' + fontCssFamily(activeFont) + tactileShadow;
             return '<div class="mini-key' + (wide ? ' wide' : '') + '" style="' + bgStyle + '">' +
               (wide ? 'KeyKii' : label) +
               (st ? motifHtml(st, 'mdecal', t.accent) : '') +
@@ -616,10 +799,13 @@ function renderHtml() {
           }).join('') + '</div>'
         ).join('');
 
+        const miniBoardStyle = 'background:' + (t.boardCss || ('linear-gradient(135deg,' + t.board[0] + ',' + t.board[1] + ')')) +
+          (t.boardBgSize ? ';background-size:' + t.boardBgSize : '') +
+          (t.boardBorder ? ';border:' + t.boardBorder : '');
         return '<button type="button" class="theme-tile' + (t.id === activeTheme.id ? ' active' : '') + '" data-tid="' + t.id + '">' +
-          '<div class="mini-board" style="background:linear-gradient(135deg,' + t.board[0] + ',' + t.board[1] + ')">' + boardHtml + '</div>' +
+          '<div class="mini-board" style="' + miniBoardStyle + '">' + boardHtml + '</div>' +
           '<div class="tile-title">' + t.name + '</div>' +
-          '<div class="tile-tier">' + (t.group === 'new' ? '✦ NEW CLEAN • ' : 'ORIGINAL • ') + t.tier + '</div>' +
+          '<div class="tile-tier">' + (t.tactile ? '✦ 3D TACTILE • ' : t.group === 'new' ? '✦ NEW CLEAN • ' : 'ORIGINAL • ') + t.tier + '</div>' +
           '</button>';
       }).join('');
 

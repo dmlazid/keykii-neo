@@ -24,7 +24,7 @@ final class KeyKiiLookCollection {
     }
 
     private static boolean validPack(int pack){
-        return (pack>=100&&pack<=119)||(pack>=200&&pack<=209);
+        return (pack>=100&&pack<=119)||(pack>=200&&pack<=219);
     }
 
     static ArrayList<Look> all(Context context){

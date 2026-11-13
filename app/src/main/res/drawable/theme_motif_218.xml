@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <!-- Fluffy Pastel Cloud: plush moon & sparkle star -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M56,16 C35,16 18,33 18,54 C18,75 35,88 56,88 C69,88 80,82 86,72 C70,74 56,62 56,46 C56,34 62,23 70,18 C65,17 61,16 56,16 Z M78,24 L82,34 L92,38 L82,42 L78,52 L74,42 L64,38 L74,34 Z"/>
+</vector>

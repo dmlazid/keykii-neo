@@ -42,7 +42,7 @@ final class KeyKiiThemeCollection {
     }
 
     static boolean isThemePack(int pack){
-        return (pack>=100&&pack<=119)||(pack>=200&&pack<=209);
+        return (pack>=100&&pack<=119)||(pack>=200&&pack<=219);
     }
 
     static boolean isFavorite(Context context,int pack){
