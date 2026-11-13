@@ -128,6 +128,45 @@ public final class ThemeAndFontCatalogTest {
         assertFalse(KeyKiiLookCollection.isTactile3dPack(209));
         assertFalse(KeyKiiLookCollection.isTactile3dPack(220));
         assertEquals(0, KeyKiiLookCollection.tactileMotifDrawable(209));
+
+        // Sakura Linen Relief (211): 5-color pastel cycle, espresso modifiers with light ink, blue enter, cream spacebar
+        java.util.HashSet<Integer> sakuraColors = new java.util.HashSet<>();
+        String[] sampleKeys = {"1", "2", "3", "4", "5"};
+        for (int i = 0; i < sampleKeys.length; i++) {
+            int[] style = KeyKiiLookCollection.resolveTactileKeyStyle(211, sampleKeys[i], i, false, false);
+            sakuraColors.add(style[0]);
+            assertEquals(0xFF25212E, style[4]);
+        }
+        assertEquals(5, sakuraColors.size());
+        int[] sakuraShift = KeyKiiLookCollection.resolveTactileKeyStyle(211, "⇧", 29, false, true);
+        assertEquals(0xFF4A3935, sakuraShift[0]);
+        assertEquals(0xFFFFF5F7, sakuraShift[4]);
+        int[] sakuraEnter = KeyKiiLookCollection.resolveTactileKeyStyle(211, "↵", 42, false, true);
+        assertEquals(0xFF6DA0EC, sakuraEnter[0]);
+        assertEquals(0xFFFFFFFF, sakuraEnter[4]);
+        int[] sakuraSpace = KeyKiiLookCollection.resolveTactileKeyStyle(211, "KeyKii", 40, true, false);
+        assertEquals(0xFFFBF2EC, sakuraSpace[0]);
+        assertEquals(0xFF25212E, sakuraSpace[4]);
+
+        // Carved Walnut Woodcraft (210): 3 wood tones, walnut spacebar, blue enter
+        int[] walnutEnter = KeyKiiLookCollection.resolveTactileKeyStyle(210, "ENTER", 42, false, true);
+        assertEquals(0xFF4D87F7, walnutEnter[0]);
+        int[] walnutSpace = KeyKiiLookCollection.resolveTactileKeyStyle(210, "SPACE", 40, true, false);
+        assertEquals(0xFF825130, walnutSpace[0]);
+
+        // Cream Boba Kawaii (213): doubleRim outer bezel
+        int[] bobaKey = KeyKiiLookCollection.resolveTactileKeyStyle(213, "q", 10, false, false);
+        assertEquals(0xFFF6DFC4, bobaKey[5]);
+
+        // Ukiyo Wave Ceramic (217): terracotta sunset keys on g, h, j vs indigo on f
+        assertTrue(KeyKiiLookCollection.isSunsetKey(217, "g"));
+        assertTrue(KeyKiiLookCollection.isSunsetKey(217, "H"));
+        assertFalse(KeyKiiLookCollection.isSunsetKey(217, "f"));
+        int[] ukiyoG = KeyKiiLookCollection.resolveTactileKeyStyle(217, "g", 24, false, false);
+        int[] ukiyoF = KeyKiiLookCollection.resolveTactileKeyStyle(217, "f", 23, false, false);
+        assertEquals(0xFFE3936B, ukiyoG[0]);
+        assertEquals(0xFF29415A, ukiyoF[0]);
+        assertEquals(0xFFFFF3E2, KeyKiiLookCollection.tactileStickerTint(217, "g", 0xFFEA8458));
     }
 
     private static NeoGeometry.Key[] toKeys(String[] labels) {

@@ -4042,11 +4042,38 @@ public class KeyKiiService extends InputMethodService {
               )
             : label;
 
+        boolean space=
+            action.equals("SPACE");
+
+        SharedPreferences keyThemePrefs=
+            getSharedPreferences("keykii_prefs",MODE_PRIVATE);
+        int activeStylePack=
+            keyThemePrefs.getInt("theme_surface_mode",0)==2
+                ? keyThemePrefs.getInt("keykii_style_pack",-1)
+                : -1;
+        boolean tactile3dActive=
+            KeyKiiLookCollection.isTactile3dPack(activeStylePack);
+        boolean keySpecialForStyle=
+            special &&
+            !space &&
+            !"LANG".equals(action);
+
+        int resolvedKeyInk=
+            tactile3dActive
+                ? KeyKiiLookCollection.resolveTactileKeyStyle(
+                        activeStylePack,
+                        action,
+                        KeyKiiLookCollection.keyCycleIndex(action,0),
+                        space,
+                        keySpecialForStyle
+                  )[4]
+                : textColor();
+
         main.setText(shown);
         main.setTextColor(
                 keyboardFontLabelColor(
                         shown,
-                        textColor()
+                        resolvedKeyInk
                 )
         );
         main.setGravity(Gravity.CENTER);
@@ -4077,10 +4104,8 @@ public class KeyKiiService extends InputMethodService {
         else
             main.setTextSize(18);
 
-        boolean space=
-            action.equals("SPACE");
-
         boolean gboardBottomPlain=
+            !tactile3dActive &&
             page==0 &&
             !symbols &&
             (
@@ -4096,7 +4121,8 @@ public class KeyKiiService extends InputMethodService {
         } else {
             box.setBackground(
                 keyBackground(
-                    special,
+                    action,
+                    keySpecialForStyle,
                     space
                 )
             );
@@ -4124,7 +4150,7 @@ public class KeyKiiService extends InputMethodService {
             small.setTextColor(
                 keyboardFontLabelColor(
                         hint,
-                        textColor()
+                        resolvedKeyInk
                 )
             );
 
@@ -4172,7 +4198,11 @@ public class KeyKiiService extends InputMethodService {
                     stickerDrawable.mutate();
 
                 stickerDrawable.setTint(
-                    accentColor()
+                    KeyKiiLookCollection.tactileStickerTint(
+                        activeStylePack,
+                        action,
+                        accentColor()
+                    )
                 );
 
                 sticker.setImageDrawable(
@@ -17436,6 +17466,7 @@ public class KeyKiiService extends InputMethodService {
     }
 
     StateListDrawable keyBackground(
+        String action,
         boolean special,
         boolean space
     ) {
@@ -17537,6 +17568,7 @@ public class KeyKiiService extends InputMethodService {
         ) {
             return cleanGradientThemeKeyBackground(
                 activeIllustratedPack,
+                action,
                 special,
                 space
             );
@@ -18186,9 +18218,37 @@ public class KeyKiiService extends InputMethodService {
 
     StateListDrawable cleanGradientThemeKeyBackground(
         int pack,
+        String action,
         boolean special,
         boolean space
     ) {
+        if(pack>=210 && pack<=219) {
+            int[] tactile=KeyKiiLookCollection.resolveTactileKeyStyle(
+                pack,
+                action,
+                KeyKiiLookCollection.keyCycleIndex(action,0),
+                space,
+                special && !space
+            );
+            int normalStart=tactile[0];
+            int normalEnd=tactile[1];
+            int stroke=tactile[2];
+            int skirtColor=tactile[3];
+            int doubleRim=tactile[5];
+            int pressedStart=blendThemeColor(normalStart,accentColor(),22);
+            int pressedEnd=blendThemeColor(normalEnd,accentColor(),16);
+            return tactile3DKeyBackground(
+                normalStart,
+                normalEnd,
+                pressedStart,
+                pressedEnd,
+                stroke,
+                skirtColor,
+                doubleRim,
+                pack
+            );
+        }
+
         int[] palette=cleanThemeKeyPalette(pack);
         boolean accented=special || space;
         int normalStart=accented ? palette[2] : palette[0];
@@ -18196,10 +18256,6 @@ public class KeyKiiService extends InputMethodService {
         int stroke=accented ? palette[5] : palette[4];
         int pressedStart=blendThemeColor(normalStart,accentColor(),22);
         int pressedEnd=blendThemeColor(normalEnd,accentColor(),16);
-
-        if(pack>=210 && pack<=219) {
-            return tactile3DKeyBackground(normalStart,normalEnd,pressedStart,pressedEnd,stroke,pack);
-        }
 
         GradientDrawable normal=new GradientDrawable(
             GradientDrawable.Orientation.TL_BR,
@@ -18227,11 +18283,12 @@ public class KeyKiiService extends InputMethodService {
         int pressedStart,
         int pressedEnd,
         int stroke,
+        int skirtColor,
+        int doubleRim,
         int pack
     ) {
         int radius=dp(keyCornerRadius());
-        int skirtColor=blendThemeColor(normalEnd,Color.BLACK,pack==214 ? 65 : 34);
-        int shineColor=(pack==214) ? Color.argb(46,247,219,160) : Color.argb(72,255,255,255);
+        int shineColor=(pack==214) ? Color.argb(56,247,219,160) : Color.argb(86,255,255,255);
 
         GradientDrawable normalSkirt=new GradientDrawable();
         normalSkirt.setColor(skirtColor);
@@ -18250,12 +18307,27 @@ public class KeyKiiService extends InputMethodService {
         );
         normalShine.setCornerRadius(radius);
 
-        android.graphics.drawable.LayerDrawable normal=new android.graphics.drawable.LayerDrawable(
-            new android.graphics.drawable.Drawable[]{normalSkirt,normalFace,normalShine}
-        );
-        normal.setLayerInset(0,0,dp(2),0,0);
-        normal.setLayerInset(1,0,0,0,dp(3));
-        normal.setLayerInset(2,dp(2),dp(1),dp(2),dp(12));
+        android.graphics.drawable.LayerDrawable normal;
+        if(doubleRim!=0) {
+            GradientDrawable rim=new GradientDrawable();
+            rim.setColor(Color.TRANSPARENT);
+            rim.setCornerRadius(radius+dp(1));
+            rim.setStroke(dp(2),doubleRim);
+            normal=new android.graphics.drawable.LayerDrawable(
+                new android.graphics.drawable.Drawable[]{normalSkirt,normalFace,normalShine,rim}
+            );
+            normal.setLayerInset(0,0,dp(2),0,0);
+            normal.setLayerInset(1,0,0,0,dp(3));
+            normal.setLayerInset(2,dp(2),dp(1),dp(2),dp(12));
+            normal.setLayerInset(3,0,0,0,0);
+        } else {
+            normal=new android.graphics.drawable.LayerDrawable(
+                new android.graphics.drawable.Drawable[]{normalSkirt,normalFace,normalShine}
+            );
+            normal.setLayerInset(0,0,dp(2),0,0);
+            normal.setLayerInset(1,0,0,0,dp(3));
+            normal.setLayerInset(2,dp(2),dp(1),dp(2),dp(12));
+        }
 
         GradientDrawable pressedFace=new GradientDrawable(
             GradientDrawable.Orientation.TL_BR,

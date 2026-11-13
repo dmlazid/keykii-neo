@@ -5538,10 +5538,16 @@ public class SettingsActivity extends Activity {
         TextView badge=
                 new TextView(this);
 
+        String tierPrefix=
+                (pack>=210 && pack<=219)
+                        ? "✦ 3D TACTILE • "
+                        : ((pack>=200 && pack<=209) ? "✦ NEW CLEAN • " : "");
         badge.setText(
-                stylePackPro(pack)
-                        ? (hasAdAccess() ? premiumAccessBadge() : stylePackPriceLabel(pack)+" • PRO")
-                        : "FREE"
+                tierPrefix+(
+                        stylePackPro(pack)
+                                ? (hasAdAccess() ? premiumAccessBadge() : stylePackPriceLabel(pack)+" • PRO")
+                                : "FREE"
+                )
         );
 
         badge.setTextColor(
@@ -5655,20 +5661,28 @@ public class SettingsActivity extends Activity {
                 );
 
         String[][] rows=
-                (large || cleanPack)
+                cleanPack
                         ? new String[][]{
                             {"1","2","3","4","5","6","7","8","9","0"},
                             {"q","w","e","r","t","y","u","i","o","p"},
                             {"a","s","d","f","g","h","j","k","l"},
                             {"⇧","z","x","c","v","b","n","m","⌫"},
-                            {"123","☺",",","KeyKii",".","↵"}
+                            {"123",",","KeyKii",".","↵"}
                         }
-                        : new String[][]{
-                            {"q","w","e","r","t","y","u","i","o","p"},
-                            {"a","s","d","f","g","h","j","k","l"},
-                            {"⇧","z","x","c","v","b","n","m","⌫"},
-                            {"123","☺",",","KeyKii",".","↵"}
-                        };
+                        : (large
+                            ? new String[][]{
+                                {"1","2","3","4","5","6","7","8","9","0"},
+                                {"q","w","e","r","t","y","u","i","o","p"},
+                                {"a","s","d","f","g","h","j","k","l"},
+                                {"⇧","z","x","c","v","b","n","m","⌫"},
+                                {"123","☺",",","KeyKii",".","↵"}
+                            }
+                            : new String[][]{
+                                {"q","w","e","r","t","y","u","i","o","p"},
+                                {"a","s","d","f","g","h","j","k","l"},
+                                {"⇧","z","x","c","v","b","n","m","⌫"},
+                                {"123","☺",",","KeyKii",".","↵"}
+                            });
 
         int rowHeight=
                 large
@@ -5680,6 +5694,8 @@ public class SettingsActivity extends Activity {
                         ? dp(35)
                         : (cleanPack ? dp(21) : dp(25));
 
+        int keyCounter=0;
+
         for(int r=0;r<rows.length;r++) {
             LinearLayout row=
                     new LinearLayout(this);
@@ -5688,19 +5704,25 @@ public class SettingsActivity extends Activity {
             if(cleanPack) {
                 row.setClipChildren(false);
                 row.setClipToPadding(false);
+                if(r==2) {
+                    int midPad=dp(large ? 13 : 6);
+                    row.setPadding(midPad,0,midPad,0);
+                }
             }
 
             String[] values=rows[r];
 
             for(int k=0;k<values.length;k++) {
                 String value=values[k];
+                int keyIndex=keyCounter++;
+                boolean isSpace=value.equals("KeyKii");
 
                 boolean special=
                         value.equals("⇧") ||
                         value.equals("⌫") ||
                         value.equals("123") ||
                         value.equals("↵") ||
-                        value.equals("KeyKii");
+                        isSpace;
 
                 android.graphics.drawable.Drawable keyBg=
                         previewThemeKeyBackground(
@@ -5709,10 +5731,13 @@ public class SettingsActivity extends Activity {
                                 corner,
                                 dark,
                                 special,
-                                value.equals("KeyKii"),
+                                isSpace,
                                 borders,
                                 spec[4],
-                                pack
+                                pack,
+                                value,
+                                keyIndex,
+                                large
                         );
 
                 int stickerRes=
@@ -5722,12 +5747,14 @@ public class SettingsActivity extends Activity {
                         );
 
                 float weight=
-                        value.equals("KeyKii")
+                        isSpace
                                 ? 3.6f
                                 : (
+                                    value.equals("⇧") ||
+                                    value.equals("⌫") ||
                                     value.equals("123") ||
                                     value.equals("↵")
-                                        ? 1.35f
+                                        ? 1.32f
                                         : 1f
                                   );
 
@@ -5759,11 +5786,21 @@ public class SettingsActivity extends Activity {
                                     : (value.length()>2 ? 4.5f : 6.5f)
                     );
                     key.setTypeface(currentFont);
-                    int keyInkColor = (pack==214)
-                            ? Color.rgb(247,223,164)
-                            : ((pack==210 || pack==215 || pack==217 || dark)
-                                    ? Color.WHITE
-                                    : Color.rgb(37,33,46));
+                    int keyInkColor;
+                    if(pack>=210 && pack<=219) {
+                        int[] tactileStyle=KeyKiiLookCollection.resolveTactileKeyStyle(
+                                pack,
+                                value,
+                                keyIndex,
+                                isSpace,
+                                special && !isSpace
+                        );
+                        keyInkColor=tactileStyle[4];
+                    } else {
+                        keyInkColor=dark
+                                ? Color.WHITE
+                                : Color.rgb(37,33,46);
+                    }
                     key.setTextColor(keyInkColor);
                     keyBox.addView(key,new FrameLayout.LayoutParams(-1,-1));
 
@@ -5771,13 +5808,14 @@ public class SettingsActivity extends Activity {
                         android.graphics.drawable.Drawable sticker=getDrawable(stickerRes);
                         if(sticker!=null) {
                             sticker=sticker.mutate();
-                            sticker.setTint(accent);
+                            sticker.setTint(
+                                    KeyKiiLookCollection.tactileStickerTint(pack,value,accent)
+                            );
                             ImageView icon=new ImageView(this);
                             icon.setImageDrawable(sticker);
                             icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                            icon.setAlpha(0.90f);
-                            boolean isSpace=value.equals("KeyKii");
-                            int sz=dp(isSpace ? (large ? 14 : 9) : (large ? 10 : 6));
+                            icon.setAlpha(0.94f);
+                            int sz=dp(isSpace ? (large ? 15 : 9) : (large ? 11 : 6));
                             FrameLayout.LayoutParams sp=new FrameLayout.LayoutParams(
                                     sz,
                                     sz,
@@ -5974,12 +6012,15 @@ public class SettingsActivity extends Activity {
         TextView badge=
                 new TextView(this);
 
+        String previewPrefix=(pack>=210 && pack<=219) ? "✦ 3D TACTILE • " : "";
         badge.setText(
-                stylePackPro(pack)
-                        ? (hasAdAccess()
-                            ? premiumAccessBadge()+" ACTIVE"
-                            : "KEYKII PRO • "+stylePackPriceLabel(pack)+" • OR WATCH AD")
-                        : "FREE THEME"
+                previewPrefix+(
+                        stylePackPro(pack)
+                                ? (hasAdAccess()
+                                    ? premiumAccessBadge()+" ACTIVE"
+                                    : "KEYKII PRO • "+stylePackPriceLabel(pack)+" • OR WATCH AD")
+                                : "FREE THEME"
+                )
         );
 
         badge.setTextColor(
@@ -6173,16 +6214,27 @@ public class SettingsActivity extends Activity {
             int pack,
             int corner,
             boolean special,
-            boolean wideKey
+            boolean wideKey,
+            String keyLabel,
+            int keyIndex,
+            boolean large
     ) {
-        int[] palette=cleanThemeKeyPalette(pack);
-        int start=(special || wideKey) ? palette[2] : palette[0];
-        int end=(special || wideKey) ? palette[3] : palette[1];
-        int stroke=(special || wideKey) ? palette[5] : palette[4];
         int radius=dp(Math.max(5,corner));
 
         if(pack>=210 && pack<=219) {
-            int skirtColor=blendPreviewColor(end,Color.BLACK,pack==214 ? 65 : 34);
+            int[] tactile=KeyKiiLookCollection.resolveTactileKeyStyle(
+                    pack,
+                    keyLabel,
+                    keyIndex,
+                    wideKey,
+                    special && !wideKey
+            );
+            int start=tactile[0];
+            int end=tactile[1];
+            int stroke=tactile[2];
+            int skirtColor=tactile[3];
+            int doubleRim=tactile[5];
+
             GradientDrawable skirt=new GradientDrawable();
             skirt.setColor(skirtColor);
             skirt.setCornerRadius(radius);
@@ -6196,18 +6248,39 @@ public class SettingsActivity extends Activity {
 
             GradientDrawable shine=new GradientDrawable(
                     GradientDrawable.Orientation.TOP_BOTTOM,
-                    new int[]{pack==214 ? Color.argb(46,247,219,160) : Color.argb(72,255,255,255), Color.TRANSPARENT}
+                    new int[]{pack==214 ? Color.argb(56,247,219,160) : Color.argb(86,255,255,255), Color.TRANSPARENT}
             );
             shine.setCornerRadius(radius);
+
+            int skirtDepth=dp(large ? 3 : 2);
+            if(doubleRim!=0) {
+                GradientDrawable rim=new GradientDrawable();
+                rim.setColor(Color.TRANSPARENT);
+                rim.setCornerRadius(radius+dp(1));
+                rim.setStroke(dp(large ? 2 : 1),doubleRim);
+                android.graphics.drawable.LayerDrawable layers=new android.graphics.drawable.LayerDrawable(
+                        new android.graphics.drawable.Drawable[]{skirt,face,shine,rim}
+                );
+                layers.setLayerInset(0,0,dp(1),0,0);
+                layers.setLayerInset(1,0,0,0,skirtDepth);
+                layers.setLayerInset(2,dp(1),dp(1),dp(1),dp(large ? 9 : 6));
+                layers.setLayerInset(3,0,0,0,0);
+                return layers;
+            }
 
             android.graphics.drawable.LayerDrawable layers=new android.graphics.drawable.LayerDrawable(
                     new android.graphics.drawable.Drawable[]{skirt,face,shine}
             );
             layers.setLayerInset(0,0,dp(1),0,0);
-            layers.setLayerInset(1,0,0,0,dp(2));
-            layers.setLayerInset(2,dp(1),dp(1),dp(1),dp(8));
+            layers.setLayerInset(1,0,0,0,skirtDepth);
+            layers.setLayerInset(2,dp(1),dp(1),dp(1),dp(large ? 9 : 6));
             return layers;
         }
+
+        int[] palette=cleanThemeKeyPalette(pack);
+        int start=(special || wideKey) ? palette[2] : palette[0];
+        int end=(special || wideKey) ? palette[3] : palette[1];
+        int stroke=(special || wideKey) ? palette[5] : palette[4];
 
         GradientDrawable bg=new GradientDrawable(
                 GradientDrawable.Orientation.TL_BR,
@@ -6228,10 +6301,10 @@ public class SettingsActivity extends Activity {
             case 205: return new int[]{0xFFCCD6FA,0xFFF6F8FF,0xFFB0BFF4,0xFFE3E9FD,0xFFFFFFFF,0xFFFFFFFF};
             case 206: return new int[]{0xFF2E2747,0xFF211C34,0xFF45346B,0xFF2C2349,0x55C992FF,0x88C992FF};
             case 207: return new int[]{0xFF342330,0xFF241921,0xFF522F45,0xFF32202C,0x55F27CA7,0x88F27CA7};
-            case 208: return new int[]{0xFF1E2C47,0xFF162035,0xFF294069,0xFF1D2B46,0x5574B6FF,0x8874B6FF};
+            case 208: return new int[]{0xFF1E2C47,0xFF162035,0xFF294069,0xFF1D2B46,0x5574B6FF,0x88F27CA7};
             case 209: return new int[]{0xFF312822,0xFF221C18,0xFF4B3B2B,0xFF2D241D,0x55E7B773,0x88E7B773};
-            case 210: return new int[]{0xFF9C663F,0xFF6E4325,0xFF4D87F7,0xFF2D62D4,0x88E2B080,0xAAFFFFFF};
-            case 211: return new int[]{0xFFFBE1E6,0xFFEDE2D6,0xFFD9C6D6,0xFFB9CEE3,0xFFFFFFFF,0x99F39EB4};
+            case 210: return new int[]{0xFF9C663F,0xFF6E4325,0xFF825130,0xFF58341B,0x88E2B080,0xAAFFFFFF};
+            case 211: return new int[]{0xFFFBE1E6,0xFFEDE2D6,0xFF4A3935,0xFF2F2320,0xFFFFFFFF,0x99F39EB4};
             case 212: return new int[]{0xFFF4E6CF,0xFFCFEAF2,0xFF4E97B8,0xFF2F7399,0xCCFFFFFF,0xEEFFFFFF};
             case 213: return new int[]{0xFFFFFBF8,0xFFF6E6DF,0xFFF6DFC4,0xFFECD0E0,0xFFE8CDB8,0xFFFFFFFF};
             case 214: return new int[]{0xFF24252B,0xFF101116,0xFF333128,0xFF181920,0x88D8B467,0xCCD8B467};
@@ -6253,14 +6326,20 @@ public class SettingsActivity extends Activity {
             boolean wideKey,
             boolean borders,
             int transparency,
-            int pack
+            int pack,
+            String keyLabel,
+            int keyIndex,
+            boolean large
     ) {
         if(pack>=200 && pack<=219) {
             return previewCleanGradientKeyBackground(
                     pack,
                     corner,
                     special,
-                    wideKey
+                    wideKey,
+                    keyLabel,
+                    keyIndex,
+                    large
             );
         }
 

@@ -301,70 +301,113 @@ final class ThemeSceneDrawable extends Drawable {
 
             case 210: // Carved Walnut Woodcraft — recessed wooden shelf ledges & timber grain
                 paint.setStyle(Paint.Style.STROKE);
-                paint.setStrokeWidth(Math.max(dp(2), h*.014f));
+                paint.setStrokeWidth(dp(2f));
+                paint.setColor(withAlpha(Color.rgb(226, 176, 128), 75));
+                canvas.drawRoundRect(new RectF(dp(2), dp(2), w - dp(2), h - dp(2)), dp(16), dp(16), paint);
+                paint.setStrokeWidth(Math.max(dp(2.5f), h*.016f));
                 for (int i = 1; i <= 4; i++) {
                     float y = h * (i * 0.20f);
-                    paint.setColor(withAlpha(Color.rgb(42, 22, 10), 115));
+                    paint.setColor(withAlpha(Color.rgb(36, 18, 8), 160));
                     canvas.drawLine(w*.02f, y, w*.98f, y, paint);
-                    paint.setColor(withAlpha(Color.rgb(218, 168, 114), 52));
+                    paint.setColor(withAlpha(Color.rgb(228, 185, 134), 62));
                     canvas.drawLine(w*.02f, y + dp(1.5f), w*.98f, y + dp(1.5f), paint);
                 }
                 paint.setStrokeWidth(dp(1));
-                paint.setColor(withAlpha(Color.rgb(228, 185, 134), 38));
-                for (float gx = w*.06f; gx < w*.96f; gx += w*.09f) {
-                    canvas.drawLine(gx, h*.03f, gx + w*.015f, h*.97f, paint);
+                paint.setColor(withAlpha(Color.rgb(228, 185, 134), 32));
+                for (float gx = w*.06f; gx < w*.96f; gx += w*.08f) {
+                    canvas.drawLine(gx, h*.03f, gx + w*.012f, h*.97f, paint);
                 }
                 paint.setStyle(Paint.Style.FILL);
                 break;
 
-            case 211: // Sakura Linen Relief — warm espresso frame with cherry petals
+            case 211: // Sakura Linen Relief — warm espresso frame with sakura glows & linen weave
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(withAlpha(Color.rgb(255, 178, 198), 46));
+                canvas.drawCircle(w*.16f, h*.18f, s*.26f, paint);
+                canvas.drawCircle(w*.86f, h*.80f, s*.24f, paint);
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setStrokeWidth(dp(1));
+                paint.setColor(withAlpha(Color.WHITE, 14));
+                for (float d = -h; d < w + h; d += dp(8)) {
+                    canvas.drawLine(d, 0, d + h, h, paint);
+                }
+                paint.setStrokeWidth(dp(1.5f));
+                paint.setColor(withAlpha(Color.rgb(243, 158, 180), 82));
+                canvas.drawRoundRect(new RectF(dp(2.5f), dp(2.5f), w - dp(2.5f), h - dp(2.5f)), dp(16), dp(16), paint);
+                paint.setStyle(Paint.Style.FILL);
                 petals(canvas, w, h, Color.rgb(255, 178, 198));
                 branch(canvas, w, h, Color.rgb(245, 185, 200), 68);
                 break;
 
             case 212: // Crystal Tide Diorama — clear acrylic casing & coastal wave shimmer
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(withAlpha(Color.rgb(122, 220, 242), 54));
+                canvas.drawCircle(w*.22f, h*.24f, s*.30f, paint);
+                paint.setColor(withAlpha(Color.rgb(255, 232, 188), 42));
+                canvas.drawCircle(w*.78f, h*.76f, s*.28f, paint);
                 paint.setStyle(Paint.Style.STROKE);
-                paint.setStrokeWidth(dp(2.5f));
-                paint.setColor(withAlpha(Color.argb(190, 212, 245, 255), 110));
-                canvas.drawRoundRect(new RectF(dp(4), dp(4), w - dp(4), h - dp(4)), dp(20), dp(20), paint);
+                paint.setStrokeWidth(dp(2f));
+                paint.setColor(withAlpha(Color.rgb(212, 245, 255), 185));
+                canvas.drawRoundRect(new RectF(dp(2.5f), dp(2.5f), w - dp(2.5f), h - dp(2.5f)), dp(16), dp(16), paint);
                 paint.setStyle(Paint.Style.FILL);
                 jellyBubbles(canvas, w, h, Color.rgb(122, 220, 242), Color.rgb(255, 232, 188));
                 break;
 
             case 213: // Cream Boba Kawaii — engraved ribbon & star pastel tray
+                polka(canvas, w, h, Color.rgb(214, 152, 140), 48);
                 ribbon(canvas, w, h, Color.rgb(198, 132, 118));
-                stars(canvas, w, h, Color.rgb(255, 250, 242), 140);
-                polka(canvas, w, h, Color.rgb(214, 152, 140), 42);
+                stars(canvas, w, h, Color.rgb(255, 250, 242), 145);
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setStrokeWidth(dp(1.5f));
+                paint.setColor(withAlpha(Color.rgb(232, 205, 184), 160));
+                canvas.drawRoundRect(new RectF(dp(3), dp(3), w - dp(3), h - dp(3)), dp(16), dp(16), paint);
+                paint.setStyle(Paint.Style.FILL);
                 break;
 
             case 214: // Obsidian Weather 3D — starry dark night sky & drifting clouds
-                stars(canvas, w, h, Color.rgb(248, 212, 132), 175);
-                paint.setColor(withAlpha(Color.rgb(255, 225, 150), 95));
-                canvas.drawCircle(w*.14f, h*.14f, s*.014f, paint);
-                canvas.drawCircle(w*.84f, h*.16f, s*.016f, paint);
-                canvas.drawCircle(w*.48f, h*.86f, s*.012f, paint);
-                asset(canvas, R.drawable.theme_motif_cloud, Color.rgb(86, 92, 112), 90,
+                stars(canvas, w, h, Color.rgb(248, 212, 132), 195);
+                paint.setColor(withAlpha(Color.rgb(255, 225, 150), 175));
+                canvas.drawCircle(w*.14f, h*.16f, s*.015f, paint);
+                canvas.drawCircle(w*.84f, h*.18f, s*.018f, paint);
+                canvas.drawCircle(w*.48f, h*.86f, s*.014f, paint);
+                canvas.drawCircle(w*.72f, h*.72f, s*.012f, paint);
+                asset(canvas, R.drawable.theme_motif_cloud, Color.rgb(86, 92, 112), 95,
                         .05f*w, .74f*h, .22f*s);
-                asset(canvas, R.drawable.theme_motif_cloud, Color.rgb(86, 92, 112), 90,
+                asset(canvas, R.drawable.theme_motif_cloud, Color.rgb(86, 92, 112), 95,
                         .75f*w, .74f*h, .22f*s);
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setStrokeWidth(dp(1.4f));
+                paint.setColor(withAlpha(Color.rgb(216, 180, 103), 115));
+                canvas.drawRoundRect(new RectF(dp(2.5f), dp(2.5f), w - dp(2.5f), h - dp(2.5f)), dp(16), dp(16), paint);
+                paint.setStyle(Paint.Style.FILL);
                 break;
 
             case 215: // Hydrangea Slate Garden — midnight charcoal leaves & soft lilac glow
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(withAlpha(Color.rgb(186, 158, 236), 54));
+                canvas.drawCircle(w*.12f, h*.18f, s*.28f, paint);
+                paint.setColor(withAlpha(Color.rgb(138, 178, 128), 48));
+                canvas.drawCircle(w*.88f, h*.78f, s*.30f, paint);
                 gardenVines(canvas, w, h, Color.rgb(138, 178, 128));
-                paint.setColor(withAlpha(Color.rgb(186, 158, 236), 36));
-                canvas.drawCircle(w*.12f, h*.18f, s*.16f, paint);
-                canvas.drawCircle(w*.88f, h*.78f, s*.18f, paint);
                 break;
 
             case 216: // Pastel Glaze Drip — weathered bronze tray & glossy glaze sheen
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(withAlpha(Color.rgb(248, 212, 224), 42));
+                canvas.drawCircle(w*.20f, h*.20f, s*.30f, paint);
+                paint.setColor(withAlpha(Color.rgb(184, 224, 238), 42));
+                canvas.drawCircle(w*.80f, h*.82f, s*.30f, paint);
                 frostingWave(canvas, w, h, Color.rgb(248, 212, 224));
                 dessertDots(canvas, w, h, Color.rgb(184, 224, 238), Color.rgb(250, 226, 172));
                 break;
 
             case 217: // Ukiyo Wave Ceramic — misty charcoal sea horizon curves
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(withAlpha(Color.rgb(232, 224, 206), 36));
+                canvas.drawOval(new RectF(w*.15f, -h*.12f, w*.85f, h*.36f), paint);
                 paint.setStyle(Paint.Style.STROKE);
                 paint.setStrokeWidth(dp(1.5f));
-                paint.setColor(withAlpha(Color.rgb(232, 224, 206), 68));
+                paint.setColor(withAlpha(Color.rgb(232, 224, 206), 76));
                 for (int i = 0; i < 3; i++) {
                     Path wave = new Path();
                     float baseY = h * (.18f + i * .30f);
@@ -376,20 +419,32 @@ final class ThemeSceneDrawable extends Drawable {
                 break;
 
             case 218: // Fluffy Pastel Cloud — dreamy pastel sky bokeh & braided trim
-                paint.setStyle(Paint.Style.STROKE);
-                paint.setStrokeWidth(dp(3f));
-                paint.setColor(withAlpha(Color.rgb(255, 255, 255), 145));
-                canvas.drawRoundRect(new RectF(dp(3), dp(3), w - dp(3), h - dp(3)), dp(20), dp(20), paint);
                 paint.setStyle(Paint.Style.FILL);
-                stars(canvas, w, h, Color.WHITE, 165);
-                polka(canvas, w, h, Color.rgb(255, 255, 255), 55);
+                paint.setColor(withAlpha(Color.WHITE, 145));
+                canvas.drawCircle(w*.18f, h*.22f, s*.08f, paint);
+                canvas.drawCircle(w*.80f, h*.72f, s*.09f, paint);
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setStrokeWidth(dp(2.5f));
+                paint.setColor(withAlpha(Color.WHITE, 220));
+                android.graphics.DashPathEffect dash = new android.graphics.DashPathEffect(new float[]{dp(6), dp(4)}, 0);
+                paint.setPathEffect(dash);
+                canvas.drawRoundRect(new RectF(dp(2.5f), dp(2.5f), w - dp(2.5f), h - dp(2.5f)), dp(16), dp(16), paint);
+                paint.setPathEffect(null);
+                paint.setStyle(Paint.Style.FILL);
+                stars(canvas, w, h, Color.WHITE, 175);
+                polka(canvas, w, h, Color.WHITE, 55);
                 break;
 
             case 219: // Marshmallow Sky Bakery — soft pastel star & smiling cloud mat
-                stars(canvas, w, h, Color.rgb(245, 198, 222), 145);
-                asset(canvas, R.drawable.theme_motif_cloud, Color.rgb(210, 232, 250), 120,
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(withAlpha(Color.rgb(210, 232, 250), 155));
+                canvas.drawCircle(w*.14f, h*.20f, s*.12f, paint);
+                paint.setColor(withAlpha(Color.rgb(246, 214, 232), 155));
+                canvas.drawCircle(w*.86f, h*.78f, s*.13f, paint);
+                stars(canvas, w, h, Color.rgb(245, 198, 222), 155);
+                asset(canvas, R.drawable.theme_motif_cloud, Color.rgb(210, 232, 250), 135,
                         .06f*w, .06f*h, .20f*s);
-                asset(canvas, R.drawable.theme_motif_cloud, Color.rgb(246, 214, 232), 120,
+                asset(canvas, R.drawable.theme_motif_cloud, Color.rgb(246, 214, 232), 135,
                         .74f*w, .72f*h, .20f*s);
                 break;
         }
