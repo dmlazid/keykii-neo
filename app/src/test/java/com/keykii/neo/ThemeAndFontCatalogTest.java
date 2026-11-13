@@ -102,9 +102,14 @@ public final class ThemeAndFontCatalogTest {
         int[] freePacks = {100, 102, 106, 108, 113, 117, 200, 201, 202, 206, 210, 212, 214, 219};
         for (int pack : freePacks) {
             assertTrue("Expected pack " + pack + " to be classified as free", KeyKiiLookCollection.isFreeThemePack(pack));
+            assertTrue("Expected free pack " + pack + " to be ad-gated", KeyKiiLookCollection.isAdGatedThemePack(pack));
+        }
+        for (int pack = 210; pack <= 219; pack++) {
+            assertTrue("Expected 3D tactile pack " + pack + " to be ad-gated", KeyKiiLookCollection.isAdGatedThemePack(pack));
         }
         assertFalse("Pro pack 211 must not be classified as free", KeyKiiLookCollection.isFreeThemePack(211));
         assertFalse("Invalid pack -1 must not be classified as free", KeyKiiLookCollection.isFreeThemePack(-1));
+        assertFalse("Invalid pack -1 must not be ad-gated", KeyKiiLookCollection.isAdGatedThemePack(-1));
         assertTrue(KeyKiiLookCollection.shouldApplyAfterReward(true));
         assertFalse(KeyKiiLookCollection.shouldApplyAfterReward(false));
         assertEquals("Watch the full ad to apply this theme!", KeyKiiLookCollection.WATCH_FULL_AD_TOAST);

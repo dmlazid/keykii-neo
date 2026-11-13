@@ -54,51 +54,58 @@ final class KeyKiiAds {
     }
 
     void start(){
-        if(activity.isFinishing()||KeyKiiAccess.isOwner(activity))return;
-        consentInformation=UserMessagingPlatform.getConsentInformation(activity);
-        ConsentRequestParameters params=
-                new ConsentRequestParameters.Builder().build();
+        if(activity.isFinishing())return;
+        if(isTestMode()){
+            maybeInitializeAds();
+        }
+        try{
+            consentInformation=UserMessagingPlatform.getConsentInformation(activity);
+            ConsentRequestParameters params=
+                    new ConsentRequestParameters.Builder().build();
 
-        consentInformation.requestConsentInfoUpdate(
-                activity,
-                params,
-                () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(
-                        activity,
-                        formError -> {
-                            consentCheckCompleted=true;
-                            maybeInitializeAds();
-                        }
-                ),
-                formError -> {
-                    consentCheckCompleted=true;
-                    maybeInitializeAds();
-                }
-        );
+            consentInformation.requestConsentInfoUpdate(
+                    activity,
+                    params,
+                    () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(
+                            activity,
+                            formError -> {
+                                consentCheckCompleted=true;
+                                maybeInitializeAds();
+                            }
+                    ),
+                    formError -> {
+                        consentCheckCompleted=true;
+                        maybeInitializeAds();
+                    }
+            );
 
-        if(consentInformation.canRequestAds())maybeInitializeAds();
+            if(consentInformation.canRequestAds())maybeInitializeAds();
+        }catch(Throwable ignored){
+            consentCheckCompleted=true;
+            maybeInitializeAds();
+        }
     }
 
     private synchronized void maybeInitializeAds(){
-        if(activity.isFinishing()||KeyKiiAccess.isOwner(activity))return;
-        if(consentInformation!=null&&!consentInformation.canRequestAds()){
-            if(consentCheckCompleted&&pendingRewardRequest){
-                notifyPendingRewardUnavailable();
+        if(activity.isFinishing())return;
+        if(!isTestMode()&&consentInformation!=null&&!consentInformation.canRequestAds()&&!consentCheckCompleted){
+            return;
+        }
+        if(initialized){
+            if(rewardedAd==null&&!rewardedLoading){
+                activity.runOnUiThread(this::loadRewarded);
             }
             return;
         }
-        if(initialized)return;
         initialized=true;
 
-        new Thread(() ->
-                MobileAds.initialize(
-                        activity,
-                        initializationStatus -> activity.runOnUiThread(() -> {
-                            loadRewarded();
-                            loadInterstitial();
-                        })
-                ),
-                "KeyKii-MobileAds"
-        ).start();
+        MobileAds.initialize(
+                activity,
+                initializationStatus -> activity.runOnUiThread(() -> {
+                    loadRewarded();
+                    loadInterstitial();
+                })
+        );
     }
 
     boolean isTestMode(){
@@ -134,24 +141,28 @@ final class KeyKiiAds {
     }
 
     void showRewardedFor24Hours(Runnable onUnlocked,Runnable onUnavailable){
-        if(KeyKiiAccess.canUsePremium(activity)){
-            if(onUnlocked!=null)onUnlocked.run();
-            return;
-        }
         requestRewardedAd(onUnlocked,onUnavailable,true);
     }
 
     /**
-     * Loads and shows an AdMob RewardedAd for applying any free theme.
+     * Loads and shows an AdMob RewardedAd for applying any free or ad-gated theme.
      * Only fires {@code onRewardEarned} when {@code onUserEarnedReward} runs;
      * early dismissal or ad load/show failure runs {@code onNotEarned}.
      */
     void showRewardedForFreeTheme(Runnable onRewardEarned,Runnable onNotEarned){
-        if(KeyKiiAccess.isOwner(activity)){
-            if(onRewardEarned!=null)onRewardEarned.run();
-            return;
-        }
         requestRewardedAd(onRewardEarned,onNotEarned,false);
+    }
+
+    /**
+     * Loads and shows an AdMob RewardedAd before applying a theme pack.
+     * When {@code grant24HourPass} is true, earning the reward also grants 24h PRO access.
+     */
+    void showRewardedForThemeApply(
+            boolean grant24HourPass,
+            Runnable onRewardEarned,
+            Runnable onNotEarned
+    ){
+        requestRewardedAd(onRewardEarned,onNotEarned,grant24HourPass);
     }
 
     private void requestRewardedAd(
@@ -167,7 +178,7 @@ final class KeyKiiAds {
         pendingRewardRequest=true;
 
         if(!initialized){
-            start();
+            maybeInitializeAds();
             return;
         }
 
@@ -191,7 +202,6 @@ final class KeyKiiAds {
     }
 
     private void loadRewarded(){
-        if(KeyKiiAccess.isOwner(activity))return;
         if(rewardedLoading||rewardedAd!=null||activity.isFinishing())return;
         if(BuildConfig.ADMOB_REWARDED_ID==null||BuildConfig.ADMOB_REWARDED_ID.isEmpty()){
             if(pendingRewardRequest)notifyPendingRewardUnavailable();

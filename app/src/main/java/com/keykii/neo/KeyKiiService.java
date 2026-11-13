@@ -232,15 +232,13 @@ public class KeyKiiService extends InputMethodService {
         };
 
 
+    @android.annotation.SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     public void onCreate() {
 
         super.onCreate();
 
-        new Thread(
-                () -> MobileAds.initialize(this, initializationStatus -> {}),
-                "KeyKii-IME-MobileAds"
-        ).start();
+        MobileAds.initialize(this, initializationStatus -> {});
 
         clipboardManager=
             (ClipboardManager)

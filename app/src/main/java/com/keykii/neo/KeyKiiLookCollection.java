@@ -317,6 +317,11 @@ final class KeyKiiLookCollection {
         return KeyKiiThemeCollection.isThemePack(pack)&&!KeyKiiAccess.themeNeedsAccess(pack);
     }
 
+    static boolean isAdGatedThemePack(int pack){
+        return KeyKiiThemeCollection.isThemePack(pack)
+                &&(isTactile3dPack(pack)||isFreeThemePack(pack)||KeyKiiAccess.themeNeedsAccess(pack));
+    }
+
     static boolean shouldApplyAfterReward(boolean rewardEarned){
         return rewardEarned;
     }
@@ -368,13 +373,31 @@ final class KeyKiiLookCollection {
             KeyKiiAds ads,
             Runnable onUserEarnedReward
     ){
+        runWithThemeRewardedAd(activity,ads,200,onUserEarnedReward);
+    }
+
+    static void runWithThemeRewardedAd(
+            Activity activity,
+            KeyKiiAds ads,
+            int pack,
+            Runnable onUserEarnedReward
+    ){
         if(activity==null||activity.isFinishing())return;
         if(ads==null){
             Toast.makeText(activity,WATCH_FULL_AD_TOAST,Toast.LENGTH_SHORT).show();
             return;
         }
-        ads.showRewardedForFreeTheme(
-                onUserEarnedReward,
+        if(!ads.isRewardedReady()){
+            Toast.makeText(activity,"Loading rewarded ad…",Toast.LENGTH_SHORT).show();
+        }
+        boolean grant24h=KeyKiiAccess.themeNeedsAccess(pack);
+        ads.showRewardedForThemeApply(
+                grant24h,
+                () -> {
+                    if(shouldApplyAfterReward(true)&&onUserEarnedReward!=null){
+                        onUserEarnedReward.run();
+                    }
+                },
                 () -> Toast.makeText(activity,WATCH_FULL_AD_TOAST,Toast.LENGTH_SHORT).show()
         );
     }

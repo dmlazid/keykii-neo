@@ -198,13 +198,11 @@ public class SettingsActivity extends Activity {
             Uri uri = data.getData();
 
             try {
-                final int flags =
-                        data.getFlags() &
-                                (Intent.FLAG_GRANT_READ_URI_PERMISSION |
-                                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-
                 getContentResolver()
-                        .takePersistableUriPermission(uri, flags);
+                        .takePersistableUriPermission(
+                                uri,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        );
             } catch (Exception ignored) {
             }
 
@@ -1598,14 +1596,10 @@ public class SettingsActivity extends Activity {
 
         apply.setOnClickListener(v -> {
             Runnable doApply=() -> applySavedLook(look.pack,look.font);
-            boolean locked=
-                    (stylePackPro(look.pack) ||
-                     fontNeedsAdAccess(look.font,fontProForStyle(look.font))) &&
-                    !hasAdAccess();
-            if(locked){
+            if(KeyKiiLookCollection.isAdGatedThemePack(look.pack)){
+                KeyKiiLookCollection.runWithThemeRewardedAd(this,ads,look.pack,doApply);
+            }else if(fontNeedsAdAccess(look.font,fontProForStyle(look.font))&&!hasAdAccess()){
                 request24HourAdAccess(doApply);
-            }else if(KeyKiiLookCollection.isFreeThemePack(look.pack)){
-                KeyKiiLookCollection.runWithFreeThemeRewardedAd(this,ads,doApply);
             }else{
                 doApply.run();
             }
@@ -5306,21 +5300,19 @@ public class SettingsActivity extends Activity {
     }
 
     private void request24HourAdAccess(Runnable afterUnlock){
-        if(hasAdAccess()){
-            if(afterUnlock!=null)afterUnlock.run();
-            return;
-        }
         if(ads==null){
-            toast("Ads are not ready yet. Try again in a moment.");
+            toast(KeyKiiLookCollection.WATCH_FULL_AD_TOAST);
             return;
         }
-        toast("Loading rewarded ad…");
+        if(!ads.isRewardedReady()){
+            toast("Loading rewarded ad…");
+        }
         ads.showRewardedFor24Hours(
                 () -> {
                     toast("Unlocked PRO themes + fonts for 24 hours ✨");
                     if(afterUnlock!=null)afterUnlock.run();
                 },
-                () -> toast("Ad was not completed or is unavailable. No access was changed.")
+                () -> toast(KeyKiiLookCollection.WATCH_FULL_AD_TOAST)
         );
     }
 
@@ -5542,10 +5534,14 @@ public class SettingsActivity extends Activity {
                 (pack>=210 && pack<=219)
                         ? "✦ 3D TACTILE • "
                         : ((pack>=200 && pack<=209) ? "✦ NEW CLEAN • " : "");
+        boolean tileAdGated=
+                KeyKiiLookCollection.isTactile3dPack(pack) ||
+                KeyKiiLookCollection.isFreeThemePack(pack) ||
+                !hasAdAccess();
         badge.setText(
                 tierPrefix+(
                         stylePackPro(pack)
-                                ? (hasAdAccess() ? premiumAccessBadge() : stylePackPriceLabel(pack)+" • PRO")
+                                ? (tileAdGated ? stylePackPriceLabel(pack)+" • PRO" : premiumAccessBadge())
                                 : "FREE"
                 )
         );
@@ -6013,13 +6009,17 @@ public class SettingsActivity extends Activity {
                 new TextView(this);
 
         String previewPrefix=(pack>=210 && pack<=219) ? "✦ 3D TACTILE • " : "";
+        boolean requiresRewardedAd=
+                KeyKiiLookCollection.isTactile3dPack(pack) ||
+                KeyKiiLookCollection.isFreeThemePack(pack) ||
+                !hasAdAccess();
         badge.setText(
                 previewPrefix+(
                         stylePackPro(pack)
-                                ? (hasAdAccess()
-                                    ? premiumAccessBadge()+" ACTIVE"
-                                    : "KEYKII PRO • "+stylePackPriceLabel(pack)+" • OR WATCH AD")
-                                : "FREE THEME"
+                                ? (requiresRewardedAd
+                                    ? "KEYKII PRO • "+stylePackPriceLabel(pack)+" • WATCH AD"
+                                    : premiumAccessBadge()+" ACTIVE")
+                                : "FREE THEME • WATCH AD"
                 )
         );
 
@@ -6057,12 +6057,10 @@ public class SettingsActivity extends Activity {
         sub.setText(
                 stylePackSubtitle(pack)+
                 (stylePackPro(pack)
-                        ? (hasAdAccess()
-                            ? (hasOwnerAccess()
-                                ? "\nOwner access • Apply now • No ad required"
-                                : "\nPremium access active • Apply now")
-                            : "\nWatch one rewarded ad to unlock all PRO themes + ad-gated fonts for 24h")
-                        : "\nFree theme • Watch a rewarded ad to apply with your current font")
+                        ? (requiresRewardedAd
+                            ? "\nWatch a full rewarded ad to unlock & apply this theme"
+                            : "\nPremium access active • Apply now")
+                        : "\nFree theme • Watch a full rewarded ad to apply with your current font")
         );
 
         sub.setTextColor(MUTED);
@@ -6092,9 +6090,9 @@ public class SettingsActivity extends Activity {
 
         TextView apply=
                 textButton(
-                        stylePackPro(pack)
-                                ? (hasAdAccess() ? "Apply" : "Watch ad • 24h")
-                                : (hasOwnerAccess() ? "Apply" : "Watch ad • Apply")
+                        requiresRewardedAd
+                                ? (stylePackPro(pack) ? "Watch ad • 24h" : "Watch ad • Apply")
+                                : "Apply"
                 );
 
         cancel.setTextSize(14);
@@ -6112,29 +6110,23 @@ public class SettingsActivity extends Activity {
         });
 
         apply.setOnClickListener(v -> {
-            if(stylePackPro(pack)){
-                if(!hasAdAccess()){
-                    request24HourAdAccess(() -> {
-                        applyKeyboardStylePack(pack);
-                        dialog.dismiss();
-                        renderThemeCategoryContent();
-                    });
-                    return;
-                }
-                applyKeyboardStylePack(pack);
-                dialog.dismiss();
-                if(ads!=null)ads.recordNaturalBreak();
+            if(requiresRewardedAd){
+                KeyKiiLookCollection.runWithThemeRewardedAd(
+                        this,
+                        ads,
+                        pack,
+                        () -> {
+                            applyKeyboardStylePack(pack);
+                            dialog.dismiss();
+                            renderThemeCategoryContent();
+                        }
+                );
                 return;
             }
 
-            KeyKiiLookCollection.runWithFreeThemeRewardedAd(
-                    this,
-                    ads,
-                    () -> {
-                        applyKeyboardStylePack(pack);
-                        dialog.dismiss();
-                    }
-            );
+            applyKeyboardStylePack(pack);
+            dialog.dismiss();
+            if(ads!=null)ads.recordNaturalBreak();
         });
 
         LinearLayout.LayoutParams p=
