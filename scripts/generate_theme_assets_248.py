@@ -404,10 +404,15 @@ THEMES=[
 (139,"#2E2019","#0A0909","#D1A05E","noir"),
 ]
 
-for tid,c1,c2,a,k in THEMES:
-    render(tid,c1,c2,a,k).save(
-        os.path.join(OUT,f"theme_ill_bg_{tid}.webp"),
-        "WEBP",
-        quality=92,
-        method=6
-    )
+if __name__ == "__main__":
+    import sys
+    if "--legacy-120-139" in sys.argv:
+        for tid,c1,c2,a,k in THEMES:
+            render(tid,c1,c2,a,k).save(
+                os.path.join(OUT,f"theme_ill_bg_{tid}.webp"),
+                "WEBP",
+                quality=92,
+                method=6
+            )
+    else:
+        print("Legacy 120-139 illustrated theme packs were removed; active collection uses 30 themes (100-119, 200-209). Pass --legacy-120-139 only if intentionally regenerating archived art.")

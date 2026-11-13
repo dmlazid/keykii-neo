@@ -72,19 +72,16 @@ jobs:
       - name: Install Android SDK
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
 
-      - name: Rasterize committed illustrated theme assets
-        run: |
-          python3 -m pip install --disable-pip-version-check pillow cairosvg
-          python3 scripts/rasterize_theme_assets_248.py
+      - name: Verify active theme and font assets
+        run: python3 scripts/rasterize_theme_assets_248.py
 
       - name: Audit theme geometry
         run: bash tests/run-theme-audit.sh
 
-      - name: Build APK and Android test
+      - name: Build APK and run unit tests
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon --max-workers=1 :app:assembleDebug
-          ./gradlew --no-daemon --max-workers=1 :app:assembleDebugAndroidTest
+          ./gradlew --no-daemon --max-workers=1 :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest
 
       - name: Build Play App Bundle
         run: |
@@ -104,12 +101,22 @@ jobs:
           target: default
           disable-animations: true
           script: |
+            mkdir -p renderer-audit
             adb install -r app/build/outputs/apk/debug/app-debug.apk
             adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-            adb shell am instrument -w com.keykii.neo.test/com.keykii.neo.NeoRendererAudit > renderer-audit.log
+            set +e
+            adb shell am instrument -w com.keykii.neo.test/com.keykii.neo.NeoRendererAudit > renderer-audit.log 2>&1
+            INST_STATUS=$?
+            set -e
             cat renderer-audit.log
+            adb pull /storage/emulated/0/Android/data/com.keykii.neo/files/theme-v2-audit renderer-audit-pulled || adb pull /sdcard/Android/data/com.keykii.neo/files/theme-v2-audit renderer-audit-pulled || true
+            if [ -d renderer-audit-pulled ]; then
+              cp -r renderer-audit-pulled/. renderer-audit/
+              rm -rf renderer-audit-pulled
+            fi
+            ls -la renderer-audit
+            test $INST_STATUS -eq 0
             grep -q THEME_V2_AUDIT_PASS renderer-audit.log
-            adb pull /sdcard/Android/data/com.keykii.neo/files/theme-v2-audit renderer-audit
 
       - name: Upload renderer evidence
         if: always()
@@ -203,7 +210,7 @@ jobs:
             fi
           done
 
-          git add -A old-versions "$APK_NAME" release-files app/src/main/res/drawable-nodpi/theme_ill_bg_*.webp
+          git add -A old-versions "$APK_NAME" release-files
 
           if git diff --cached --quiet; then
             echo "Release folder is already current."

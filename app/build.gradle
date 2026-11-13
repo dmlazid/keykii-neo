@@ -60,7 +60,12 @@ android {
 
     signingConfigs {
         debug {
-            storeFile file("${rootDir}/debug.keystore")
+            def keykiiDebugKeystore = file("${System.getProperty('user.home')}/.keykii/keykii-debug.keystore")
+            def rootDebugKeystore = file("${rootDir}/debug.keystore")
+            def androidDebugKeystore = file("${System.getProperty('user.home')}/.android/debug.keystore")
+            storeFile keykiiDebugKeystore.exists()
+                    ? keykiiDebugKeystore
+                    : (rootDebugKeystore.exists() ? rootDebugKeystore : androidDebugKeystore)
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'
@@ -103,6 +108,7 @@ dependencies {
     implementation 'com.google.mlkit:language-id:17.0.6'
     implementation 'com.google.android.gms:play-services-ads:24.9.0'
     implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
+    testImplementation 'junit:junit:4.13.2'
 }
 
 // AndroidX is enabled in gradle.properties for ML Kit.

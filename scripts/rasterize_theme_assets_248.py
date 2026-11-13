@@ -1,43 +1,89 @@
 #!/usr/bin/env python3
+"""Verify active KeyKii theme motifs and font assets (30 themes + 6 new fonts).
+
+Note: Bulk illustrated packs (120-139) and the 512 Neo packs (1000-1511) were
+removed, so this script validates the active 20 original themes (100-119),
+10 clean gradient themes (200-209), their vector motif drawables, and the
+6 new bundled TTF fonts (152-157) without regenerating deleted bulk art.
+"""
 from pathlib import Path
-import io
-import cairosvg
-from PIL import Image, ImageDraw, ImageEnhance
+import sys
+import xml.etree.ElementTree as ET
 
-ROOT=Path(__file__).resolve().parents[1]
-SRC=ROOT/"theme-assets"/"2.48"/"theme_atlas.svg"
-OUT=ROOT/"app"/"src"/"main"/"res"/"drawable-nodpi"
-OUT.mkdir(parents=True,exist_ok=True)
-V2_ASSET_OUT=ROOT/"app"/"src"/"main"/"assets"/"themes"/"v2"
-V2_ASSET_OUT.mkdir(parents=True,exist_ok=True)
+ROOT = Path(__file__).resolve().parents[1]
+FONTS_DIR = ROOT / "app" / "src" / "main" / "assets" / "fonts"
+DRAWABLE_DIR = ROOT / "app" / "src" / "main" / "res" / "drawable"
 
-png=cairosvg.svg2png(bytestring=SRC.read_bytes(),output_width=1200,output_height=14400)
-atlas=Image.open(io.BytesIO(png)).convert("RGBA")
+REQUIRED_NEW_FONTS = (
+    "quicksand.ttf",
+    "playfair_display.ttf",
+    "space_grotesk.ttf",
+    "righteous.ttf",
+    "dancing_script.ttf",
+    "comfortaa.ttf",
+)
 
-for idx,pack in enumerate(range(120,140)):
-    board=atlas.crop((0,idx*720,1200,(idx+1)*720))
-    board=ImageEnhance.Contrast(board).enhance(1.03)
-    board=ImageEnhance.Color(board).enhance(1.04)
-    board.save(OUT/f"theme_ill_bg_{pack}.webp","WEBP",quality=94,method=6)
+REQUIRED_MOTIFS = (
+    "theme_motif_bear.xml",
+    "theme_motif_bow.xml",
+    "theme_motif_bubble.xml",
+    "theme_motif_bunny.xml",
+    "theme_motif_butterfly.xml",
+    "theme_motif_cake.xml",
+    "theme_motif_cat.xml",
+    "theme_motif_cherry.xml",
+    "theme_motif_cloud.xml",
+    "theme_motif_cup.xml",
+    "theme_motif_flower.xml",
+    "theme_motif_frog.xml",
+    "theme_motif_gift.xml",
+    "theme_motif_heart.xml",
+    "theme_motif_leaf.xml",
+    "theme_motif_lotus.xml",
+    "theme_motif_moonstar.xml",
+    "theme_motif_snow.xml",
+    "theme_motif_star.xml",
+    "theme_motif_strawberry.xml",
+)
 
-    top=board.crop((0,0,1200,230)).resize((1000,105),Image.Resampling.LANCZOS)
-    bottom=board.crop((0,500,1200,720)).resize((1000,85),Image.Resampling.LANCZOS)
-    space=Image.new("RGBA",(1000,180),(255,255,255,0))
-    space.alpha_composite(top,(0,0))
-    space.alpha_composite(bottom,(0,95))
-    veil=Image.new("RGBA",space.size,(255,255,255,0))
-    draw=ImageDraw.Draw(veil)
-    draw.rounded_rectangle((5,5,995,175),radius=34,fill=(255,255,255,72),outline=(255,255,255,120),width=4)
-    space=Image.alpha_composite(space,veil)
-    mask=Image.new("L",space.size,0)
-    ImageDraw.Draw(mask).rounded_rectangle((0,0,999,179),radius=36,fill=255)
-    space.putalpha(mask)
-    space.save(OUT/f"theme_ill_space_{pack}.webp","WEBP",quality=92,method=6)
+VALID_SFNT_HEADERS = (b"\x00\x01\x00\x00", b"OTTO", b"true")
 
-# 2.57 adds a third original 4x4 scene atlas. It is source-controlled as SVG
-# and rasterized during CI so the APK contains the exact art reviewed in source.
-scene_c=ROOT/"theme-assets"/"2.57"/"scenes-c.svg"
-if scene_c.exists():
-    cairosvg.svg2png(bytestring=scene_c.read_bytes(),write_to=str(V2_ASSET_OUT/"scenes-c.png"),output_width=2048,output_height=1280)
 
-print("Rasterized 20 illustrated boards, matching spacebars, and 2.57 scene atlas.")
+def main() -> int:
+    errors = []
+
+    for font_name in REQUIRED_NEW_FONTS:
+        font_path = FONTS_DIR / font_name
+        if not font_path.is_file():
+            errors.append(f"Missing new font asset: {font_path}")
+            continue
+        data = font_path.read_bytes()
+        if len(data) < 10_000:
+            errors.append(f"Font asset too small ({len(data)} bytes): {font_name}")
+        if data[:4] not in VALID_SFNT_HEADERS:
+            errors.append(f"Invalid font SFNT header in {font_name}: {data[:4]!r}")
+
+    for motif_name in REQUIRED_MOTIFS:
+        motif_path = DRAWABLE_DIR / motif_name
+        if not motif_path.is_file():
+            errors.append(f"Missing motif vector drawable: {motif_path}")
+            continue
+        try:
+            ET.fromstring(motif_path.read_text(encoding="utf-8"))
+        except ET.ParseError as exc:
+            errors.append(f"Invalid XML in {motif_name}: {exc}")
+
+    if errors:
+        for err in errors:
+            print(f"ERROR: {err}", file=sys.stderr)
+        return 1
+
+    print(
+        f"Verified {len(REQUIRED_MOTIFS)} theme motif drawables and "
+        f"{len(REQUIRED_NEW_FONTS)} new font assets for the 30 active KeyKii themes."
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
