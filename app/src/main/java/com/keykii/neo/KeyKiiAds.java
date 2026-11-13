@@ -35,10 +35,12 @@ final class KeyKiiAds {
     private InterstitialAd interstitialAd;
 
     private boolean initialized=false;
+    private boolean consentCheckCompleted=false;
     private boolean rewardedLoading=false;
     private boolean interstitialLoading=false;
     private boolean rewardShowing=false;
     private boolean pendingRewardRequest=false;
+    private boolean pendingGrant24HourPass=true;
 
     private Runnable pendingUnlock;
     private Runnable pendingUnavailable;
@@ -62,17 +64,29 @@ final class KeyKiiAds {
                 params,
                 () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(
                         activity,
-                        formError -> maybeInitializeAds()
+                        formError -> {
+                            consentCheckCompleted=true;
+                            maybeInitializeAds();
+                        }
                 ),
-                formError -> maybeInitializeAds()
+                formError -> {
+                    consentCheckCompleted=true;
+                    maybeInitializeAds();
+                }
         );
 
         if(consentInformation.canRequestAds())maybeInitializeAds();
     }
 
     private synchronized void maybeInitializeAds(){
-        if(initialized||activity.isFinishing()||KeyKiiAccess.isOwner(activity))return;
-        if(consentInformation!=null&&!consentInformation.canRequestAds())return;
+        if(activity.isFinishing()||KeyKiiAccess.isOwner(activity))return;
+        if(consentInformation!=null&&!consentInformation.canRequestAds()){
+            if(consentCheckCompleted&&pendingRewardRequest){
+                notifyPendingRewardUnavailable();
+            }
+            return;
+        }
+        if(initialized)return;
         initialized=true;
 
         new Thread(() ->
@@ -89,6 +103,10 @@ final class KeyKiiAds {
 
     boolean isTestMode(){
         return BuildConfig.ADMOB_TEST_MODE;
+    }
+
+    boolean isRewardedReady(){
+        return rewardedAd!=null;
     }
 
     boolean privacyOptionsRequired(){
@@ -120,9 +138,32 @@ final class KeyKiiAds {
             if(onUnlocked!=null)onUnlocked.run();
             return;
         }
+        requestRewardedAd(onUnlocked,onUnavailable,true);
+    }
 
-        pendingUnlock=onUnlocked;
-        pendingUnavailable=onUnavailable;
+    /**
+     * Loads and shows an AdMob RewardedAd for applying any free theme.
+     * Only fires {@code onRewardEarned} when {@code onUserEarnedReward} runs;
+     * early dismissal or ad load/show failure runs {@code onNotEarned}.
+     */
+    void showRewardedForFreeTheme(Runnable onRewardEarned,Runnable onNotEarned){
+        if(KeyKiiAccess.isOwner(activity)){
+            if(onRewardEarned!=null)onRewardEarned.run();
+            return;
+        }
+        requestRewardedAd(onRewardEarned,onNotEarned,false);
+    }
+
+    private void requestRewardedAd(
+            Runnable onRewardEarned,
+            Runnable onNotEarned,
+            boolean grant24HourPass
+    ){
+        if(activity.isFinishing()||rewardShowing)return;
+
+        pendingUnlock=onRewardEarned;
+        pendingUnavailable=onNotEarned;
+        pendingGrant24HourPass=grant24HourPass;
         pendingRewardRequest=true;
 
         if(!initialized){
@@ -137,10 +178,25 @@ final class KeyKiiAds {
         }
     }
 
+    private void notifyPendingRewardUnavailable(){
+        pendingRewardRequest=false;
+        final Runnable unavailable=pendingUnavailable;
+        pendingUnlock=null;
+        pendingUnavailable=null;
+        if(unavailable!=null){
+            activity.runOnUiThread(() -> {
+                if(!activity.isFinishing())unavailable.run();
+            });
+        }
+    }
+
     private void loadRewarded(){
         if(KeyKiiAccess.isOwner(activity))return;
         if(rewardedLoading||rewardedAd!=null||activity.isFinishing())return;
-        if(BuildConfig.ADMOB_REWARDED_ID==null||BuildConfig.ADMOB_REWARDED_ID.isEmpty())return;
+        if(BuildConfig.ADMOB_REWARDED_ID==null||BuildConfig.ADMOB_REWARDED_ID.isEmpty()){
+            if(pendingRewardRequest)notifyPendingRewardUnavailable();
+            return;
+        }
         rewardedLoading=true;
 
         RewardedAd.load(
@@ -157,13 +213,7 @@ final class KeyKiiAds {
                     @Override public void onAdFailedToLoad(LoadAdError error){
                         rewardedLoading=false;
                         rewardedAd=null;
-                        if(pendingRewardRequest){
-                            pendingRewardRequest=false;
-                            Runnable unavailable=pendingUnavailable;
-                            pendingUnlock=null;
-                            pendingUnavailable=null;
-                            if(unavailable!=null)unavailable.run();
-                        }
+                        if(pendingRewardRequest)notifyPendingRewardUnavailable();
                     }
                 }
         );
@@ -173,6 +223,7 @@ final class KeyKiiAds {
         if(rewardedAd==null||rewardShowing||activity.isFinishing())return;
 
         final RewardedAd ad=rewardedAd;
+        final boolean grantPass=pendingGrant24HourPass;
         rewardedAd=null;
         rewardShowing=true;
         pendingRewardRequest=false;
@@ -182,31 +233,45 @@ final class KeyKiiAds {
             @Override public void onAdDismissedFullScreenContent(){
                 rewardShowing=false;
                 if(!earned[0]){
-                    Runnable unavailable=pendingUnavailable;
+                    final Runnable unavailable=pendingUnavailable;
                     pendingUnlock=null;
                     pendingUnavailable=null;
-                    if(unavailable!=null)unavailable.run();
+                    if(unavailable!=null){
+                        activity.runOnUiThread(() -> {
+                            if(!activity.isFinishing())unavailable.run();
+                        });
+                    }
                 }
                 loadRewarded();
             }
 
             @Override public void onAdFailedToShowFullScreenContent(AdError error){
                 rewardShowing=false;
-                Runnable unavailable=pendingUnavailable;
-                pendingUnlock=null;
-                pendingUnavailable=null;
-                if(unavailable!=null)unavailable.run();
+                if(!earned[0]){
+                    final Runnable unavailable=pendingUnavailable;
+                    pendingUnlock=null;
+                    pendingUnavailable=null;
+                    if(unavailable!=null){
+                        activity.runOnUiThread(() -> {
+                            if(!activity.isFinishing())unavailable.run();
+                        });
+                    }
+                }
                 loadRewarded();
             }
         });
 
         ad.show(activity,rewardItem -> {
             earned[0]=true;
-            KeyKiiAccess.grant24Hours(activity);
-            Runnable unlock=pendingUnlock;
+            if(grantPass)KeyKiiAccess.grant24Hours(activity);
+            final Runnable unlock=pendingUnlock;
             pendingUnlock=null;
             pendingUnavailable=null;
-            if(unlock!=null)unlock.run();
+            if(unlock!=null){
+                activity.runOnUiThread(() -> {
+                    if(!activity.isFinishing())unlock.run();
+                });
+            }
         });
     }
 

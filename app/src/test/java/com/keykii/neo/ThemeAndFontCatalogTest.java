@@ -97,6 +97,19 @@ public final class ThemeAndFontCatalogTest {
         }
     }
 
+    @Test
+    public void freeThemesRequireRewardCompletionBeforeApplying() {
+        int[] freePacks = {100, 102, 106, 108, 113, 117, 200, 201, 202, 206, 210, 212, 214, 219};
+        for (int pack : freePacks) {
+            assertTrue("Expected pack " + pack + " to be classified as free", KeyKiiLookCollection.isFreeThemePack(pack));
+        }
+        assertFalse("Pro pack 211 must not be classified as free", KeyKiiLookCollection.isFreeThemePack(211));
+        assertFalse("Invalid pack -1 must not be classified as free", KeyKiiLookCollection.isFreeThemePack(-1));
+        assertTrue(KeyKiiLookCollection.shouldApplyAfterReward(true));
+        assertFalse(KeyKiiLookCollection.shouldApplyAfterReward(false));
+        assertEquals("Watch the full ad to apply this theme!", KeyKiiLookCollection.WATCH_FULL_AD_TOAST);
+    }
+
     private static NeoGeometry.Key[] toKeys(String[] labels) {
         NeoGeometry.Key[] out = new NeoGeometry.Key[labels.length];
         for (int i = 0; i < labels.length; i++) {

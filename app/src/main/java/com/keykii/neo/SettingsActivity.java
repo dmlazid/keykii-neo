@@ -1604,6 +1604,8 @@ public class SettingsActivity extends Activity {
                     !hasAdAccess();
             if(locked){
                 request24HourAdAccess(doApply);
+            }else if(KeyKiiLookCollection.isFreeThemePack(look.pack)){
+                KeyKiiLookCollection.runWithFreeThemeRewardedAd(this,ads,doApply);
             }else{
                 doApply.run();
             }
@@ -1630,26 +1632,7 @@ public class SettingsActivity extends Activity {
     }
 
     private void applySavedLook(int pack,int font){
-        int[] spec=stylePackSpec(pack);
-        prefs.edit()
-                .putInt("theme_surface_mode",2)
-                .putInt("theme",spec[6])
-                .putInt("theme_custom_start",spec[0])
-                .putInt("theme_custom_end",spec[1])
-                .putInt("accent_color",spec[2])
-                .putInt("key_corner_radius",spec[3])
-                .putInt("theme_transparency",spec[4])
-                .putBoolean("theme_key_borders",spec[5]==1)
-                .putBoolean("photo_key_borders",spec[5]==1)
-                .putInt("theme_decor_style",spec[7])
-                .putInt("theme_key_style",spec[8])
-                .putBoolean("theme_auto_day_night",false)
-                .putInt("keykii_style_pack",pack)
-                .putInt("keyboard_font_style",font)
-                .apply();
-
-        KeyKiiThemeCollection.rememberApplied(this,pack);
-        KeyKiiFontCollection.rememberApplied(this,font);
+        KeyKiiLookCollection.applySavedLookToPrefs(this,pack,font,stylePackSpec(pack));
         toast("Look applied ✨");
         if(ads!=null)ads.recordNaturalBreak();
         showMine();
@@ -6038,7 +6021,7 @@ public class SettingsActivity extends Activity {
                                 ? "\nOwner access • Apply now • No ad required"
                                 : "\nPremium access active • Apply now")
                             : "\nWatch one rewarded ad to unlock all PRO themes + ad-gated fonts for 24h")
-                        : "\nFree theme • Uses your current font")
+                        : "\nFree theme • Watch a rewarded ad to apply with your current font")
         );
 
         sub.setTextColor(MUTED);
@@ -6070,7 +6053,7 @@ public class SettingsActivity extends Activity {
                 textButton(
                         stylePackPro(pack)
                                 ? (hasAdAccess() ? "Apply" : "Watch ad • 24h")
-                                : "Apply"
+                                : (hasOwnerAccess() ? "Apply" : "Watch ad • Apply")
                 );
 
         cancel.setTextSize(14);
@@ -6088,18 +6071,29 @@ public class SettingsActivity extends Activity {
         });
 
         apply.setOnClickListener(v -> {
-            if(stylePackPro(pack)&&!hasAdAccess()){
-                request24HourAdAccess(() -> {
-                    applyKeyboardStylePack(pack);
-                    dialog.dismiss();
-                    renderThemeCategoryContent();
-                });
+            if(stylePackPro(pack)){
+                if(!hasAdAccess()){
+                    request24HourAdAccess(() -> {
+                        applyKeyboardStylePack(pack);
+                        dialog.dismiss();
+                        renderThemeCategoryContent();
+                    });
+                    return;
+                }
+                applyKeyboardStylePack(pack);
+                dialog.dismiss();
+                if(ads!=null)ads.recordNaturalBreak();
                 return;
             }
 
-            applyKeyboardStylePack(pack);
-            dialog.dismiss();
-            if(ads!=null)ads.recordNaturalBreak();
+            KeyKiiLookCollection.runWithFreeThemeRewardedAd(
+                    this,
+                    ads,
+                    () -> {
+                        applyKeyboardStylePack(pack);
+                        dialog.dismiss();
+                    }
+            );
         });
 
         LinearLayout.LayoutParams p=
@@ -6160,65 +6154,11 @@ public class SettingsActivity extends Activity {
     private void applyKeyboardStylePack(
             int pack
     ) {
-        int[] spec=
-                stylePackSpec(pack);
-
-        prefs.edit()
-                .putInt(
-                        "theme_surface_mode",
-                        2
-                )
-                .putInt(
-                        "theme",
-                        spec[6]
-                )
-                .putInt(
-                        "theme_custom_start",
-                        spec[0]
-                )
-                .putInt(
-                        "theme_custom_end",
-                        spec[1]
-                )
-                .putInt(
-                        "accent_color",
-                        spec[2]
-                )
-                .putInt(
-                        "key_corner_radius",
-                        spec[3]
-                )
-                .putInt(
-                        "theme_transparency",
-                        spec[4]
-                )
-                .putBoolean(
-                        "theme_key_borders",
-                        spec[5]==1
-                )
-                .putBoolean(
-                        "photo_key_borders",
-                        spec[5]==1
-                )
-                .putInt(
-                        "theme_decor_style",
-                        spec[7]
-                )
-                .putInt(
-                        "theme_key_style",
-                        spec[8]
-                )
-                .putBoolean(
-                        "theme_auto_day_night",
-                        false
-                )
-                .putInt(
-                        "keykii_style_pack",
-                        pack
-                )
-                .apply();
-
-        KeyKiiThemeCollection.rememberApplied(this,pack);
+        KeyKiiLookCollection.applyThemePackToPrefs(
+                this,
+                pack,
+                stylePackSpec(pack)
+        );
 
         toast(
                 stylePackName(pack)+
@@ -10058,8 +9998,17 @@ public class SettingsActivity extends Activity {
                 )
         );
 
-        apply.setOnClickListener(v ->
-                applyThemeDraft());
+        apply.setOnClickListener(v -> {
+            if(themeDraftSurfaceMode!=3){
+                KeyKiiLookCollection.runWithFreeThemeRewardedAd(
+                        this,
+                        ads,
+                        this::applyThemeDraft
+                );
+            }else{
+                applyThemeDraft();
+            }
+        });
 
         LinearLayout.LayoutParams actionParams =
                 new LinearLayout.LayoutParams(

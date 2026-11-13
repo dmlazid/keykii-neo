@@ -8,6 +8,7 @@ import android.util.DisplayMetrics;
 import android.view.*;
 import android.view.inputmethod.*;
 import android.widget.*;
+import com.google.android.gms.ads.MobileAds;
 
 public class KeyKiiService extends InputMethodService {
     String emojiSearchQuery="";
@@ -235,6 +236,11 @@ public class KeyKiiService extends InputMethodService {
     public void onCreate() {
 
         super.onCreate();
+
+        new Thread(
+                () -> MobileAds.initialize(this, initializationStatus -> {}),
+                "KeyKii-IME-MobileAds"
+        ).start();
 
         clipboardManager=
             (ClipboardManager)
