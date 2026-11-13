@@ -10,6 +10,11 @@ import java.util.ArrayList;
 /** Local-only saved theme + font combinations and free-theme rewarded-ad apply helpers. */
 final class KeyKiiLookCollection {
     static final String WATCH_FULL_AD_TOAST="Watch the full ad to apply this theme!";
+    static final int FIRST_TACTILE_3D_PACK=210;
+    static final int LAST_TACTILE_3D_PACK=219;
+    static final int[] TACTILE_3D_PACKS={
+            210,211,212,213,214,215,216,217,218,219
+    };
     private static final String KEY="saved_theme_font_looks";
     private static final int LIMIT=12;
 
@@ -28,6 +33,46 @@ final class KeyKiiLookCollection {
 
     private static boolean validPack(int pack){
         return (pack>=100&&pack<=119)||(pack>=200&&pack<=219);
+    }
+
+    static boolean isTactile3dPack(int pack){
+        return pack>=FIRST_TACTILE_3D_PACK&&pack<=LAST_TACTILE_3D_PACK;
+    }
+
+    static int[] tactile3dPacks(){
+        return TACTILE_3D_PACKS.clone();
+    }
+
+    static String tactileThemeName(int pack){
+        switch(pack){
+            case 210: return "Carved Walnut Woodcraft";
+            case 211: return "Sakura Linen Relief";
+            case 212: return "Crystal Tide Diorama";
+            case 213: return "Cream Boba Kawaii";
+            case 214: return "Obsidian Weather 3D";
+            case 215: return "Hydrangea Slate Garden";
+            case 216: return "Pastel Glaze Drip";
+            case 217: return "Ukiyo Wave Ceramic";
+            case 218: return "Fluffy Pastel Cloud";
+            case 219: return "Marshmallow Sky Bakery";
+            default: return "";
+        }
+    }
+
+    static int tactileMotifDrawable(int pack){
+        switch(pack){
+            case 210: return R.drawable.theme_motif_210;
+            case 211: return R.drawable.theme_motif_211;
+            case 212: return R.drawable.theme_motif_212;
+            case 213: return R.drawable.theme_motif_213;
+            case 214: return R.drawable.theme_motif_214;
+            case 215: return R.drawable.theme_motif_215;
+            case 216: return R.drawable.theme_motif_216;
+            case 217: return R.drawable.theme_motif_217;
+            case 218: return R.drawable.theme_motif_218;
+            case 219: return R.drawable.theme_motif_219;
+            default: return 0;
+        }
     }
 
     static boolean isFreeThemePack(int pack){

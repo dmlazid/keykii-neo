@@ -110,6 +110,26 @@ public final class ThemeAndFontCatalogTest {
         assertEquals("Watch the full ad to apply this theme!", KeyKiiLookCollection.WATCH_FULL_AD_TOAST);
     }
 
+    @Test
+    public void tactile3dThemesRegisteredInLookCollection() {
+        int[] packs = KeyKiiLookCollection.tactile3dPacks();
+        assertEquals(10, packs.length);
+        java.util.HashSet<Integer> drawables = new java.util.HashSet<>();
+        for (int i = 0; i < 10; i++) {
+            int pack = 210 + i;
+            assertEquals(pack, packs[i]);
+            assertTrue(KeyKiiLookCollection.isTactile3dPack(pack));
+            assertFalse("Theme name missing for " + pack, KeyKiiLookCollection.tactileThemeName(pack).isEmpty());
+            int res = KeyKiiLookCollection.tactileMotifDrawable(pack);
+            assertNotEquals("Drawable missing for " + pack, 0, res);
+            drawables.add(res);
+        }
+        assertEquals(10, drawables.size());
+        assertFalse(KeyKiiLookCollection.isTactile3dPack(209));
+        assertFalse(KeyKiiLookCollection.isTactile3dPack(220));
+        assertEquals(0, KeyKiiLookCollection.tactileMotifDrawable(209));
+    }
+
     private static NeoGeometry.Key[] toKeys(String[] labels) {
         NeoGeometry.Key[] out = new NeoGeometry.Key[labels.length];
         for (int i = 0; i < labels.length; i++) {
