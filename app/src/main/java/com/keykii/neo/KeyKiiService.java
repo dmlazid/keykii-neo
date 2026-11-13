@@ -2928,8 +2928,6 @@ public class KeyKiiService extends InputMethodService {
                 new TextView[3];
         }
 
-        final int neoRowsStart=body.getChildCount();
-
         if(!symbols) {
 
             if(numberRow) {
@@ -2993,10 +2991,6 @@ public class KeyKiiService extends InputMethodService {
         }
 
         bottom();
-        SharedPreferences themePrefs=getSharedPreferences("keykii_prefs",MODE_PRIVATE);
-        if(page==0 && themePrefs.getInt("theme_surface_mode",0)==2) {
-            NeoKeyboardLayout.adopt(body,neoRowsStart,themePrefs.getInt("keykii_style_pack",-1));
-        }
     }
 
 
@@ -3747,6 +3741,68 @@ public class KeyKiiService extends InputMethodService {
             1.05f,
             true
         );
+
+        SharedPreferences themePrefs=getSharedPreferences("keykii_prefs",MODE_PRIVATE);
+        int pack=themePrefs.getInt("keykii_style_pack",-1);
+        boolean addCleanInterKeyDecals=
+            !symbols &&
+            page==0 &&
+            values.length>=7 &&
+            themePrefs.getInt("theme_surface_mode",0)==2 &&
+            pack>=200 &&
+            pack<=209;
+
+        if(addCleanInterKeyDecals) {
+            int interRes=themeDecorPrimaryAssetRes(pack);
+            if(interRes!=0) {
+                body.setClipChildren(false);
+                body.setClipToPadding(false);
+                r.setClipChildren(false);
+                r.setClipToPadding(false);
+
+                FrameLayout wrap=new FrameLayout(this);
+                wrap.setClipChildren(false);
+                wrap.setClipToPadding(false);
+                wrap.addView(r,new FrameLayout.LayoutParams(-1,-2));
+
+                final int decalSize=dp(18);
+                final ImageView zxDecal=new ImageView(this);
+                final ImageView nmDecal=new ImageView(this);
+                int tint=accentColor();
+
+                for(ImageView dv:new ImageView[]{zxDecal,nmDecal}) {
+                    android.graphics.drawable.Drawable d=getDrawable(interRes);
+                    if(d!=null) {
+                        d=d.mutate();
+                        d.setTint(tint);
+                        dv.setImageDrawable(d);
+                    }
+                    dv.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                    dv.setAlpha(0.88f);
+                    dv.setClickable(false);
+                    dv.setFocusable(false);
+                    wrap.addView(dv,new FrameLayout.LayoutParams(decalSize,decalSize));
+                }
+
+                r.addOnLayoutChangeListener((v,l,t,ri,b,ol,ot,or,ob) -> {
+                    int count=r.getChildCount();
+                    if(count>=6) {
+                        View zKey=r.getChildAt(1);
+                        View xKey=r.getChildAt(2);
+                        View nKey=r.getChildAt(count-3);
+                        View mKey=r.getChildAt(count-2);
+                        float y=Math.max(0f,r.getHeight()-decalSize*0.72f);
+                        zxDecal.setX((zKey.getRight()+xKey.getLeft())*0.5f-decalSize*0.5f);
+                        zxDecal.setY(y);
+                        nmDecal.setX((nKey.getRight()+mKey.getLeft())*0.5f-decalSize*0.5f);
+                        nmDecal.setY(y);
+                    }
+                });
+
+                body.addView(wrap,new LinearLayout.LayoutParams(-1,-2));
+                return;
+            }
+        }
 
         body.addView(r);
     }
@@ -4549,8 +4605,7 @@ public class KeyKiiService extends InputMethodService {
             );
 
         if(
-            pack<100 ||
-            pack>139 ||
+            !((pack>=100 && pack<=119) || (pack>=200 && pack<=209)) ||
             action==null ||
             action.isEmpty()
         ) {
@@ -4579,17 +4634,12 @@ public class KeyKiiService extends InputMethodService {
             return 0;
         }
 
-        if(IllustratedThemeAssets.isNewPack(pack)) {
-            if(action.equals("SHIFT"))
-                return IllustratedThemeAssets.primarySticker(pack);
-
-            if(action.equals("BACK"))
-                return IllustratedThemeAssets.secondarySticker(pack);
-
+        if(pack>=200 && pack<=209) {
             if(action.equals("SPACE"))
-                return IllustratedThemeAssets.tertiarySticker(pack);
-
-            return 0;
+                return themeDecorTertiaryAssetRes(pack);
+            if(right)
+                return themeDecorSecondaryAssetRes(pack);
+            return themeDecorPrimaryAssetRes(pack);
         }
 
         switch(pack) {
@@ -4708,6 +4758,16 @@ public class KeyKiiService extends InputMethodService {
             case 117: return R.drawable.theme_motif_heart;
             case 118: return R.drawable.theme_motif_butterfly;
             case 119: return R.drawable.theme_motif_snow;
+            case 200: return R.drawable.theme_motif_lotus;
+            case 201: return R.drawable.theme_motif_flower;
+            case 202: return R.drawable.theme_motif_leaf;
+            case 203: return R.drawable.theme_motif_bubble;
+            case 204: return R.drawable.theme_motif_bow;
+            case 205: return R.drawable.theme_motif_butterfly;
+            case 206: return R.drawable.theme_motif_lotus;
+            case 207: return R.drawable.theme_motif_heart;
+            case 208: return R.drawable.theme_motif_moonstar;
+            case 209: return R.drawable.theme_motif_butterfly;
         }
 
         return 0;
@@ -4738,6 +4798,16 @@ public class KeyKiiService extends InputMethodService {
             case 117: return R.drawable.theme_motif_bow;
             case 118: return R.drawable.theme_motif_star;
             case 119: return R.drawable.theme_motif_gift;
+            case 200: return R.drawable.theme_motif_butterfly;
+            case 201: return R.drawable.theme_motif_cherry;
+            case 202: return R.drawable.theme_motif_flower;
+            case 203: return R.drawable.theme_motif_star;
+            case 204: return R.drawable.theme_motif_strawberry;
+            case 205: return R.drawable.theme_motif_cloud;
+            case 206: return R.drawable.theme_motif_butterfly;
+            case 207: return R.drawable.theme_motif_bow;
+            case 208: return R.drawable.theme_motif_star;
+            case 209: return R.drawable.theme_motif_star;
         }
 
         return 0;
@@ -4768,6 +4838,16 @@ public class KeyKiiService extends InputMethodService {
             case 117: return R.drawable.theme_motif_flower;
             case 118: return R.drawable.theme_motif_heart;
             case 119: return R.drawable.theme_motif_bow;
+            case 200: return R.drawable.theme_motif_lotus;
+            case 201: return R.drawable.theme_motif_heart;
+            case 202: return R.drawable.theme_motif_cup;
+            case 203: return R.drawable.theme_motif_moonstar;
+            case 204: return R.drawable.theme_motif_heart;
+            case 205: return R.drawable.theme_motif_star;
+            case 206: return R.drawable.theme_motif_lotus;
+            case 207: return R.drawable.theme_motif_flower;
+            case 208: return R.drawable.theme_motif_cloud;
+            case 209: return R.drawable.theme_motif_cup;
         }
 
         return 0;
@@ -9199,7 +9279,8 @@ public class KeyKiiService extends InputMethodService {
         toolsSlideRow(
             mainSlide,
             new String[]{
-                "✓  Grammar Fix"
+                "✓  Grammar Fix",
+                "Aa  Font"
             },
             new Runnable[]{
                 () -> {
@@ -9213,7 +9294,8 @@ public class KeyKiiService extends InputMethodService {
                     shift=false;
                     page=9;
                     buildShell();
-                }
+                },
+                () -> openKeyKiiSettings("fonts")
             }
         );
 
@@ -15288,50 +15370,6 @@ public class KeyKiiService extends InputMethodService {
 
         panel.setForeground(null);
 
-        if(NeoThemeCatalog.isNeoPack(stylePack)) {
-            android.graphics.drawable.LayerDrawable layers=
-                new android.graphics.drawable.LayerDrawable(
-                    new Drawable[]{
-                        bg,
-                        new NeoThemeDrawable(this,stylePack)
-                    }
-                );
-
-            panel.setBackground(layers);
-            panel.setForeground(null);
-            return;
-        }
-
-        if(IllustratedThemeAssets.isNewPack(stylePack)) {
-            int bgRes=
-                IllustratedThemeAssets.background(stylePack);
-
-            if(bgRes!=0) {
-                android.graphics.drawable.Drawable assetBg=
-                    getDrawable(bgRes);
-
-                if(assetBg!=null) {
-                    assetBg=assetBg.mutate();
-
-                    panel.setBackground(
-                        new android.graphics.drawable.LayerDrawable(
-                            new android.graphics.drawable.Drawable[]{
-                                bg,
-                                assetBg
-                            }
-                        )
-                    );
-                } else {
-                    panel.setBackground(bg);
-                }
-            } else {
-                panel.setBackground(bg);
-            }
-
-            panel.setForeground(null);
-            return;
-        }
-
         if(decorStyle>0) {
             android.graphics.drawable.Drawable themeArt;
 
@@ -17215,6 +17253,24 @@ public class KeyKiiService extends InputMethodService {
             case 151:
                 result=assetKeyboardTypeface("fonts/unifraktur_cook.ttf");
                 break;
+            case 152:
+                result=assetKeyboardTypeface("fonts/quicksand.ttf");
+                break;
+            case 153:
+                result=assetKeyboardTypeface("fonts/playfair_display.ttf");
+                break;
+            case 154:
+                result=assetKeyboardTypeface("fonts/space_grotesk.ttf");
+                break;
+            case 155:
+                result=assetKeyboardTypeface("fonts/righteous.ttf");
+                break;
+            case 156:
+                result=assetKeyboardTypeface("fonts/dancing_script.ttf");
+                break;
+            case 157:
+                result=assetKeyboardTypeface("fonts/comfortaa.ttf");
+                break;
             default:
                 result=android.graphics.Typeface.create(
                     "sans-serif",
@@ -17247,6 +17303,18 @@ public class KeyKiiService extends InputMethodService {
 
         if(photoThemeActive())
             return Color.WHITE;
+
+        SharedPreferences p=
+            getSharedPreferences(
+                "keykii_prefs",
+                MODE_PRIVATE
+            );
+        int pack=p.getInt("keykii_style_pack",-1);
+        if(p.getInt("theme_surface_mode",0)==2 && pack>=200 && pack<=209) {
+            return theme==1
+                ? Color.rgb(37,33,46)
+                : Color.WHITE;
+        }
 
         return theme==1
             ? Color.rgb(45,45,45)
@@ -17357,55 +17425,16 @@ public class KeyKiiService extends InputMethodService {
                 -1
             );
 
-        if(NeoThemeCatalog.isNeoPack(activeIllustratedPack)) {
-            return NeoThemeKeyDrawable.state(
-                    this,
-                    activeIllustratedPack,
-                    special,
-                    space
-            );
-        }
-
-        if(IllustratedThemeAssets.isNewPack(activeIllustratedPack)) {
-            int res=
+        if(
+            getSharedPreferences("keykii_prefs",MODE_PRIVATE).getInt("theme_surface_mode",0)==2 &&
+            activeIllustratedPack>=200 &&
+            activeIllustratedPack<=209
+        ) {
+            return cleanGradientThemeKeyBackground(
+                activeIllustratedPack,
+                special,
                 space
-                    ? IllustratedThemeAssets.space(activeIllustratedPack)
-                    : (
-                        special
-                            ? IllustratedThemeAssets.special(activeIllustratedPack)
-                            : IllustratedThemeAssets.key(activeIllustratedPack)
-                      );
-
-            if(res!=0) {
-                android.graphics.drawable.Drawable normal=
-                    getDrawable(res);
-
-                android.graphics.drawable.Drawable pressed=
-                    getDrawable(res);
-
-                if(normal!=null && pressed!=null) {
-                    normal=normal.mutate();
-                    pressed=pressed.mutate();
-                    pressed.setAlpha(205);
-
-                    StateListDrawable exact=
-                        new StateListDrawable();
-
-                    exact.addState(
-                        new int[]{
-                            android.R.attr.state_pressed
-                        },
-                        pressed
-                    );
-
-                    exact.addState(
-                        new int[]{},
-                        normal
-                    );
-
-                    return exact;
-                }
-            }
+            );
         }
 
         boolean borders=
@@ -17920,12 +17949,9 @@ public class KeyKiiService extends InputMethodService {
             );
 
         if(
-            (
-                activePack>=100 &&
-                activePack<=119 &&
-                activePack!=116
-            ) ||
-            IllustratedThemeAssets.isNewPack(activePack)
+            activePack>=100 &&
+            activePack<=119 &&
+            activePack!=116
         ) {
             int percent=
                 themeTransparencyPercent();
@@ -18024,6 +18050,55 @@ public class KeyKiiService extends InputMethodService {
             normal
         );
 
+        return state;
+    }
+
+    int[] cleanThemeKeyPalette(int pack) {
+        switch(pack) {
+            case 200: return new int[]{0xFFDDD0F4,0xFFFBF8FF,0xFFCAAFE9,0xFFEDE3FA,0xFFFFFFFF,0xFFFFFFFF};
+            case 201: return new int[]{0xFFFAD4E4,0xFFFFF8FB,0xFFF3B7D2,0xFFFFEAF2,0xFFFFFFFF,0xFFFFFFFF};
+            case 202: return new int[]{0xFFD2EAD0,0xFFF7FCF6,0xFFB7DCB5,0xFFE6F4E4,0xFFFFFFFF,0xFFFFFFFF};
+            case 203: return new int[]{0xFFC8E6F8,0xFFF5FBFF,0xFFA6D4F2,0xFFE1F2FC,0xFFFFFFFF,0xFFFFFFFF};
+            case 204: return new int[]{0xFFFCD8C3,0xFFFFF8F4,0xFFF4BC9E,0xFFFFEADD,0xFFFFFFFF,0xFFFFFFFF};
+            case 205: return new int[]{0xFFCCD6FA,0xFFF6F8FF,0xFFB0BFF4,0xFFE3E9FD,0xFFFFFFFF,0xFFFFFFFF};
+            case 206: return new int[]{0xFF2E2747,0xFF211C34,0xFF45346B,0xFF2C2349,0x55C992FF,0x88C992FF};
+            case 207: return new int[]{0xFF342330,0xFF241921,0xFF522F45,0xFF32202C,0x55F27CA7,0x88F27CA7};
+            case 208: return new int[]{0xFF1E2C47,0xFF162035,0xFF294069,0xFF1D2B46,0x5574B6FF,0x8874B6FF};
+            case 209: return new int[]{0xFF312822,0xFF221C18,0xFF4B3B2B,0xFF2D241D,0x55E7B773,0x88E7B773};
+            default:  return new int[]{0xFFDDD0F4,0xFFFBF8FF,0xFFCAAFE9,0xFFEDE3FA,0xFFFFFFFF,0xFFFFFFFF};
+        }
+    }
+
+    StateListDrawable cleanGradientThemeKeyBackground(
+        int pack,
+        boolean special,
+        boolean space
+    ) {
+        int[] palette=cleanThemeKeyPalette(pack);
+        boolean accented=special || space;
+        int normalStart=accented ? palette[2] : palette[0];
+        int normalEnd=accented ? palette[3] : palette[1];
+        int stroke=accented ? palette[5] : palette[4];
+        int pressedStart=blendThemeColor(normalStart,accentColor(),22);
+        int pressedEnd=blendThemeColor(normalEnd,accentColor(),16);
+
+        GradientDrawable normal=new GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            new int[]{normalStart,normalEnd}
+        );
+        normal.setCornerRadius(dp(keyCornerRadius()));
+        normal.setStroke(dp(1),stroke);
+
+        GradientDrawable pressed=new GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            new int[]{pressedStart,pressedEnd}
+        );
+        pressed.setCornerRadius(dp(keyCornerRadius()));
+        pressed.setStroke(dp(1),stroke);
+
+        StateListDrawable state=new StateListDrawable();
+        state.addState(new int[]{android.R.attr.state_pressed},pressed);
+        state.addState(new int[]{},normal);
         return state;
     }
 

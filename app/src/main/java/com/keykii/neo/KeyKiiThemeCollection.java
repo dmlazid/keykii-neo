@@ -41,8 +41,8 @@ final class KeyKiiThemeCollection {
         prefs(context).edit().putString(key,b.toString()).apply();
     }
 
-    private static boolean isThemePack(int pack){
-        return (pack>=100&&pack<=139)||NeoThemeCatalog.isNeoPack(pack);
+    static boolean isThemePack(int pack){
+        return (pack>=100&&pack<=119)||(pack>=200&&pack<=209);
     }
 
     static boolean isFavorite(Context context,int pack){

@@ -100,21 +100,19 @@ final class KeyKiiAccess {
     }
 
     static boolean themeNeedsAccess(int pack){
-        NeoThemeCatalog.Entry neo=NeoThemeCatalog.get(pack);
-        if(neo!=null)return neo.pro;
         switch(pack){
             case 100: case 102: case 106: case 108: case 113: case 117:
-            case 120: case 122: case 126: case 128: case 133: case 137:
+            case 200: case 201: case 202: case 206:
                 return false;
             default:
-                return pack>=100&&pack<=139;
+                return (pack>=100&&pack<=119)||(pack>=200&&pack<=209);
         }
     }
 
     static boolean fontNeedsAccess(int style){
         if(ColorFontCatalog.isColorStyle(style))return true;
         if(style>=RemoteFontCatalog.FIRST_STYLE)return true;
-        return (style>=100&&style<=123)||(style>=136&&style<=151);
+        return (style>=100&&style<=123)||(style>=136&&style<=151)||(style>=155&&style<=157);
     }
 
     /**
